@@ -1,0 +1,4 @@
+git+https://github.com/sertansenturk/fileoperations_python.git@v1.1#egg=fileoperations_python
+git+https://github.com/sertansenturk/predominantmelodymakam.git@v1.2.0#egg=predominantmelodymakam
+scikit-learn>=0.17
+numpy>=1.9.0
