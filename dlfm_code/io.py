@@ -4,8 +4,8 @@ import numbers
 
 def get_folder(base_folder, *params):
     # convert numbers to string with the dot replaced with underscore
-    params = (str(p).replace('.', '_') if isinstance(p, numbers.Number) else p
-              for p in params)
+    params = [str(p).replace('.', '_') if isinstance(p, numbers.Number) else p
+              for p in params]
 
     # join the parameters
     tmp_str = '--'.join(params)
