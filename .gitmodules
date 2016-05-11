@@ -1,0 +1,3 @@
+[submodule "data/ottoman_turkish_makam_recognition_dataset"]
+	path = data/ottoman_turkish_makam_recognition_dataset
+	url = git@github.com:MTG/ottoman_turkish_makam_recognition_dataset.git
