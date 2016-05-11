@@ -5,7 +5,7 @@ import numpy as np
 from fileoperations.fileoperations import get_filenames_in_dir
 from morty.classifiers.knnclassifier import KNNClassifier
 from morty.pitchdistribution import PitchDistribution
-from code import io
+from dlfm_code import io
 
 
 def compute_recording_distributions(step_size, kernel_width, distribution_type,
