@@ -14,6 +14,7 @@ setup(name='dlfm_makam_recognition',
       include_package_data=True,
       install_requires=[
           "scikit-learn>=0.17",
-          "numpy>=1.9.0"
+          "numpy>=1.9.0",
+          "ipyparallel>5.0.0"
       ],
       )
