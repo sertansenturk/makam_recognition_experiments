@@ -8,91 +8,108 @@ from morty.classifiers.knnclassifier import KNNClassifier
 import os
 import json
 import numpy as np
+import copy
 
 
-def test(test_idx, step_size, kernel_width, distribution_type,
+def test(step_size, kernel_width, distribution_type,
          model_type, fold_idx, experiment_type, dis_measure, k_neighbor,
          min_peak_ratio, rank, overwrite=False):
 
     # file to save the results
+    res_dict = {'saved': [], 'failed': [], 'skipped': []}
     test_folder = os.path.abspath(os.path.join(io.get_folder(
         os.path.join('.', 'data', 'testing', experiment_type), model_type,
         distribution_type, step_size, kernel_width, dis_measure,
-        k_neighbor, min_peak_ratio), u'fold{0:d}'.format(fold_idx)))
+        k_neighbor, min_peak_ratio), 'fold{0:d}'.format(fold_idx)))
     if not os.path.exists(test_folder):
         os.makedirs(test_folder)
+    else:
+        computed = get_filenames_in_dir(test_folder, keyword='*.json')[0]
+        if len(computed) == 100:
+            res_dict['skipped'] = computed
+            return res_dict
 
     # load fold
     fold_file = os.path.join('.', 'data', 'folds.json')
     folds = json.load(open(fold_file))
+    test_fold = []
     for f in folds:
         if f[0] == fold_idx:
             test_fold = f[1]['testing']
             break
 
-    test_sample = test_fold[test_idx]
-    # get MBID from pitch file
-    mbid = test_sample['source']
-    save_file = os.path.join(test_folder, u'{0:s}.json'.format(mbid))
-    if not overwrite and os.path.exists(save_file):
-        return save_file + ' skipped.'
-    try:
-        # load training model
-        training_folder = os.path.abspath(io.get_folder(
-            os.path.join('data', 'training'), model_type, distribution_type,
-            step_size, kernel_width))
+    assert len(test_fold) == 100, "There should be 100 samples in the test " \
+                                  "fold"
 
-        model_file = os.path.join(training_folder,
-                                  u'fold{0:d}.json'.format(fold_idx))
-        model = json.load(open(model_file))
+    # load training model
+    training_folder = os.path.abspath(io.get_folder(
+        os.path.join('data', 'training'), model_type,
+        distribution_type, step_size, kernel_width))
 
-        # if the model_type is multi and the test data is in the model, remove
-        if model_type == 'multi':
-            for i, m in enumerate(model):
-                if mbid in m:
-                    del model[i]
-                    break
+    model_file = os.path.join(training_folder,
+                              u'fold{0:d}.json'.format(fold_idx))
+    model = json.load(open(model_file))
 
-        # instantiate the PitchDistributions
-        for i, m in enumerate(model):
-            try:  # filepath given
-                model[i] = json.load(open(m))
-            except TypeError:  # dict already loaded
-                assert isinstance(m['feature'], dict), "Unknown model."
-            model[i]['feature'] = PitchDistribution.from_dict(
-                model[i]['feature'])
+    # instantiate the PitchDistributions
+    for i, m in enumerate(model):
+        try:  # filepath given
+            model[i] = json.load(open(m))
+        except TypeError:  # dict already loaded
+            assert isinstance(m['feature'], dict), "Unknown model."
+        model[i]['feature'] = PitchDistribution.from_dict(
+            model[i]['feature'])
+
+    for test_sample in test_fold:
+        # get MBID from pitch file
+        mbid = test_sample['source']
+        save_file = os.path.join(test_folder, u'{0:s}.json'.format(mbid))
+        if not overwrite and os.path.exists(save_file):
+            res_dict['skipped'].append(save_file)
+            continue
 
         # instantiate the classifier and evaluator object
         classifier = KNNClassifier(
             step_size=step_size, kernel_width=kernel_width,
-            feature_type=distribution_type, model=model)
+            feature_type=distribution_type, model=copy.deepcopy(model))
 
-        # we use the pitch instead of the distribution already computed in the
-        # feature extraction. those distributions are normalized wrt tonic to
-        # one of the bins centers will exactly correspond to the tonic freq.
-        # therefore it would be cheating
-        pitch = np.loadtxt(test_sample['pitch'])
-        if experiment_type == 'tonic':  # tonic identification
-            results = classifier.estimate_tonic(
-                pitch, test_sample['mode'], min_peak_ratio=min_peak_ratio,
-                distance_method=dis_measure, k_neighbor=k_neighbor, rank=rank)
-        elif experiment_type == 'mode':  # mode recognition
-            results = classifier.estimate_mode(
-                pitch, test_sample['tonic'], distance_method=dis_measure,
-                k_neighbor=k_neighbor, rank=rank)
-        elif experiment_type == 'joint':  # joint estimation
-            results = classifier.estimate_joint(
-                pitch, min_peak_ratio=min_peak_ratio,
-                distance_method=dis_measure, k_neighbor=k_neighbor, rank=rank)
-        else:
-            raise ValueError("Unknown experiment_type")
+        # if the model_type is multi and the test data is in the model,
+        # remove it
+        if model_type == 'multi':
+            for i, m in enumerate(classifier.model):
+                if mbid in m:
+                    del classifier.model[i]
+                    break
 
-        # save results
-        json.dump(results, open(save_file, 'w'))
-        return save_file + ' saved.'
+        try:
+            # we use the pitch instead of the distribution already computed in
+            # the feature extraction. those distributions are normalized wrt
+            # tonic to one of the bins centers will exactly correspond to
+            # the tonic freq. therefore it would be cheating
+            pitch = np.loadtxt(test_sample['pitch'])
+            if experiment_type == 'tonic':  # tonic identification
+                results = classifier.estimate_tonic(
+                    pitch, test_sample['mode'], min_peak_ratio=min_peak_ratio,
+                    distance_method=dis_measure, k_neighbor=k_neighbor,
+                    rank=rank)
+            elif experiment_type == 'mode':  # mode recognition
+                results = classifier.estimate_mode(
+                    pitch, test_sample['tonic'], distance_method=dis_measure,
+                    k_neighbor=k_neighbor, rank=rank)
+            elif experiment_type == 'joint':  # joint estimation
+                results = classifier.estimate_joint(
+                    pitch, min_peak_ratio=min_peak_ratio,
+                    distance_method=dis_measure, k_neighbor=k_neighbor,
+                    rank=rank)
+            else:
+                raise ValueError("Unknown experiment_type")
 
-    except Exception as ex:
-        return save_file + ' computed.', ex
+            # save results
+            json.dump(results, open(save_file, 'w'))
+            res_dict['saved'].append(save_file)
+        except:
+            res_dict['failed'].append(save_file)
+
+    return res_dict
 
 
 def search_min_peak_ratio(step_size, kernel_width, distribution_type,
