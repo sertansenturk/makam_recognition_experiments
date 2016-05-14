@@ -52,7 +52,7 @@ def test(step_size, kernel_width, distribution_type,
     for i, m in enumerate(model):
         try:  # filepath given
             model[i] = json.load(open(os.path.join(save_folder, m)))
-        except TypeError:  # dict already loaded
+        except (TypeError, AttributeError):  # dict already loaded
             assert isinstance(m['feature'], dict), "Unknown model."
         model[i]['feature'] = PitchDistribution.from_dict(
             model[i]['feature'])
