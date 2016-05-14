@@ -13,24 +13,23 @@ import copy
 
 def test(step_size, kernel_width, distribution_type,
          model_type, fold_idx, experiment_type, dis_measure, k_neighbor,
-         min_peak_ratio, rank, overwrite=False):
+         min_peak_ratio, rank, save_folder, overwrite=False):
 
     # file to save the results
     res_dict = {'saved': [], 'failed': [], 'skipped': []}
     test_folder = os.path.abspath(os.path.join(io.get_folder(
-        os.path.join('.', 'data', 'testing', experiment_type), model_type,
+        os.path.join(save_folder, 'testing', experiment_type), model_type,
         distribution_type, step_size, kernel_width, dis_measure,
         k_neighbor, min_peak_ratio), 'fold{0:d}'.format(fold_idx)))
+    results_file = os.path.join(test_folder, 'results.json')
     if not os.path.exists(test_folder):
         os.makedirs(test_folder)
     else:
-        computed = get_filenames_in_dir(test_folder, keyword='*.json')[0]
-        if len(computed) == 100:
-            res_dict['skipped'] = computed
-            return res_dict
+        if os.path.exists(results_file):
+            return u"{0:s} already has results.".format(test_folder)
 
     # load fold
-    fold_file = os.path.join('.', 'data', 'folds.json')
+    fold_file = os.path.join(save_folder, 'folds.json')
     folds = json.load(open(fold_file))
     test_fold = []
     for f in folds:
@@ -43,17 +42,16 @@ def test(step_size, kernel_width, distribution_type,
 
     # load training model
     training_folder = os.path.abspath(io.get_folder(
-        os.path.join('data', 'training'), model_type,
+        os.path.join(save_folder, 'training'), model_type,
         distribution_type, step_size, kernel_width))
 
     model_file = os.path.join(training_folder,
                               u'fold{0:d}.json'.format(fold_idx))
     model = json.load(open(model_file))
-
     # instantiate the PitchDistributions
     for i, m in enumerate(model):
         try:  # filepath given
-            model[i] = json.load(open(m))
+            model[i] = json.load(open(os.path.join(save_folder, m)))
         except TypeError:  # dict already loaded
             assert isinstance(m['feature'], dict), "Unknown model."
         model[i]['feature'] = PitchDistribution.from_dict(
@@ -109,6 +107,18 @@ def test(step_size, kernel_width, distribution_type,
         except:
             res_dict['failed'].append(save_file)
 
+    if not res_dict['failed']:
+        computed = get_filenames_in_dir(test_folder, keyword='*.json')[0]
+        assert len(computed) == 100, 'There should have been 100 tested files.'
+
+        results = {}
+        for c in computed:
+            mbid = os.path.splitext(os.path.split(c)[-1])[0]
+            results[mbid] = json.load(open(c))
+
+        json.dump(results, open(results_file, 'w'), indent=4)
+        for c in computed:
+            os.remove(c)
     return res_dict
 
 

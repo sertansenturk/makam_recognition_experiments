@@ -8,12 +8,13 @@ from morty.pitchdistribution import PitchDistribution
 from dlfm_code import io
 
 
-def compute_recording_distributions(step_size, kernel_width, distribution_type,
-                                    anno, overwrite=False):
+def compute_recording_distributions(
+        step_size, kernel_width, distribution_type, anno, dataset_folder,
+        save_folder, overwrite=False):
     # get mbid
     mbid = os.path.split(anno['mbid'])[-1]
 
-    base_folder = os.path.join('.', 'data', 'features')
+    base_folder = os.path.join(save_folder, 'features')
     feature_folder = os.path.abspath(io.get_folder(
         base_folder, distribution_type, step_size, kernel_width))
     if not os.path.exists(feature_folder):
@@ -28,7 +29,7 @@ def compute_recording_distributions(step_size, kernel_width, distribution_type,
         return norm_save_file + ' skipped.'
 
     pitch_file = os.path.abspath(os.path.join(
-        anno['dataset_path'], 'data', anno['makam'], mbid + '.pitch'))
+        dataset_folder, 'data', anno['makam'], mbid + '.pitch'))
     pitch = np.loadtxt(pitch_file)
 
     # compute histogram (for single training sample per mode)
@@ -53,15 +54,16 @@ def compute_recording_distributions(step_size, kernel_width, distribution_type,
 
 
 def train_single(step_size, kernel_width, distribution_type, fold_tuple,
-                 overwrite=False):
+                 save_folder, overwrite=False):
     training_file = io.get_training_file(
-        step_size, kernel_width, distribution_type, 'single', fold_tuple)
+        save_folder, step_size, kernel_width, distribution_type, 'single',
+        fold_tuple)
 
     if not overwrite and os.path.exists(training_file):
         return training_file + ' skipped.'
 
     # get features
-    base_folder = os.path.join('.', 'data', 'features')
+    base_folder = os.path.join(save_folder, 'features')
     feature_folder = os.path.abspath(io.get_folder(
         base_folder, distribution_type, step_size, kernel_width))
     # get histogram files computed from the audio recordings
@@ -106,16 +108,20 @@ def train_single(step_size, kernel_width, distribution_type, fold_tuple,
 
 
 def train_multi(step_size, kernel_width, distribution_type, fold_tuple,
-                overwrite=False):
+                save_folder, overwrite=False):
+    if save_folder.endswith('/'):
+        save_folder = save_folder[:-1]
+
     # check if the model is already trained
     training_file = io.get_training_file(
-        step_size, kernel_width, distribution_type, 'multi', fold_tuple)
+        save_folder, step_size, kernel_width, distribution_type, 'multi',
+        fold_tuple)
 
     if not overwrite and os.path.exists(training_file):
         return training_file + ' skipped.'
 
     # get feature files
-    base_folder = os.path.join('.', 'data', 'features')
+    base_folder = os.path.join(save_folder, 'features')
     feature_folder = io.get_folder(base_folder, distribution_type, step_size,
                                    kernel_width)
     # get probability density functions computed from audio recordings
@@ -128,10 +134,11 @@ def train_multi(step_size, kernel_width, distribution_type, fold_tuple,
     for ff in feature_files:
         for i, mbid in enumerate(training['sources']):
             if mbid in ff:  # keep the filenames for compactness
-                model_files.append(ff)
+                # remove the save_folder for compactness
+                model_files.append(ff.replace(save_folder, '.'))
 
-    assert len(model_files) == 900, 'The model should have been 900 ' \
-                                    'recordings to train'
+    assert len(model_files) == 900, 'The model should have 900 recordings ' \
+                                    'to train'
 
     # save the model
     json.dump(model_files, open(training_file, 'w'))

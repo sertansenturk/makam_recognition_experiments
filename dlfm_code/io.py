@@ -16,11 +16,11 @@ def get_folder(base_folder, *params):
     return folder
 
 
-def get_training_file(step_size, kernel_width, distribution_type,
+def get_training_file(save_folder, step_size, kernel_width, distribution_type,
                       model_type, fold_tuple):
     # check if the model is already trained
     training_folder = get_folder(
-        os.path.join('.', 'data', 'training'), model_type,
+        os.path.join(save_folder, 'training'), model_type,
         distribution_type, step_size, kernel_width)
     fold_idx = fold_tuple[0]
     training_file = os.path.join(training_folder,
