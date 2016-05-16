@@ -1,3 +1,10 @@
+# latex temporary files
+*.aux
+*.bbl
+*.blg
+*.tex.backup
+*.synctex.gz
+
 # ignore the data folder for now
 data
 
