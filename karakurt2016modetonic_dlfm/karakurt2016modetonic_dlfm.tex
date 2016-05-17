@@ -60,13 +60,13 @@ Altu\u{g} Karakurt\\
 \alignauthor
 Sertan \c{S}ent\"{u}rk, \\
        \affaddr{Universitat Pompeu Fabra}\\
-       \affaddr{Roc Boronat XX}\\
+       \affaddr{Roc Boronat, 138}\\
        \affaddr{Barcelona, Spain 08018}\\
        \email{sertan.senturk@upf.edu}
 % 3rd. author
 \alignauthor Xavier Serra\\
        \affaddr{Universitat Pompeu Fabra}\\
-       \affaddr{Roc Boronat XX}\\
+       \affaddr{Roc Boronat, 138}\\
        \affaddr{Barcelona, Spain 08018}\\
        \email{xavier.serra@upf.edu}
 }
@@ -109,7 +109,7 @@ Sertan \c{S}ent\"{u}rk, \\
 
 \printccsdesc
 
-\keywords{Mode recognition; Tonic Identification; Toolbox; Ottoman-Turkish makam music; Carnatic Music; Hindustani Music; Pitch Class Distribution}
+\keywords{Mode recognition; Tonic Identification; Toolbox; Ottoman-Turkish makam music; Carnatic Music; Hindustani Music; Pitch Class Distribution; $k$-nearest neighbors}
 
 \section{Introduction}\label{sec:introduction}
 In many music cultures, the mode specifies the scale and melodic characteristics of the music. Mode recognition is an important task for computational musicology to study the underlying phenomena behind this concept. Tonic is the reference frequency of a recording, which is used to determine the frequencies that correspond to the notes of the studied musical tradition. Many modal music cultures don't have a consensus on frequency values for notes, which makes it crucial to identify the tonic frequency correctly. Knowing it allows us to reveal the mapping of notes to frequencies and to computationally study pitch-related properties of a recording. This mapping also makes it possible to compare such properties of multiple recordings independent from their potentially different tonic frequencies. Hence, estimating the tonic of a recording is the first step for various tasks, such as tuning analysis~\cite{tuning}, and automatic transcription~\cite{transcription}. One of our motivations for this work is to provide dependable tools to be used for such higher level tasks for modal music cultures.
@@ -147,6 +147,7 @@ Note that these scenarios are actually multi-class problems, since the mode and 
 
 \section{Related Work}\label{sec:stateoftheart}
 
+
 The use of pitch histograms haven't been limited to modal music domain, but extends to various music information retrieval tasks, such as key detection~\cite{key_detection} and chord recognition~\cite{emilia}. However, these works deal with the equal-tempered euro-genetic music traditions and the used histograms have fixed size of 12 to capture the used 12 notes. This resolution is insufficient for representing the much denser frequency mappings of notes in certain modal music cultures~\cite{chordia, bozkurt_makam, bozkurt_tonic}. 
 
 distribution-based methods asume modla smilarity, e.g. the shape of the distributions extracted from two different performances of the same mode should be similar. Musically, the shape similarity implies the tuning and the relative occurrence of the stable peaks are close to each each other.
@@ -154,9 +155,15 @@ distribution-based methods asume modla smilarity, e.g. the shape of the distribu
 which cultures need this
 
 mode recognition
-- distribution based models
+- Koduri et al. reviews pitch distribution~\cite{koduri2012ragaReview}.
+
 - transcription based modelsXX
-- network analysis (sankalp)
+
+Gopal use parameterized pitch distribution of individual svaras as features~\cite{koduri2014intonation}
+
+In~\cite{gulati_network} a method based on melodic contours is proposed for mode recognition. The method automaticaly extracts melodic phrases from audio recordings with labeled mode. These phrases indicate the characteristic movements of the performed mode. These phrases are then compared with melodic phrases automatically extracted from a test recording and the mode of the recording is estimated using a network analysis approach.
+
+
 - dastgh musicXX
 - neural netsXX?
 
@@ -249,7 +256,7 @@ The fundamental difference between the methods proposed in~\cite{bozkurt_makam} 
 
 
 \section{Nearest Neighbor Selection}\label{sec:distance}
-In mode recognition, tonic identification and joint estimation tasks (Section~\ref{sec:mode}-\ref{sec:joint}), the basic step is to find the nearest neighbor(s) of a selected distribution among a set of distributions to be compared against. To find the nearest neighbors we compute a distance or a dissimilarity between the test distribution and each distribution in the comparison set~\cite{distance}. We have currently implemented the distance and the similarity metrics in~\cite{bozkurt_makam, chordia}, namely, City-Block ($L_1$ Norm) distance, Euclidean ($L_2$ Norm) distance, $L_3$ Norm, Bhattacharya distance, intersection and cross correlation {\bf (P3)}. Note that intersection and cross correlation are similarity metrics, hence we convert them to dissimilarities (i.e. $1 - $similarity) instead. The choice of the distance or dissimilarity measure plays a crucial role in the neighbor selection.
+In mode recognition, tonic identification and joint estimation tasks (Section~\ref{sec:mode}-\ref{sec:joint}), the basic step is to find the nearest neighbor(s) of a selected distribution among a set of distributions to be compared against. To find the nearest neighbors we compute a distance or a dissimilarity between the test distribution and each distribution in the comparison set~\cite{distance}. We have currently implemented the distance and the similarity metrics in~\cite{bozkurt_makam, chordia}, namely, City-Block ($L_1$ Norm) distance, Euclidean ($L_2$ Norm) distance, $L_3$ Norm, Bhattacharyya distance, intersection and cross correlation {\bf (P3)}. Note that intersection and cross correlation are similarity metrics, hence we convert them to dissimilarities (i.e. $1 - $similarity) instead. The choice of the distance or dissimilarity measure plays a crucial role in the neighbor selection.
 
 After the distances or the dissimilarities are computed, the compared distributions are ranked and the $k$ {\bf (P4)} nearest neighbors are selected. We then estimate the test sample as the most common label ($\zeta_v$) of the neighbors. In case of a tie between two or more groups, we select label of the group, which accumulates the lowest distance or dissimilarity. Note that if a single-distribution is computed for each mode ({\bf M} as explained in Section~\ref{sec:training}), the $k$ value is always 1, since each mode is only represented by one sample.
 
@@ -273,7 +280,7 @@ Now we proceed to explain the procedure for each task {\bf(T)} in detail.
 %\left(\sum\limits_{m=1}^{M}|h^{(r)}_m - h^{(t)}_m|^3\right)^{1/3}
 %\end{equation}
 %
-%\item Bhattacharya Distance:
+%\item Bhattacharyya Distance:
 %\begin{equation}
 %-\log\sum\limits_{m=1}^{M}\sqrt{h^{(r)}_mh^{(t)}_m}
 %\end{equation}
@@ -365,7 +372,7 @@ Similar to~\cite{senturk2013karar_ismir} and~\cite{sercan_tonic}, the recordings
 Similar to~\cite{bozkurt_makam}, the dataset is intended to be musically representative of OTMM. To achieve this, we selected the recordings of acknowledged musicians from the CompMusic makam corpus, which is currently the most representative music corpus of OTMM aimed at computational research~\cite{compmusic_corpus}. The dataset covers contemporary and historical, monophonic and heterophonic recordings, as well as live and studio recordings. Some of the recordings have non-musical sections, such as clapping at the end of live recordings, announcements in radio recordings or scratch and hissing sounds throughout the historical recordings. Pie chard of the instrument vocal etc.XX This diversity gives us the opportunity to test the methods in a much more challenging environment, which hasn't been completely addressed in the previous research~\cite{bozkurt_makam}. Following our assumption in the problem definition, each recording belongs to a single makamXXrephrase.
 
 \section{Experimental Setup}\label{sec:experiment_setup}
-In the experiments we use stratified 10-fold cross validation. Table~\ref{tab:performanceKDoc} gives a combination of the parameters used in the experimental setup. We use grid search, to find the optimal parameters for OTMM (Section~\ref{sec:methodology}). {\bf (F1)} is selected as the state of the art in predominant melody extraction for OTMM. The parameter combinations where the step size $\beta$ is greater than or equal to $3$ times the kernel width $\sigma$ are omitted. We also conduct experiments where the distribution smoothing is skipped. When the training model consists of a ``single'' distribution per mode, the number of neighbors $k$ is always taken as 1 as each label is represented by a single data point. The minimum peak ratio {\bf (P5)} is only used in tonic identification and its optimal value is found separately as will be explained in Section~\ref{sec:results}.
+In the experiments we use stratified 10-fold cross validation. Table~\ref{tab:performanceKDoc} gives a combination of the parameters used in the experimental setup. We use grid search, to find the optimal parameters for OTMM (Section~\ref{sec:methodology}). {\bf (F1)} is selected as the state of the art in predominant melody extraction for OTMM. The parameter combinations where the bin size $\beta$ is greater than or equal to $3$ times the kernel width $\sigma$ are omitted. We also conduct experiments where the distribution smoothing is skipped. When the training model consists of a ``single'' distribution per mode, the number of neighbors $k$ is always taken as 1 as each label is represented by a single data point. The minimum peak ratio {\bf (P5)} is only used in tonic identification and its optimal value is found separately as will be explained in Section~\ref{sec:results}.
 
 \begin{table*}
 \caption{The summary of the parameters tried in the experiments}
@@ -438,6 +445,14 @@ These experiments revealed that certain parameter selections significantly impro
 
 Confusion matrix XX
 
+\section{Experiments on Hindustani and Carnatic Music}
+\label{sec:hindustani_carnatic}
+
+Recently, MORTY had been used as a benchmark for raga/raag recognition of audio recordings of Hindustani and Carnatic music in comparison with two novel methods~\cite{gulati_network, hindustani_carnatic_experiments_anon}. In the experiments we use the optimal parameters reported in~\cite{chordia}: We compute pitch class distributions with a bin size of $\beta=10$ cents. The kernel width $\sigma$ reported in~\cite{chordia} is in Hz scale, which is would mean variable smoothing across octave. We empirically found $\sigma = 15$ cents as a reasonable value. We train multiple pitch class distributions per mode as described in~\cite{chordia}. In testing we use Bhattacharyya distance and select the nearest neighbor ($k = 1$). Note that there already exists a method for tonic identification for these music traditions~\cite{sankalp_tonic}, which is reported to provide near perfect results. We use this method for the automatic tonic identification instead of the methodology explained in Section~\ref{sec:training}. Below we explain the results briefly. Please refer to the respective papers~\cite{gulati_network, hindustani_carnatic_experiments_anon} for further details.
+
+In~\cite{gulati_network} a method based on melodic contours is proposed for mode recognition. The method is compared against the methods proposed in~\cite{chordia} (our method) and~\cite{koduri2014intonation} on two datasets consisting Carnatic music recordings in 10 ragas and 40 ragas, respectively. The best accuracies obtained for the 10 raga dataset are $91.7\%$, $89.5\%$ and $70.01\%$ using the proposed method, MORTY and~\cite{koduri2014intonation}. Both the proposed methodology and MORTY obtained comparable results and they outperformed~\cite{koduri2014intonation}. In the 40 raga dataset our method ($74.1\%$ accuracy) outperformed the both methods the proposed method ($69.6\%$ accuracy) and ~\cite{koduri2014intonation} ($51.4\%$ accuracy).
+
+Later the same authors have proposed another feature for raga recognition~\cite{hindustani_carnatic_experiments_anon}, which they term as ``time-delayed melody surface.'' The training and testing scheme is the same with the procedure explained in~\cite{chordia}. In the experiments The proposed feature was compared against pitch class distributions on a dataset of Hindustani recordings and the same dataset used in~\cite{gulati_network} with a different experimental setup. In both datasets the proposed feature ($97.7\%$ accuracy on Hindustani and $86.7\%$ accuracy on Carnatic dataset) has outperforms PCDs ($91.7\%$ accuracy on Hindustani and $73.1\%$ accuracy on Carnatic dataset).
 
 \section{Multi-Layer Perceptron Network}\label{sec:neuralnet}
 Multi-layer perceptron network (MLP) or fully connected neural network~\cite{neural_textbook} is one of the most commonly used general purpose neural network architectures in the literature. As a primer work on applying neural networks on culture-independent modal music information retrieval, we decided to use this architecture, due to its established theory and convenience for theoretical computations. 
@@ -460,17 +475,9 @@ As an example, we consider using 160 dimensional and 80 dimensional PCDs, which 
 
 To tackle this problem, we considered using principal component analysis (PCA)~\cite{pca} for dimension reduction, which would diminish the size of the network while preserving the variance among training samples. However, our experiments on our dataset yielded unsatisfactory results. 
 
-\section{Experiments on Hindustani and Carnatic Music}
-\label{sec:hindustani_carnatic}
-Note that~\cite{chordia} is originally evaluated on short  (e.g. 1 minute long) audio excerpts. In the experiments presented on OTMM, Hindustani and Carnatic music traditions (Section XX, XX), we use the complete audio recordings instead.
-
-MORTY had been used as a benchmark for mode recognition in comparison with two novel methods, one for Hindustani~\cite{hindustani_carnatic_experiments_anon} and the other for Carnatic and Hindustani tradition~\cite{hindustani_carnatic_experiments_anon, carnatic_experiments_anon} traditions. Below we explain the results briefly. Note that there already exists a method for tonic identification for these music traditions~\cite{sankalp_tonic}, which is reported to provide near perfect results. This method is used in both for the automatic tonic identification step. Therefore, the tonic identification and joint estimation using the methods in the toolbox aren't applied during these experiments.
-
-In the first of these methods,~\cite{carnatic_experiments_anon} the multi-histogram approach~\cite{chordia} was used as the state of the art of the culture. The methods are evaluated for 10 raga and 40 raga setups and only the results with optimal parameters was reported, which were chosen as 7.5 cents bin size and 7.5 cents smoothing factor. Originally, this method was proposed for ragas in short excerpts of the recordings. These experiments were conducted for both entire recordings and the 120 seconds windows of recordings. The full recording mode recognition yielded an accuracy of 89.5\%, while the windowed excerpts yielded 82.2\% in the case of 10 raga scenario and 66.4\% and 74.1\% in the 40 raga case, respectively. XX ikinci sayi kumesinde hata olabilir mi? XX comparison
-
-In the latter work~\cite{hindustani_carnatic_experiments_anon}, the proposed mode recognition method is applicable to both Hindustani and Carnatic traditions and the multi-histogram approach~\cite{chordia} was again used as the state of the art for comparison. The used Carnatic dataset is composed of 40 ragas and the Hindustani dataset 30 ragas. The results for multi-histogram method was again only reported for the optimal parameter set, which is the same as the aforementioned paper. This method performed 91.7\% accuracy on Hindustani and 73.1\% on Carnatic datasets. XX comparison
-
 \section{Discussion}\label{sec:discussion}
+
+The drawback of the pitch class distribution method is that it does not consider the temporal characteristics. When we inspected the results obtained from the experiments in~\ref{sec:experiments}, we observed that the confusions are mainly between makams, which either have very similar intervals in their scale. Similarly in~\cite{gulati_network}, the proposed method was better in classifying phrase-based ragas, while our method was better at classifying scale based ones. The mode recognition using the feature proposed in ~\cite{hindustani_carnatic_experiments_anon} is able to capture both of these properties better with a slight increase in computational complexity.
 
 Nevertheless,~\cite{sercan_tonic} yields better results in tonic identification when the makam information is not available.
 
