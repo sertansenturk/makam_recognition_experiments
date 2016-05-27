@@ -9,6 +9,7 @@ import os
 import json
 import numpy as np
 import copy
+import json_tricks
 
 
 def test(step_size, kernel_width, distribution_type,
@@ -122,6 +123,118 @@ def test(step_size, kernel_width, distribution_type,
     return res_dict
 
 
+def evaluate(step_size, kernel_width, distribution_type, model_type,
+             experiment_type, dis_measure, k_neighbor, min_peak_ratio,
+             result_folder, overwrite=False):
+
+    test_folder = os.path.abspath(os.path.join(io.get_folder(
+        os.path.join(result_folder, 'testing', experiment_type), model_type,
+        distribution_type, step_size, kernel_width, dis_measure,
+        k_neighbor, min_peak_ratio)))
+    result_files = get_filenames_in_dir(test_folder,
+                                        keyword='*results.json')[0]
+
+    anno_file = './data/ottoman_turkish_makam_recognition_dataset' \
+                '/annotations.json'
+    annotations = json.load(open(anno_file))
+    evaluator = Evaluator()
+
+    if experiment_type == 'tonic':
+        eval_folds = {'num_correct_tonic': 0, 'tonic_accuracy': 0}
+    elif experiment_type == 'mode':
+        eval_folds = {'num_correct_mode': 0, 'mode_accuracy': 0}
+    else:
+        eval_folds = {'num_correct_tonic': 0, 'tonic_accuracy': 0,
+                      'num_correct_mode': 0, 'mode_accuracy': 0,
+                      'num_correct_joint': 0, 'joint_accuracy': 0}
+    for rf in result_files:
+        res = json.load(open(rf))
+        eval_file = os.path.join(os.path.dirname(rf), 'evaluation.json')
+
+        rec_ev = []
+        for aa in annotations:
+            mbid = os.path.split(aa['mbid'])[-1]
+
+            if mbid in res.keys():  # in testing data
+                if experiment_type == 'tonic':
+                    rec_ev.append(evaluator.evaluate_tonic(res[mbid][0][0],
+                                                           aa['tonic'], mbid))
+                    rec_ev[-1]['tonic_eval'] = rec_ev[-1]['tonic_eval'].\
+                        tolist()
+                    rec_ev[-1]['same_octave'] = rec_ev[-1]['same_octave'].\
+                        tolist()
+                elif experiment_type == 'mode':
+                    rec_ev.append(evaluator.evaluate_mode(res[mbid][0][0],
+                                                          aa['makam'], mbid))
+
+                    # TODO: add confusion matrix
+                else:
+                    rec_ev.append(evaluator.evaluate_joint(
+                        [res[mbid][0][0][0], aa['tonic']],
+                        [res[mbid][0][0][1], aa['makam']], mbid))
+                    # TODO: add confusion matrix
+
+                    rec_ev[-1]['tonic_eval'] = rec_ev[-1]['tonic_eval'].\
+                        tolist()
+                    rec_ev[-1]['same_octave'] = rec_ev[-1]['same_octave'].\
+                        tolist()
+                    try:
+                        rec_ev[-1]['joint_eval'] = rec_ev[-1]['joint_eval'].\
+                            tolist()
+                    except AttributeError:
+                        pass
+
+        ev = {'per_recording': rec_ev, 'overall':{}}
+        try:
+            ev['overall']['num_correct_tonic'] = sum(re['tonic_eval']
+                                                     for re in rec_ev)
+            ev['overall']['tonic_accuracy'] = (
+                ev['overall']['num_correct_tonic'] / len(rec_ev))
+
+            eval_folds['num_correct_tonic'] += ev['overall'][
+                'num_correct_tonic']
+        except KeyError:
+            pass
+        try:
+            ev['overall']['num_correct_mode'] = sum(re['mode_eval']
+                                                    for re in rec_ev)
+            ev['overall']['mode_accuracy'] = (
+                ev['overall']['num_correct_mode'] / len(rec_ev))
+
+            eval_folds['num_correct_mode'] += ev['overall'][
+                'num_correct_mode']
+
+            # TODO: ad confusion matrix
+        except KeyError:
+            pass
+        try:
+            ev['overall']['num_correct_joint'] = sum(re['joint_eval']
+                                                     for re in rec_ev)
+            ev['overall']['joint_accuracy'] = (
+                ev['overall']['num_correct_joint'] / len(rec_ev))
+
+            eval_folds['num_correct_joint'] += ev['overall'][
+                'num_correct_joint']
+
+            # TODO: add confusion matrix
+        except KeyError:
+            pass
+
+        json.dump(rec_ev, open(eval_file, 'w'))
+
+    if experiment_type == 'tonic':
+        eval_folds['tonic_accuracy'] = eval_folds['num_correct_tonic'] / 10
+    elif experiment_type == 'mode':
+        eval_folds['mode_accuracy'] = eval_folds['num_correct_mode'] / 10
+    else:
+        eval_folds['tonic_accuracy'] = eval_folds['num_correct_tonic'] / 10
+        eval_folds['mode_accuracy'] = eval_folds['num_correct_mode'] / 10
+        eval_folds['joint_accuracy'] = eval_folds['num_correct_joint'] / 10
+
+    json.dump(eval_folds,
+              open(os.path.join(test_folder, 'overall_eval.json'), 'w'))
+
+
 def search_min_peak_ratio(step_size, kernel_width, distribution_type,
                           min_peak_ratio):
     base_folder = os.path.join('data', 'features')
@@ -182,5 +295,3 @@ def plot_min_peak_ratio(min_peak_ratios, ratio_tonic, num_peak,
             'Results wrt minimum_peak_ratio values computed\nusing '
             '{0:d} recordings in {1:d} experiments'.format(1000 * num_exps,
                                                            num_exps))
-
-    plt.show()
