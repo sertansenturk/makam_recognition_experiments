@@ -126,7 +126,6 @@ def test(step_size, kernel_width, distribution_type,
 def evaluate(step_size, kernel_width, distribution_type, model_type,
              experiment_type, dis_measure, k_neighbor, min_peak_ratio,
              result_folder, overwrite=False):
-
     test_folder = os.path.abspath(os.path.join(io.get_folder(
         os.path.join(result_folder, 'testing', experiment_type), model_type,
         distribution_type, step_size, kernel_width, dis_measure,
@@ -204,7 +203,7 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
             eval_folds['num_correct_mode'] += ev['overall'][
                 'num_correct_mode']
 
-            # TODO: ad confusion matrix
+            # TODO: add confusion matrix
         except KeyError:
             pass
         try:
@@ -233,6 +232,8 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
 
     json.dump(eval_folds,
               open(os.path.join(test_folder, 'overall_eval.json'), 'w'))
+
+    return u'{0:s} done'.format(test_folder)
 
 
 def search_min_peak_ratio(step_size, kernel_width, distribution_type,
