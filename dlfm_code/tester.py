@@ -1,3 +1,4 @@
+from __future__ import division
 from fileoperations.fileoperations import get_filenames_in_dir
 from morty.pitchdistribution import PitchDistribution
 from morty.evaluator import Evaluator
@@ -9,7 +10,6 @@ import os
 import json
 import numpy as np
 import copy
-import json_tricks
 
 
 def test(step_size, kernel_width, distribution_type,
@@ -219,7 +219,7 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
         except KeyError:
             pass
 
-        json.dump(rec_ev, open(eval_file, 'w'))
+        json.dump(ev, open(eval_file, 'w'))
 
     if experiment_type == 'tonic':
         eval_folds['tonic_accuracy'] = eval_folds['num_correct_tonic'] / 10
