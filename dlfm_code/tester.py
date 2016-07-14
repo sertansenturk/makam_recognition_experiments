@@ -10,7 +10,7 @@ import os
 import json
 import numpy as np
 import copy
-
+import shutil
 
 def test(step_size, kernel_width, distribution_type,
          model_type, fold_idx, experiment_type, dis_measure, k_neighbor,
@@ -26,7 +26,10 @@ def test(step_size, kernel_width, distribution_type,
     if not os.path.exists(test_folder):
         os.makedirs(test_folder)
     else:
-        if os.path.exists(results_file):
+        if overwrite:
+            shutil.rmtree(test_folder, ignore_errors=True)
+            os.makedirs(test_folder)
+        elif os.path.exists(results_file):
             return u"{0:s} already has results.".format(test_folder)
 
     # load fold
@@ -57,6 +60,9 @@ def test(step_size, kernel_width, distribution_type,
             assert isinstance(m['feature'], dict), "Unknown model."
         model[i]['feature'] = PitchDistribution.from_dict(
             model[i]['feature'])
+        if any(test_sample['source'] in model[i]['sources']
+               for test_sample in test_fold):
+            raise RuntimeError('Test data uses training data!')
 
     for test_sample in test_fold:
         # get MBID from pitch file
@@ -146,6 +152,7 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
         eval_folds = {'num_correct_tonic': 0, 'tonic_accuracy': 0,
                       'num_correct_mode': 0, 'mode_accuracy': 0,
                       'num_correct_joint': 0, 'joint_accuracy': 0}
+
     for rf in result_files:
         res = json.load(open(rf))
         eval_file = os.path.join(os.path.dirname(rf), 'evaluation.json')
@@ -162,6 +169,8 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
                         tolist()
                     rec_ev[-1]['same_octave'] = rec_ev[-1]['same_octave'].\
                         tolist()
+
+                    # TODO: add/parse the distance between the tonic and est.
                 elif experiment_type == 'mode':
                     rec_ev.append(evaluator.evaluate_mode(res[mbid][0][0],
                                                           aa['makam'], mbid))
@@ -171,7 +180,9 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
                     rec_ev.append(evaluator.evaluate_joint(
                         [res[mbid][0][0][0], aa['tonic']],
                         [res[mbid][0][0][1], aa['makam']], mbid))
+
                     # TODO: add confusion matrix
+                    # TODO: add/parse the distance between the tonic and est.
 
                     rec_ev[-1]['tonic_eval'] = rec_ev[-1]['tonic_eval'].\
                         tolist()
@@ -181,6 +192,7 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
                         rec_ev[-1]['joint_eval'] = rec_ev[-1]['joint_eval'].\
                             tolist()
                     except AttributeError:
+                        # TODO: find out why i've put an exception here
                         pass
 
         ev = {'per_recording': rec_ev, 'overall':{}}
