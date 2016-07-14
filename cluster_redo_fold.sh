@@ -1,28 +1,40 @@
 #!/bin/sh
-#$ -N sequentialLinkingDemo
+# Name the process
+# ----------------
+#$ -N makam_$JOB_ID
+#
+# Call from the current working directory; no need to cd
+# ------------------------------------------------------
 #$ -cwd
-#$ -o makam.$JOB_ID.out
-#$ -e makam.$JOB_ID.err
+# -q default.q
+#
+# Max time limits
+# ---------------
+#$ -l s_rt=5:00:00
+#$ -l h_rt=10:00:00
+#
+# Output/Error Text
+# ----------------
+#$ -o ../../makam.$JOB_ID.out
+#$ -e ../../makam.$JOB_ID.err
+#
+# Create an array job = !!!!!!number of audio in the target folder!!!!!!
+# ----------------
+#$ -t 1-19900:1
+#
 # Send me a mail when processed and when finished:
 # ------------------------------------------------
+#$ -M sertan.senturk@upf.edu
 #$ -m bea
-#$ -M  sertan.senturk@upf.edu
-#
 
 # Start script
 # --------------------------------
 #
-printf "Starting execution of job $JOB_ID from user $SGE_O_LOGNAME\n"
-printf "Starting at `date`\n"
-printf "---------------------------\n"
 
 # force UTF 8
 export LANG="en_US.utf8"
-echo $LANG
-ls
 
-ipython ./redo_fold.py ${SGE_TASK_ID}
+module load python/2.7.5
+module load essentia/2.1_python-2.7.5
 
-# Copy data back, if any
-printf "---------------------------\n"
-printf "Job done. Ending at `date`\n"
+python ./redo_fold.py ${SGE_TASK_ID}
