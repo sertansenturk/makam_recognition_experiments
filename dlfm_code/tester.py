@@ -12,6 +12,7 @@ import numpy as np
 import copy
 import shutil
 
+
 def test(step_size, kernel_width, distribution_type,
          model_type, fold_idx, experiment_type, dis_measure, k_neighbor,
          min_peak_ratio, rank, save_folder, overwrite=False):
@@ -60,9 +61,14 @@ def test(step_size, kernel_width, distribution_type,
             assert isinstance(m['feature'], dict), "Unknown model."
         model[i]['feature'] = PitchDistribution.from_dict(
             model[i]['feature'])
-        if any(test_sample['source'] in model[i]['sources']
-               for test_sample in test_fold):
-            raise RuntimeError('Test data uses training data!')
+        try:
+            if any(test_sample['source'] in model[i]['sources']
+                   for test_sample in test_fold):
+                raise RuntimeError('Test data uses training data!')
+        except KeyError:
+            if any(test_sample['source'] == model[i]['source']
+                   for test_sample in test_fold):
+                raise RuntimeError('Test data uses training data!')
 
     for test_sample in test_fold:
         # get MBID from pitch file
