@@ -123,7 +123,7 @@ if ~exist(parsed_res_file, 'file')
             end
         end
     end
-    save('results_fold.mat', 'exps')
+    save(parsed_res_file, 'exps')
 else
     results_fold = load(parsed_res_file);
     exps = results_fold.exps;
@@ -134,7 +134,7 @@ end
 %%% Here the commented lines are the starting variables. In the next step
 %%% only the best variables without statistical significance among
 %%% themselves are kept
-exp_name = 'mode';
+exp_name = 'joint';
 params = struct();
 % params.training = {'single', 'multi'};
 params.training = {'multi'};
@@ -142,18 +142,17 @@ params.training = {'multi'};
 % params.distribution = {'pd', 'pcd'};
 params.distribution = {'pcd'};
 
-% params.distance = {'l1', 'l2', 'l3', 'bhat', 'dis_intersect', 'dis_corr'};
-% params.distance = {'l1', 'bhat', 'dis_intersect'};
-params.distance = {'bhat'};
+params.distance = {'l1', 'l2', 'l3', 'bhat', 'dis_intersect', 'dis_corr'};
+% params.distance = {'bhat'};
 
-params.bin_size = [7.5, 15.0, 25.0, 50.0, 100.0];
-params.bin_size = [7.5, 15.0];
+% params.bin_size = [7.5, 15.0, 25.0, 50.0, 100.0];
+params.bin_size = [7.5, 15.0, 25.0];
 
-params.kernel_width = [0, 7.5, 15.0, 25.0, 50.0, 100.0];
+% params.kernel_width = [0, 7.5, 15.0, 25.0];
 params.kernel_width = [7.5, 15.0];
 
-params.k_neighbors = [1, 3, 5, 10, 15];
-% params.k_neighbors = [5, 10, 15];
+% params.k_neighbors = [1, 3, 5, 10, 15];
+params.k_neighbors = [5, 10, 15];
 
 cons_param_names = fieldnames(params);
 bool = true(size(exps.(exp_name).accuracy));
@@ -172,7 +171,8 @@ for ff = 1:numel(group_names)
 end
 
 % anovan
-chk_groups = {'bin_size', 'kernel_width'};
+chk_groups = {'k_neighbors'};
 chk_bool = ismember(group_names, chk_groups);
 [p, ~, stats] = anovan(vals, g(chk_bool), 'model', 'interaction', 'varnames', group_names(chk_bool));
+figure
 results = multcompare(stats, 'Dimension', [1:length(g(chk_bool))], 'alpha', 0.01);
