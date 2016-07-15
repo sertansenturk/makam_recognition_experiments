@@ -11,6 +11,7 @@ import json
 import numpy as np
 import copy
 import shutil
+from sklearn.metrics import confusion_matrix
 
 
 def test(step_size, kernel_width, distribution_type,
@@ -137,7 +138,7 @@ def test(step_size, kernel_width, distribution_type,
 
 def evaluate(step_size, kernel_width, distribution_type, model_type,
              experiment_type, dis_measure, k_neighbor, min_peak_ratio,
-             result_folder, overwrite=False):
+             result_folder):
     test_folder = os.path.abspath(os.path.join(io.get_folder(
         os.path.join(result_folder, 'testing', experiment_type), model_type,
         distribution_type, step_size, kernel_width, dis_measure,
@@ -148,16 +149,34 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
     anno_file = './data/ottoman_turkish_makam_recognition_dataset' \
                 '/annotations.json'
     annotations = json.load(open(anno_file))
+    makam_labels = np.unique([a['makam'] for a in annotations]).tolist()
     evaluator = Evaluator()
 
+    tmp_bins = np.arange(0, 1200, step_size)
     if experiment_type == 'tonic':
-        eval_folds = {'num_correct_tonic': 0, 'tonic_accuracy': 0}
+        eval_folds = {'num_correct_tonic': 0, 'tonic_accuracy': 0,
+                      'tonic_deviation_distribution': PitchDistribution(
+                          tmp_bins, np.zeros(np.shape(tmp_bins)),
+                          kernel_width=0, ref_freq=None)}
     elif experiment_type == 'mode':
-        eval_folds = {'num_correct_mode': 0, 'mode_accuracy': 0}
+        eval_folds = {'num_correct_mode': 0, 'mode_accuracy': 0,
+                      'confusion_matrix': {
+                          'matrix': np.zeros((len(makam_labels),
+                                              len(makam_labels))),
+                          'labels': makam_labels}
+                      }
     else:
         eval_folds = {'num_correct_tonic': 0, 'tonic_accuracy': 0,
                       'num_correct_mode': 0, 'mode_accuracy': 0,
-                      'num_correct_joint': 0, 'joint_accuracy': 0}
+                      'num_correct_joint': 0, 'joint_accuracy': 0,
+                      'tonic_deviation_distribution': PitchDistribution(
+                          tmp_bins, np.zeros(np.shape(tmp_bins)),
+                          kernel_width=0, ref_freq=None),
+                      'confusion_matrix': {
+                          'matrix': np.zeros((len(makam_labels),
+                                              len(makam_labels))),
+                          'labels': makam_labels}
+                      }
 
     for rf in result_files:
         res = json.load(open(rf))
@@ -176,19 +195,14 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
                     rec_ev[-1]['same_octave'] = rec_ev[-1]['same_octave'].\
                         tolist()
 
-                    # TODO: add/parse the distance between the tonic and est.
                 elif experiment_type == 'mode':
                     rec_ev.append(evaluator.evaluate_mode(res[mbid][0][0],
                                                           aa['makam'], mbid))
 
-                    # TODO: add confusion matrix
                 else:
                     rec_ev.append(evaluator.evaluate_joint(
                         [res[mbid][0][0][0], aa['tonic']],
                         [res[mbid][0][0][1], aa['makam']], mbid))
-
-                    # TODO: add confusion matrix
-                    # TODO: add/parse the distance between the tonic and est.
 
                     rec_ev[-1]['tonic_eval'] = rec_ev[-1]['tonic_eval'].\
                         tolist()
@@ -201,15 +215,30 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
                         # TODO: find out why i've put an exception here
                         pass
 
-        ev = {'per_recording': rec_ev, 'overall':{}}
+        ev = {'per_recording': rec_ev, 'overall': {}}
         try:
             ev['overall']['num_correct_tonic'] = sum(re['tonic_eval']
                                                      for re in rec_ev)
             ev['overall']['tonic_accuracy'] = (
                 ev['overall']['num_correct_tonic'] / len(rec_ev))
 
+            ev['overall']['tonic_deviation_distribution'] = \
+                PitchDistribution.from_cent_pitch(
+                    [re['cent_diff'] for re in rec_ev], ref_freq=None,
+                    step_size=step_size, kernel_width=0)
+
+            try:  # force to pcd
+                ev['overall']['tonic_deviation_distribution'].to_pcd()
+            except AssertionError:
+                pass
+
             eval_folds['num_correct_tonic'] += ev['overall'][
                 'num_correct_tonic']
+            eval_folds['tonic_deviation_distribution'].vals +=\
+                ev['overall']['tonic_deviation_distribution'].vals
+
+            ev['overall']['tonic_deviation_distribution'] = \
+                ev['overall']['tonic_deviation_distribution'].to_dict()
         except KeyError:
             pass
         try:
@@ -218,10 +247,22 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
             ev['overall']['mode_accuracy'] = (
                 ev['overall']['num_correct_mode'] / len(rec_ev))
 
+            ev['overall']['confusion_matrix'] = {
+                'matrix': confusion_matrix(
+                    [re['annotated_mode'] for re in rec_ev],
+                    [re['estimated_mode'] for re in rec_ev],
+                    labels=makam_labels),
+                'labels': makam_labels}
+
             eval_folds['num_correct_mode'] += ev['overall'][
                 'num_correct_mode']
 
-            # TODO: add confusion matrix
+            eval_folds['confusion_matrix']['matrix'] +=\
+                ev['overall']['confusion_matrix']['matrix']
+
+            ev['overall']['confusion_matrix']['matrix'] = \
+                ev['overall']['confusion_matrix']['matrix'].astype(int).tolist()
+
         except KeyError:
             pass
         try:
@@ -232,8 +273,6 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
 
             eval_folds['num_correct_joint'] += ev['overall'][
                 'num_correct_joint']
-
-            # TODO: add confusion matrix
         except KeyError:
             pass
 
@@ -241,12 +280,21 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
 
     if experiment_type == 'tonic':
         eval_folds['tonic_accuracy'] = eval_folds['num_correct_tonic'] / 10
+        eval_folds['tonic_deviation_distribution'] = \
+            eval_folds['tonic_deviation_distribution'].to_dict()
     elif experiment_type == 'mode':
         eval_folds['mode_accuracy'] = eval_folds['num_correct_mode'] / 10
+        eval_folds['confusion_matrix']['matrix'] = \
+            eval_folds['confusion_matrix']['matrix'].astype(int).tolist()
     else:
         eval_folds['tonic_accuracy'] = eval_folds['num_correct_tonic'] / 10
         eval_folds['mode_accuracy'] = eval_folds['num_correct_mode'] / 10
         eval_folds['joint_accuracy'] = eval_folds['num_correct_joint'] / 10
+
+        eval_folds['tonic_deviation_distribution'] = \
+            eval_folds['tonic_deviation_distribution'].to_dict()
+        eval_folds['confusion_matrix']['matrix'] = \
+            eval_folds['confusion_matrix']['matrix'].tolist()
 
     json.dump(eval_folds,
               open(os.path.join(test_folder, 'overall_eval.json'), 'w'))
