@@ -20,7 +20,7 @@ peak_ratio = [0.15];
 test_dir = './data/testing/';
 
 %% data
-parsed_res_file = fullfile(test_dir, 'results_fold.mat');
+parsed_res_file = fullfile(test_dir, 'results_perfold.mat');
 if ~exist(parsed_res_file, 'file')
     %% parse experiments
     exp_template = struct('accuracy', [], 'training', [], 'distribution', [], ...
@@ -130,6 +130,13 @@ else
     clear results_fold
 end
 
+%% save to json if not exists
+parsed_res = load(parsed_res_file);
+parsed_res_json = fullfile(test_dir, 'results_perfold.json');
+if ~exist(fullfile(test_dir, 'results_perfold.json'), 'file')
+    [~] = external.jsonlab.savejson([], parsed_res.exps, parsed_res_json);
+end
+
 %% Statistical significance
 %%% Here the commented lines are the starting variables. In the next step
 %%% only the best variables without statistical significance among
@@ -142,11 +149,11 @@ params.training = {'multi'};
 % params.distribution = {'pd', 'pcd'};
 params.distribution = {'pcd'};
 
-params.distance = {'l1', 'l2', 'l3', 'bhat', 'dis_intersect', 'dis_corr'};
-% params.distance = {'bhat'};
+% params.distance = {'l1', 'l2', 'l3', 'bhat', 'dis_intersect', 'dis_corr'};
+params.distance = {'bhat'};
 
 % params.bin_size = [7.5, 15.0, 25.0, 50.0, 100.0];
-params.bin_size = [7.5, 15.0, 25.0];
+params.bin_size = [7.5, 15.0];
 
 % params.kernel_width = [0, 7.5, 15.0, 25.0];
 params.kernel_width = [7.5, 15.0];
@@ -171,7 +178,7 @@ for ff = 1:numel(group_names)
 end
 
 % anovan
-chk_groups = {'k_neighbors'};
+chk_groups = {'bin_size', 'kernel_width', 'k_neighbors'};
 chk_bool = ismember(group_names, chk_groups);
 [p, ~, stats] = anovan(vals, g(chk_bool), 'model', 'interaction', 'varnames', group_names(chk_bool));
 figure
