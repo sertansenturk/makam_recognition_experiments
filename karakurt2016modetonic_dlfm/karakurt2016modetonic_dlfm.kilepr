@@ -30,6 +30,13 @@ Highlighting=LaTeX
 Indentation Mode=normal
 Mode=LaTeX
 
+[document-settings,item:sigproc.bib]
+Bookmarks=
+Encoding=UTF-8
+Highlighting=BibTeX
+Indentation Mode=normal
+Mode=BibTeX
+
 [item:karakurt2016modetonic_dlfm.kilepr]
 archive=true
 column=0
@@ -52,13 +59,23 @@ order=-1
 
 [item:karakurt2016modetonic_dlfm.tex]
 archive=true
-column=0
+column=41
 encoding=UTF-8
 highlight=LaTeX
-line=76
+line=430
 mode=LaTeX
 open=true
 order=0
+
+[item:sigproc.bib]
+archive=true
+column=0
+encoding=UTF-8
+highlight=BibTeX
+line=292
+mode=BibTeX
+open=true
+order=1
 
 [view-settings,view=0,item:karakurt2016modetonic_dlfm.kilepr]
 CursorColumn=0
@@ -67,7 +84,13 @@ JumpList=
 ViMarks=
 
 [view-settings,view=0,item:karakurt2016modetonic_dlfm.tex]
-CursorColumn=0
-CursorLine=76
+CursorColumn=41
+CursorLine=430
 JumpList=
-ViMarks=.,76,990,[,76,986,],76,990
+ViMarks=.,202,334,[,202,334,],202,334
+
+[view-settings,view=0,item:sigproc.bib]
+CursorColumn=0
+CursorLine=292
+JumpList=
+ViMarks=.,292,0,[,292,0,],292,0
