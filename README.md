@@ -4,9 +4,31 @@ This repository hosts the experiments conducted in the paper:
 
 > Karakurt, A., Şentürk S., & Serra X. (2016).  [MORTY: A Toolbox for Mode Recognition and Tonic Identification](http://mtg.upf.edu/node/3538). 3rd International Digital Libraries for Musicology Workshop. New York, USA
 
-
+Please cite the paper above, if you are using the contents of this repository for your works.
 
 These scripts and experiments are built for demonstrating our toolbox, [MORTY](https://github.com/altugkarakurt/morty). 
+
+### Structure of the Repository
+- The folder [./data](https://github.com/sertansenturk/makam_recognition_experiments/tree/master/data) links to the relevant commit in [our makam recognition dataset](https://github.com/MTG/otmm_makam_recognition_dataset/releases/tag/dlfm2016), the folds and the summary of the evaluation obtained from all experiments. Due to file size constraints features, training models, results and evaluation files are not included in this folder and stored in [Zenodo](https://zenodo.org/record/57999) instead.
+- The folder [./dlfm_code](https://github.com/sertansenturk/makam_recognition_experiments/tree/master/dlfm_code) has the relevant Python and MATLAB modules for the training, testing and evaluation.
+
+### Installation
+
+If you want to install the Python package, it is recommended to install the package and dependencies into a virtualenv. In the terminal, do the following:
+
+    virtualenv env
+    source env/bin/activate
+    python setup.py install
+
+The package and some of its dependencies use several modules in Essentia. Follow the [instructions](essentia.upf.edu/documentation/installing.html) to install the library.
+
+Now you can install the rest of the dependencies:
+
+    pip install -r requirements
+    
+### Scripts
+
+
 
 ### LICENCE
 
