@@ -1,4 +1,4 @@
-[submodule "data/ottoman_turkish_makam_recognition_dataset"]
+[submodule "data/otmm_makam_recognition_dataset"]
 	path = data/otmm_makam_recognition_dataset/
 	url = git@github.com:MTG/ottoman_turkish_makam_recognition_dataset.git
 [submodule "dlfm_code/jsonlab"]
