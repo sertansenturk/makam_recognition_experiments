@@ -10,8 +10,8 @@
 
 \begin{document}
 
-% Copyright
-\setcopyright{acmcopyright}
+% CopyrightFXX
+%\setcopyright{acmcopyright}
 %\setcopyright{acmlicensed}
 %\setcopyright{rightsretained}
 %\setcopyright{usgov}
@@ -19,21 +19,14 @@
 %\setcopyright{cagov}
 %\setcopyright{cagovmixed}
 
-
-% DOI
-\doi{10.475/123_4}
-
-% ISBN
-\isbn{123-4567-24-567/08/06}
-
-%Conference
-\conferenceinfo{DLfM '16}{June 12, 2016, New York, NY, USA}
-
-\acmPrice{\$15.00}
+\CopyrightYear{2016}
+\setcopyright{acmcopyright}
+\conferenceinfo{3rd International Digital Libraries for Musicology workshop (DLfM 2016)}{August 12 2016, New York, USA}
+\isbn{978-1-4503-4751-8/16/08}\acmPrice{\$15.00}
+\doi{http://dx.doi.org/10.1145/2970044.2970054}
 
 %
 % --- Author Metadata here ---
-\conferenceinfo{3rd International Digital Libraries for Musicology workshop (DLfM)}{2016 New York, USA}
 %\CopyrightYear{2007} % Allows default copyright year (20) to be over-ridden - IF NEED BE.
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
@@ -76,34 +69,34 @@ Sertan \c{S}ent\"{u}rk \\
 
 \maketitle
 \begin{abstract}
-In the general sense, mode defines the melodic framework and tonic acts as the reference tuning pitch for the melody in the performances of many music cultures. The mode and tonic information of the audio recordings is essential for many music information retrieval tasks such as automatic transcription, tuning analysis and music similarity. In this paper we present MORTY, an open source toolbox for mode recognition and tonic identification. The toolbox implements generalized variants of two state-of-the-art methods based on pitch distribution analysis. The algorithms are designed in a generic manner such that they can be easily optimized according to the culture-specific aspects of the studied music tradition. We test the generalized methodology systematically on the largest mode recognition dataset curated for Ottoman-Turkish makam music so far, which is composed of 1000 recordings in 50 modes. We obtained 95.8\%, 71.8\% and 63.6\% accuracy in tonic identification, mode recognition and joint mode and tonic estimation tasks, respectively. We additionally present recent experiments on Carnatic and Hindustani music in comparison with several methodologies recently proposed for raga/raag recognition. Reproducible olsun diye kastikXX. Hence we hope that our toolbox would be used as a benchmark for future methodologies proposed for mode recognition and tonic identification, especially for music traditions in which these computational tasks have not been addressed yet.
+In the general sense, mode defines the melodic framework and tonic acts as the reference tuning pitch for the melody in the performances of many music cultures. The mode and tonic information of the audio recordings is essential for many music information retrieval tasks such as automatic transcription, tuning analysis and music similarity. In this paper we present MORTY, an open source toolbox for mode recognition and tonic identification. The toolbox implements generalized variants of two state-of-the-art methods based on pitch distribution analysis. The algorithms are designed in a generic manner such that they can be easily optimized according to the culture-specific aspects of the studied music tradition. We test the generalized methodology systematically on the largest mode recognition dataset curated for Ottoman-Turkish makam music so far, which is composed of 1000 recordings in 50 modes. We obtained 95.8\%, 71.8\% and 63.6\% accuracy in tonic identification, mode recognition and joint mode and tonic estimation tasks, respectively. We additionally present recent experiments on Carnatic and Hindustani music in comparison with several methodologies recently proposed for raga/raag recognition. We prioritized the reproducibility of our work and provide all of our data, code and results publicly. Hence we hope that our toolbox would be used as a benchmark for future methodologies proposed for mode recognition and tonic identification, especially for music traditions in which these computational tasks have not been addressed yet.
 \end{abstract}
 
-\keywords{Mode recognition; Tonic Identification; Toolbox; Ottoman-Turkish makam music; Carnatic Music; Hindustani Music; Pitch Class Distribution; $k$-nearest neighbors classification; Open Source Software; Reproducability}
+\keywords{Mode recognition; Tonic Identification; Toolbox; Ottoman-Turkish makam music; Carnatic Music; Hindustani Music; Pitch Class Distribution; $k$-nearest neighbors classification; Open Source Software; Reproducibility}
 
 \section{Introduction}\label{sec:introduction}
 In many music cultures, the melodies adhere to a particular melodic framework, which specifies the melodic characteristics of the music. While the function and the understanding of these frameworks are distinct from a culture-specific perspective, in a broader sense they may be considered as the ``modes'' of the studied music culture. Some of the music traditions that can be considered as ``modal'' are Indian art musics, the makam traditions and medieval church chants~\cite{mode2016oxford}. Mode recognition is an important complementary task in computational musicology, music discovery, music similarity and recommendation. 
 
 Tonic is another important musical concept. It acts as the reference frequency for the melodic progression in a performance. In many music cultures there is no standard reference tuning frequency, which makes it crucial to identify the tonic frequency to study melodic interactions. Estimating the tonic of a recording is the first step for various computational tasks such as tuning analysis~\cite{tuning}, automatic transcription~\cite{transcription} and melodic motif discovery~\cite{gulati_network}.
 
-Digital libraries XX. 
+There has been a extensive interest on mode recognition in the last decade~\cite{koduri2012ragaReview}. Most of these work focus on culture-specific approaches for music traditions like Otto\-man-Turkish Makam music (OTMM)~\cite{bozkurt_makam}, Carnatic music~\cite{dighe, dighe2, gulati_network}, Hindustani music~\cite{chordia2, chordia,gulati2016raga} and Dastgah music~\cite{dastgah}. A considerable portion of these studies are based on comparing pitch distributions~\cite{chordia2, chordia, dighe, dighe2, bozkurt_makam}, which are shown to be reliable in the mode recognition task. There also exists recent approaches that are based on characteristic melodic motif mining using network analysis~\cite{gulati2016raga,gulati_network}, aggregating note models using automatic transcription~\cite{koduri2014intonation} or audio-score alignment~\cite{senturk2016noteModel_smc} and classification using neural networks~\cite{raga_mining, neural_raga_chapter}, all of which are designed specific to the studied music culture and are not generalizable to other music cultures without considerable effort. Similarly, several studies on tonic identification use pitch distribution based methods~\cite{bozkurt_tonic, chordia}. More recently there has been an interest in culture specific methods for this task~\cite{sercan_tonic, sankalp_tonic, senturk2013karar_ismir} that make use of heuristics and the musical characteristics of the studied tradition. 
 
-There has been a considerable interest on mode recognition in the last decade~\cite{koduri2012ragaReview}. Most of these work focus on culture-specific approaches for music traditions like Otto\-man-Turkish Makam music (OTMM)~\cite{bozkurt_makam}, Carnatic music~\cite{dighe, dighe2, gulati_network}, Hindustani music~\cite{chordia2, chordia,gulati2016raga} and Dastgah music~\cite{dastgah}. A considerable portion of these studies are based on comparing pitch distributions~\cite{chordia2, chordia, dighe, dighe2, bozkurt_makam}, which are shown to be reliable in the mode recognition task. There also exists recent approaches that are based on characteristic melodic motif mining using network analysis~\cite{gulati2016raga,gulati_network}, aggregating note models using automatic transcription~\cite{koduri2014intonation} or audio-score alignment~\cite{senturk2016noteModel_smc} and classification using neural networks~\cite{raga_mining, neural_raga_chapter}, all of which are designed specific to the studied music culture and are not generalizable to other music cultures without considerable effort. Similarly, several studies on tonic identification use pitch distribution based methods~\cite{bozkurt_tonic, chordia}. More recently there has been an interest in culture specific methods for this task~\cite{sercan_tonic, sankalp_tonic, senturk2013karar_ismir} that make use of heuristics and the musical characteristics of the studied tradition. 
+In these studies, the features extracted from the data,\footnote{Excluding the commercial audio recordings, which cannot be generally made public due to copyright laws.} source code and the experimental results are not usually shared. We consider the unavailability of public tools, data\-sets and reproducible experimentations as major obstacles for computational music information research, especially if the relevant tasks have not been applied to studied music traditions earlier.
 
-In these studies, the features extracted from the data,\footnote{Excluding the commercial audio recordings, which cannot be generally made public due to copyright laws.} source code and the experimental results are not usually shared. We consider the unavailability of public tools, data\-sets and reproducible experimentations as major obstacles for computational music information research, especially the relevant tasks have not been applied to studied music traditions earlier.
+We present MORTY (\textbf{MO}de~\textbf{R}ecognition and~\textbf{T}onic \textbf{Y}den\-tification Toolbox), an open source toolbox written in \emph{Python} for mode recognition and tonic identification. It contains a generalized implementation of two pitch distribution based methods proposed for Ottoman-Turkish makam music~\cite{bozkurt_tonic, bozkurt_makam} and Hindustani music~\cite{chordia}. Our primary aim is to provide open and flexible tools for the mode recognition and tonic identification tasks, which can be applied to different music cultures while allowing the users to optimize the parameters easily according to the characteristics of the studied music. MORTY may be (and has been, see Section~\ref{sec:hindustani_carnatic}) used as a benchmark against novel methodologies proposed. 
 
-We present MORTY (\textbf{MO}de~\textbf{R}ecognition and~\textbf{T}onic \textbf{Y}den\-tification Toolbox), an open source toolbox written in \emph{Python} for mode recognition and tonic identification. It contains a generalized implementation of two pitch distribution based methods proposed proposed for Ottoman-Turkish makam music~\cite{bozkurt_tonic, bozkurt_makam} and Hindustani music~\cite{chordia}. Our primary aim is to provide open and flexible tools for the mode recognition and tonic identification tasks, which can be applied to different music cultures while allowing the users to optimize the parameters easily according to the characteristics of the studied music. MORTY may be (and has been, see Section~\ref{sec:hindustani_carnatic}) used as a benchmark against novel methodologies proposed. Another motivation for this work is to provide tools for related tasks such as tuning and intonation analysis for modal music cultures.
+Another motivation for this work is to provide tools for several relevant tasks such as tuning and intonation analysis~\cite{bozkurt_makam}. Combined with automatic tonic identification and makam recognition, these features would facilitate the curation and description of large audio corpora not only by greatly reducing the time and effort spent on manual annotations but also providing automatically extracted, reliable information, which would be too difficult or time-consuming for human annotators.
 
 Our contributions can be summarized as:
 \begin{enumerate}[noitemsep]
-\item An open toolbox aimed to set a benchmark for future research in mode recognition and tonic identification, which implements and generalizes the state of the art methodologies propo\-sed by Bozkurt and Ge\-dik~\cite{bozkurt_tonic, bozkurt_makam}, and Chordia and \c{S}ent\"{u}rk~\cite{chordia}
+\item An open toolbox aimed to set a benchmark for future research in mode recognition and tonic identification, which implements and generalizes the state of the art methodologies proposed by Bozkurt and Gedik~\cite{bozkurt_tonic, bozkurt_makam}, and Chordia and \c{S}ent\"{u}rk~\cite{chordia}
 \item The largest makam recognition dataset for Ottoman-Turkish Makam Music (OTMM), composed of 1000 audio recordings from 20 makams with annotated tonic frequency and editorial metadata.
 \item Exhaustive and reproducible evaluation of the aforementioned two state of the art methods on the Otto\-man-Turkish makam recognition dataset.
 \item Improving the state of the art in tonic identification met\-hod applied to OTMM
 \item Mode recognition experiments on Hindustani and Carnatic music traditions to demonstrate the applicability of our implementations on different music cultures.
 \end{enumerate}
 
-The rest of this paper is organized as the following: Section~\ref{sec:problem} provides a formal definition of the problems. Section~\ref{sec:morty} presents the implementation details and the features of our toolbox. Section~\ref{sec:methodology} describes the two state of the art methods and their implementations in detail. Section~\ref{sec:experiments} explains the experiments and the obtained results on a dataset of OTMM and Section~\ref{sec:hindustani_carnatic} presents our results on Carnatic and Hindustani cultures. Finally, we discuss the results we obtained in Section~\ref{sec:discussion} and conclude with our comments and suggestions for the future work in Section~\ref{sec:conclusion}.
+The rest of this paper is organized as the following: Section~\ref{sec:problem} provides formal definitions of the problems. Section~\ref{sec:morty} presents the implementation details and the features of our toolbox. Section~\ref{sec:methodology} describes the two state of the art methods and their implementations in detail. Section~\ref{sec:experiments} explains the experiments and the obtained results on our OTMM dataset and Section~\ref{sec:hindustani_carnatic} presents our results on Carnatic and Hindustani cultures. Finally, we discuss the results we obtained in Section~\ref{sec:discussion} and conclude with our comments and suggestions for the future work in Section~\ref{sec:conclusion}.
 
 For the sake of open research and reproducability, the toolbox (Section~\ref{sec:morty}) the dataset (Section~\ref{sec:dataset}), experiments (Section~\ref{sec:experiments}) and results (Section~\ref{sec:results}) are accesible publicly via CompMusic website.\footnote{http://compmusic.upf.edu/node/319}
 
@@ -188,14 +181,14 @@ As mentioned earlier, the implemented method is supervised and hence require tra
 
 \begin{figure}
 \centering
-\includegraphics[width=.9\columnwidth]{figures/bozkurt_pcd}
+\includegraphics[width=.8\columnwidth]{figures/bozkurt_pcd}
 \caption{An example model with single PCD per mode trained for three OTMM makams}
 \label{fig:bozkurt_training}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[width=.9\columnwidth]{figures/chordia_pcd}
+\includegraphics[width=.8\columnwidth]{figures/chordia_pcd}
 \caption{An example model with three PCDs per mode trained for three OTMM makams}
 \label{fig:chordia_training}
 \end{figure}
@@ -304,7 +297,7 @@ Given an audio excerpt $(b)$ with unknown mode and tonic, we compute the tonic c
 %Originally, this method is applied to chunks of recordings to the nature of raags. In the original paper that this method was proposed, each recording is sliced into chunks pre-defined length and there are more data-points than the number of recordings in the dataset. In that case, the equal representation is achieved not with the equal number of recordings per mode, but by equal total length of recordings. Another change from the original method was the ability to handle PDs. The original approach is only defined on PCDs, which is expected to outperform the PD counterpart due to the redundancy of the latter. With our implementation and experiments, we quantified the impact of type of pitch histogram on the method's performance. The distance methods applied are the same as the ones for histogram mode models approach. Hence, we are able to compare the performances of these two state of the art algorithms.
 
 \section{Experiments on OTMM}\label{sec:experiments}
-In this section, we provide the results of the experiments we did with the implementations provided in MORTY. We did exhaustive experiments using our dataset to demonstrate some properties of these methods, find the best parameter sets for OTMM and to provide some heuristics for future users. For the sake of reproducability all of the scripts, computed features, experiments and results are shared online.\footnote{\url{https://github.com/sertansenturk/makam_recognition_experiments}}
+In this section, we provide the results of the experiments we did with the implementations provided in MORTY. We did exhaustive experiments using our dataset to demonstrate some properties of these methods, find the best parameter sets for OTMM and to provide some heuristics for future users. For the sake of reproducibility all of the scripts, computed features, experiments and results are shared online.\footnote{\url{https://github.com/sertansenturk/makam_recognition_experiments}}
 
 \subsection{Test Dataset}\label{sec:dataset}
 
@@ -345,7 +338,7 @@ In the experiments we use stratified $10$-fold cross validation. Table~\ref{tab:
  \label{tab:performanceKDoc}
 \end{table*}
 
-For mode recognition, we mark the classification as $True$, if the estimated mode and the annotated mode for a recording are the same. The tonic octave in the orchestral performances of OTMM is ambiguous as each instrument plays the melody in their own register. Therefore, we aim to identify the tonic pitch class. We calculate the octave wrapped cent distance between the estimated and the annotated tonic, i.e. $min\left(\bigl(|e^{(r)}|\,\bmod\,1200\bigr), 1200-\bigl(|e^{(r)}|\,\bmod\,1200\bigl)\right)$, where \\$\bmod$ is the modulo operation. Remember that $e^{(r)}$ is the normalization of the estimated tonic frequency $e$, with respect to the annotated tonic frequency $r$ (Equation~\ref{eqn:histogram}). If the cent distance is less than $25$, we consider the tonic identification as correct. In the case of joint estimation, we require both tonic and mode estimates to be correct. 
+For mode recognition, we mark the classification as $True$, if the estimated mode and the annotated mode for a recording are the same. The tonic octave in the orchestral performances of OTMM is ambiguous as each instrument plays the melody in their own register. Therefore, we aim to identify the tonic pitch class. We calculate the octave-wrapped cent distance between the estimated and the annotated tonic, i.e. $min\left(\bigl(|e^{(r)}|\,\bmod\,1200\bigr), 1200-\bigl(|e^{(r)}|\,\bmod\,1200\bigl)\right)$, where \\$\bmod$ is the modulo operation. Remember that $e^{(r)}$ is the normalization of the estimated tonic frequency $e$, with respect to the annotated tonic frequency $r$ (Equation~\ref{eqn:histogram}). If the cent distance is less than $25$, we consider the tonic identification as correct. In the case of joint estimation, we require both tonic and mode estimates to be correct. 
 
 For each fold we compute the accuracy, which is the number of correct estimations divided by the total number of testing data. In Section~\ref{sec:results}, we
 report the highest average accuracies of the folds for each parameter combination. For all results below, the term ``significant'' refers to statistical significance at the $p = 0.01$ level as determined by a multiple comparison test using the Tukey-Kramer statistic.
@@ -358,7 +351,7 @@ To find an optimal for the minimum peak ratio~\textbf{(P5)}, we compute numerous
 
 \begin{figure}
 \centering
-\includegraphics[width=\columnwidth]{figures/min_peak_ratio}
+\includegraphics[width=.8\columnwidth]{figures/min_peak_ratio}
 \caption{Total number of peaks and the ratio between the number of tonic hits and number of all distributions.}
 \label{fig:min_peak_ratio}
 \end{figure}
@@ -385,11 +378,14 @@ Joint & 20 & 15 & 5 & \textbf{63.6\%}\\ \hline
 \end{center}
 \end{table}}
 
-The method proposed in~\cite{sercan_tonic} is the state of the art for tonic identification in OTMM culture. We evaluated this approach on our dataset and obtained $79.9\%$ accuracy. Multi-distribution per mode method outperforms this method either if the mode is known ($95.8\%$ accuracy) or not ($91.5\%$ tonic accuracy in joint estimation) with the majority of sub-optimal parameter sets. The best tonic identification accuracy using PDs and single-distribution per mode is $49.8$. 
+The method proposed in~\cite{sercan_tonic} is the state of the art for tonic identification in OTMM culture. We evaluated this approach on our dataset and obtained $79.9\%$ accuracy. Multi-distribution per mode method outperforms this method either if the mode is known ($95.8\%$ accuracy) or not ($91.5\%$ tonic accuracy in joint estimation) with the majority of sub-optimal parameter sets. The best tonic identification accuracy using PDs and single-distribution per mode is $49.8$. Figure~\ref{fig:tonic_distribution} shows the distribution of the octave-wrapped cent distance (Section~\ref{sec:experiment_setup}) between the estimated and the annotated tonic for each test and for all the parameter sets with $7.5$ cent bin size. 
 
-Confusion Matrix for mode recognition XX
-
-tonic identification distance for XX
+\begin{figure}
+\centering
+\includegraphics[width=.8\columnwidth]{figures/tonic_deviation_distribution}
+\caption{The distribution of octave-wrapped distances between the estimated and annotated tonic for all parameter sets with $7.5$ cent bin size.}
+\label{fig:tonic_distribution}
+\end{figure}
 
 These experiments revealed that certain parameter selections significantly improve or diminish the methods' performances. These observations are listed below as a guidance:
 
@@ -421,20 +417,18 @@ In the latter work~\cite{gulati_network}, the proposed mode recognition method i
 
 The drawback of the pitch distribution based methods is that they don't consider the temporal characteristics. When we inspected the results obtained from the experiments in~\ref{sec:experiments}, we observed that the confusions are mainly between makams, which either have very similar intervals in their scale or contain similar sets of pitches. Similarly in~\cite{gulati_network}, the proposed method was better in classifying phrase-based ragas, while our method was better at classifying scale based ones. The mode recognition using the feature proposed in~\cite{gulati2016raga} is able to capture both of these properties better with a slight increase in computational complexity.
 
-In~\cite{sercan_tonic}, the authors showed that their method outperforms the tonic identification method in~\cite{bozkurt_tonic} (using PDs with single-model per mode). Our results validate the findings for OTMM tonic recognition (the best is accuracy is $49.8$ as stated in Section~\ref{sec:results}). Nevertheless, we show that using PCDs with multi-model per mode is superior to both methods, even when the makam of the recording is not know and even if the makam is found erroneously in the joint estimation process.
+In~\cite{sercan_tonic}, the authors showed that their method outperforms the tonic identification method in~\cite{bozkurt_tonic} (using PDs with single-model per mode) for OTMM. Our results validate the findings (the best is accuracy is $49.8$ as stated in Section~\ref{sec:results}). Nevertheless, we show that using PCDs with multi-model per mode is superior to both methods, even when the makam of the recording is not know and even if the makam is found erroneously in the joint estimation process. While the estimated tonic is typically around the annotation (Figure~\ref{fig:tonic_distribution}), the main confusion occurs around the fourth, fifth and seventh of the tonic, which typically act as the melodic centers and/or anchor points in the melodic progression~\cite{ozkan1984musiki}.
 
-We suggest using multi-distribution models approach with Bhattacharyya distance and PCD. If the estimation accuracy is a top priority, we suggest choosing a small $\beta$, $\sigma$ ($7.5$ or $15$ cents) and minimum peak ratio $0.15$ as these parameters yield high accuracies. For use-cases like mobile or real-time applications where computational complexity plays a key role, $\beta$, $\sigma$ ($25 cents$) and minimum peak ratio ($0.4$) can be bigger, since reduced feature dimensions substantially decrease the computational complexity. Number of neighbor may be chosen as any value higher but $1$.
+We suggest using multi-distribution models approach with Bhattacharyya distance and PCD. If the estimation accuracy is a top priority, we suggest choosing a small $\beta$, $\sigma$ ($7.5$ or $15$ cents) and minimum peak ratio $0.15$ as these parameters yield high accuracies. For use-cases like mobile or real-time applications where computational complexity plays a key role, $\beta$, $\sigma$ ($25 cents$) and minimum peak ratio ($0.4$) can be bigger, since reduced feature dimensions substantially decrease the computational complexity. The number of neighbors may be chosen as any value higher than $1$.
 
 \section{Conclusion}\label{sec:conclusion}
-Out of the listed methods that make use of pitch distributions, we decided to focus on single distribution mode models~\cite{bozkurt_makam,bozkurt_tonic} and multi-distribution mode models~\cite{chordia} approaches because the first is the state of the art for mode and tonic recognition tasks in OTMM culture and the latter is for joint recognition for Hindustani, while being on par with the state of the art~\cite{gulati_network} for mode recognition in Carnatic tradition.
+We presented MORTY, an open toolbox for mode recognition and tonic identification. The toolbox generalizes the state-of-the-art in pitch distribution based classification for these tasks. It is designed with flexibility in mind such that it can be easily modified and optimized to analyse large audio corpora. We evaluated the implementation on the largest makam recognition dataset of Ottoman-Turkish makam music. Our generalized method outperformed the state-of-the-art methodologies proposed for mode recognition~\cite{bozkurt_makam} and tonic identification~\cite{bozkurt_tonic, atli2014makamFeature_atmm}. The toolbox has also been used to benchmark two novel mode recognition methodologies proposed for Indian art musics. 
 
-As a benchmark for OTMM culture, our dataset can be used complementary with the earlier tonic datasets~\cite{ atli2014makamFeature_atmm, senturk2013karar_ismir}.
-
-Extend conclusion XX
+MORTY is also used as a part of our makam music analysis toolbox.\footnote{\url{https://github.com/sertansenturk/tomato}} Currently it is used to analyze the tuning and obtain a statistical model for each note. We have analysed the whole audio collection of the CompMusic makam corpus~\cite{compmusic_corpus}. The automatic description obtained from the analysis is available via Dunya, CompMusic's prototype web-application for music discovery.\footnote{\url{http://dunya.compmusic.upf.edu/makam/}} In the future, we plan to apply dimension reduction and hashing techniques to summarize the features and speed up the classification for real-time mode and tonic estimation on short audio excerpts. We also hope that MORTY may be useful as a general tool for tonic identification, mode recognition and tuning analysis applied on different modal music traditions.
 
 \section{Acknowledgements}This work is partly supported by the European Research Council under the European Unions Seventh Framework Program, as part of the CompMusic project (ERC grant agreement 267583)
 
 \bibliographystyle{abbrv}
-\bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
+\bibliography{sigproc}
 
 \end{document}
