@@ -6,7 +6,6 @@ This repository hosts the experiments conducted, which demonstrates [MORTY](http
 
 Please cite the paper above, if you are using the contents of this repository for your works. The companion page of the paper is accesible via [the CompMusic website](http://compmusic.upf.edu/node/319).
 
-
 ### Structure of the Repository
 - The scripts are located in the base folder along with several miscallenaeous files (the license, readme, setup and requirement files).
 - The folder [./data](https://github.com/sertansenturk/makam_recognition_experiments/tree/master/data) links to the relevant commit in [our makam recognition dataset](https://github.com/MTG/otmm_makam_recognition_dataset/releases/tag/dlfm2016), the folds and the summary of the evaluation obtained from all experiments. Due to file size constraints features, training models, results and evaluation files are not included in this folder and stored in [Zenodo](https://zenodo.org/record/57999) instead.
