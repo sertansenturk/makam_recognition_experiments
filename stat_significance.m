@@ -20,7 +20,7 @@ peak_ratio = [0.15];
 test_dir = './data/testing/';
 
 %% data
-parsed_res_file = fullfile(test_dir, 'results_perfold.mat');
+parsed_res_file = fullfile(test_dir, 'evaluation_perfold.mat');
 if ~exist(parsed_res_file, 'file')
     %% parse experiments
     exp_template = struct('accuracy', [], 'training', [], 'distribution', [], ...
@@ -125,15 +125,15 @@ if ~exist(parsed_res_file, 'file')
     end
     save(parsed_res_file, 'exps')
 else
-    results_fold = load(parsed_res_file);
-    exps = results_fold.exps;
-    clear results_fold
+    evaluation_fold = load(parsed_res_file);
+    exps = evaluation_fold.exps;
+    clear evaluation_fold
 end
 
 %% save to json if not exists
 parsed_res = load(parsed_res_file);
-parsed_res_json = fullfile(test_dir, 'results_perfold.json');
-if ~exist(fullfile(test_dir, 'results_perfold.json'), 'file')
+parsed_res_json = fullfile(test_dir, 'evaluation_perfold.json');
+if ~exist(fullfile(test_dir, 'evaluation_perfold.json'), 'file')
     [~] = external.jsonlab.savejson([], parsed_res.exps, parsed_res_json);
 end
 

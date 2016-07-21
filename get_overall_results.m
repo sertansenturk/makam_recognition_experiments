@@ -102,4 +102,4 @@ eval_results.joint = eval_results.joint(idx);
 
 %% save
 [~] = external.jsonlab.savejson([], eval_results, ...
-    fullfile(test_dir, 'results_overall.json'));
+    fullfile(test_dir, 'evaluation_overall.json'));
