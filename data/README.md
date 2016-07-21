@@ -1,5 +1,5 @@
 # dlfm_makam_recognition_results
-This folder is for the experimental data generated in the experiments explained in:
+This folder is for the [test dataset](https://github.com/MTG/otmm_makam_recognition_dataset/releases/tag/dlfm2016) and the generated experimental data in the experiments explained in:
 
 > Karakurt, A., Şentürk S., & Serra X. (2016).  [MORTY: A Toolbox for Mode Recognition and Tonic Identification](http://mtg.upf.edu/node/3538). 3rd International Digital Libraries for Musicology Workshop. New York, USA
 
