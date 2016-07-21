@@ -4,7 +4,7 @@ This repository hosts the experiments conducted, which demonstrates [MORTY](http
 
 > Karakurt, A., Şentürk S., & Serra X. (2016).  [MORTY: A Toolbox for Mode Recognition and Tonic Identification](http://mtg.upf.edu/node/3538). 3rd International Digital Libraries for Musicology Workshop. New York, USA
 
-Please cite the paper above, if you are using the contents of this repository for your works.
+Please cite the paper above, if you are using the contents of this repository for your works. The companion page of the paper is accesible via the [CompMusic website](http://compmusic.upf.edu/node/319).
 
 
 ### Structure of the Repository
