@@ -1,8 +1,10 @@
-# dlfm_makam_recognition_experiments
-This package contains the complete experimental data explained in:
+# dlfm_makam_recognition_experimental_data
+This folder is for the [test dataset](https://github.com/MTG/otmm_makam_recognition_dataset/releases/tag/dlfm2016) and the generated experimental data in the experiments explained in:
 
-    Karakurt, A., Şentürk S., & Serra X. (2016).  MORTY: A Toolbox for Mode Recognition and Tonic Identification. 3rd International Digital Libraries for Musicology Workshop. 
+> Karakurt, A., Şentürk S., & Serra X. (2016).  [MORTY: A Toolbox for Mode Recognition and Tonic Identification](http://mtg.upf.edu/node/3538). 3rd International Digital Libraries for Musicology Workshop. New York, USA
 
-The zip file includes the folds, features, training and testing data, results and evaluation file. It is part of the [experiments hosted in github](https://github.com/sertansenturk/makam_recognition_experiments/tree/dlfm2016) in the  folder call "./data". We host the experiment data in [Zenodo](http://dx.doi.org/10.5281/zenodo.57999) separately due to the file size limitations in github.
+We host the experimental data in [Zenodo](https://zenodo.org/record/57999) separately due to the file size limitations in github. The hosted zip file includes the folds, features, training data, testing data, the results and the evaluation. You can download the zip and extract it to here.
 
-For a thorough explanation please refer to the [companion page](http://compmusic.upf.edu/node/319) in the CompMusic website and the paper itself. For additional information please contact the authors.
+Please cite the paper if you are using the data in any of your works. For a thorough explanation please refer to the [companion page](http://compmusic.upf.edu/node/319) in the CompMusic website and the paper itself. For additional information please contact the authors.
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
