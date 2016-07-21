@@ -1,12 +1,11 @@
 # DLfM Ottoman-Turkish Makam Recognition and Tonic Identification Experiments
 
-This repository hosts the experiments conducted in the paper:
+This repository hosts the experiments conducted, which demonstrates [MORTY](https://github.com/altugkarakurt/morty) (our mode and tonic estmation toolbox) in the paper:
 
 > Karakurt, A., Şentürk S., & Serra X. (2016).  [MORTY: A Toolbox for Mode Recognition and Tonic Identification](http://mtg.upf.edu/node/3538). 3rd International Digital Libraries for Musicology Workshop. New York, USA
 
 Please cite the paper above, if you are using the contents of this repository for your works.
 
-These scripts and experiments are built for demonstrating our toolbox, [MORTY](https://github.com/altugkarakurt/morty). 
 
 ### Structure of the Repository
 - The scripts are located in the base folder along with several miscallenaeous files (the license, readme, setup and requirement files).
