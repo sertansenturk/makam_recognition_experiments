@@ -146,7 +146,7 @@ def evaluate(step_size, kernel_width, distribution_type, model_type,
     result_files = get_filenames_in_dir(test_folder,
                                         keyword='*results.json')[0]
 
-    anno_file = './data/ottoman_turkish_makam_recognition_dataset' \
+    anno_file = './data/otmm_makam_recognition_dataset' \
                 '/annotations.json'
     annotations = json.load(open(anno_file))
     makam_labels = np.unique([a['makam'] for a in annotations]).tolist()
