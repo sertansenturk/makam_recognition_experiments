@@ -31,7 +31,7 @@ We use Jupyter notebooks for the general experimentation and MATLAB for statisti
 
 1. [setup_feature_training.ipynb](https://github.com/sertansenturk/makam_recognition_experiments/blob/master/setup_feature_training.ipynb): Create the folds in the stratified 10 fold scheme, extract distribution features, train models. 
 2. [testing_evaluation.ipynb](https://github.com/sertansenturk/makam_recognition_experiments/blob/master/testing_evaluation.ipynb): Find optimal minimum peak ratio (Figure 3 in the paper), testing and evaluation.
-3. [plot_tonicdist_confusionmat.ipynb](https://github.com/sertansenturk/makam_recognition_experiments/blob/master/plot_tonicdist_confusionmat.ipynb): Displays the tonic identification errors for all parameter sets with 7.5 cent bin size and the confusion matrix in mode recognition for the best parameter set
+3. [plot_tonicdist_confusionmat.ipynb](https://github.com/sertansenturk/makam_recognition_experiments/blob/master/plot_tonicdist_confusionmat.ipynb): Display the tonic identification errors for all parameter sets with 7.5 cent bin size and the confusion matrix in mode recognition for the best parameter set
 4. [summarize_evaluation.m](https://github.com/sertansenturk/makam_recognition_experiments/blob/master/summarize_evaluation.m): Read and store a summarization of the evaluation obtained for all parameter sets
 5. [stat_significance.m](https://github.com/sertansenturk/makam_recognition_experiments/blob/master/stat_significance.m): Conduct statistical significance tests. The last block in the MATLAB code is where the tests are carried semi-automatically. The parameters that are checked for significance are commented.
 
