@@ -5,7 +5,7 @@ This folder is for the [test dataset](https://github.com/MTG/otmm_makam_recognit
 
 Please cite the paper if you are using the data in any of your works.
 
-We host the experimental data in [Zenodo](https://zenodo.org/record/57999) separately due to the file size limitations in github. The hosted zip file includes the folds, features, training data, testing data, the results and the evaluation. You can download the zip and extract it to here.
+We host the experimental data in Zenodo ([link](https://zenodo.org/record/57999)) separately due to the file size limitations in github. The hosted zip file includes the folds, features, training data, testing data, the results and the evaluation. You can download the zip and extract it to here.
 
 The files generated from audio recordings are labeled with 16 character long [MusicBrainz](http://musicbrainz.org/) IDs (in short "MBID"s). The structure of the data in the zip file is explained below: 
 
