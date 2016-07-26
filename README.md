@@ -21,7 +21,7 @@ If you want to install the Python package, it is recommended to install the pack
 
 The virtualenv is created with the `--system-site-packages` option, because of a [bug](http://www.stevenmaude.co.uk/posts/installing-matplotlib-in-virtualenv) related to matplotlib package, which is one of our requirements.
 
-The package and some of its dependencies use several modules in Essentia. Follow the [instructions](essentia.upf.edu/documentation/installing.html) to install the library. Then you should link the python bindings of Essentia in the virtual environment:
+The package and some of its dependencies use several modules in Essentia. Follow the [instructions](http://essentia.upf.edu/documentation/installing.html) to install the library. Then you should link the python bindings of Essentia in the virtual environment:
 
     ln -s path_to_essentia_bindings path_to_env/lib/python2.7/site-packages
     
