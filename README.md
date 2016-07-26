@@ -13,21 +13,35 @@ Please cite the paper above, if you are using the contents of this repository fo
 
 ### Installation
 
-If you want to install the Python package, it is recommended to install the package and dependencies into a virtualenv. In the terminal, do the following:
+If you want to install the Python package, it is recommended to install the package and dependencies into a virtualenv. In the terminal, do the following (don't forget to change `path_to_env` with the actual path of the virtualenv, you'd like to create):
 
-    virtualenv env
-    source env/bin/activate
-    python setup.py install
+    virtualenv path_to_env
+    source path_to_env/bin/activate
 
-The package and some of its dependencies use several modules in Essentia. Follow the [instructions](essentia.upf.edu/documentation/installing.html) to install the library.
+The package and some of its dependencies use several modules in Essentia. Follow the [instructions](essentia.upf.edu/documentation/installing.html) to install the library. Then you should link the python bindings of Essentia in the virtual environment:
+
+    ln -s path_to_essentia_bindings path_to_env/lib/python2.7/site-packages
+    
+Don't forget to change the `path_to_essentia_bindings` and `path_to_env` with the actual path of the installed Essentia Python bindings and the path of your virtualenv, respectively. Depending on the Essentia version, the default installation path of the Essentia bindings is either `/usr/local/lib/python2.7/dist-packages/essentia` or `/usr/local/lib/python2.7/site-packages/essentia`.
 
 Now you can install the rest of the dependencies:
 
+    cd path_to_makam_recognition_experiments
     pip install -r requirements
+
+Note that you might need to install several additional packages for the dependencies depending on your operating system. 
     
 ### Experimentation Scripts
 
-We use Jupyter notebooks for the general experimentation and MATLAB for statistical significance tests. To reproduce the experiments you can run the scripts in the order given below:
+We use Jupyter notebooks for the general experimentation and MATLAB for statistical significance tests. To open the notebooks, simply run:
+
+    jupyter notebook
+
+in your terminal __with the virtualenv activated.__
+
+Note that the notebooks use parallelization to speed up the run time. You have to open a __second terminal with the virtualenv activated__ and run `ipcluster start` in that terminal before running the scripts.
+
+To reproduce the experiments, run the scripts in the order given below. 
 
 1. [setup_feature_training.ipynb](https://github.com/sertansenturk/makam_recognition_experiments/blob/master/setup_feature_training.ipynb): Create the folds in the stratified 10 fold scheme, extract distribution features, train models. 
 2. [testing_evaluation.ipynb](https://github.com/sertansenturk/makam_recognition_experiments/blob/master/testing_evaluation.ipynb): Find optimal minimum peak ratio (Figure 3 in the paper), testing and evaluation.
