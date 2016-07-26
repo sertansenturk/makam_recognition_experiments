@@ -47,7 +47,7 @@ Note that you might need to install several additional packages for the dependen
 
 We use Jupyter notebooks for the general experimentation and MATLAB for statistical significance tests. To open the notebooks, simply run `jupyter notebook` in your terminal __with the virtualenv activated.__
 
-Note that the notebooks use parallelization to speed up the run time. You have to open a __second terminal with the virtualenv activated__ and run `ipcluster start` in that terminal before running the scripts.
+Note that the notebooks use parallelization to speed up the run time. You have to open a __second terminal with the virtualenv activated__ (`source path_to_env/bin/activate`) and run `ipcluster start` in that terminal before running the scripts.
 
 To reproduce the experiments, run the scripts in the order given below. 
 
