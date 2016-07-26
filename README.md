@@ -8,15 +8,18 @@ Please cite the paper above, if you are using the contents of this repository fo
 
 ### Structure of the Repository
 - The scripts are located in the base folder along with several miscallenaeous files (the license, readme, setup and requirement files).
-- The folder [./data](https://github.com/sertansenturk/makam_recognition_experiments/tree/master/data) links to the relevant commit in [our makam recognition dataset](https://github.com/MTG/otmm_makam_recognition_dataset/releases/tag/dlfm2016), the folds and the summary of the evaluation obtained from all experiments. Due to file size constraints features, training models, results and evaluation files are not included in this folder and stored in Zenodo ([link](https://zenodo.org/record/57999)) instead.
+- The folder [./data](https://github.com/sertansenturk/makam_recognition_experiments/tree/master/data) links to the relevant commit in [our makam recognition dataset](https://github.com/MTG/otmm_makam_recognition_dataset/releases/tag/dlfm2016), the folds and the summary of the evaluation obtained from all experiments. 
+- By running the [Jupyter notebooks](#scripts) in this repository, you can reproduce the extensive experiments reported in the paper. The outputs will also be saved to the folder [./data](https://github.com/sertansenturk/makam_recognition_experiments/tree/master/data). However the experiments might run for days (in a local machine), unless you use a cluster. For this reason, the computed features, training models, results and evaluation files are also dowloadable from Zenodo ([link](https://zenodo.org/record/57999)).
 - The folder [./dlfm_code](https://github.com/sertansenturk/makam_recognition_experiments/tree/master/dlfm_code) has the relevant Python and MATLAB modules for the training, testing and evaluation.
 
-### Installation
+### Setup
 
 If you want to install the Python package, it is recommended to install the package and dependencies into a virtualenv. In the terminal, do the following (don't forget to change `path_to_env` with the actual path of the virtualenv, you'd like to create):
 
-    virtualenv path_to_env
+    virtualenv path_to_env --system-site-packages
     source path_to_env/bin/activate
+
+The virtualenv is created with the `--system-site-packages` option, because of a [bug](http://www.stevenmaude.co.uk/posts/installing-matplotlib-in-virtualenv) related to matplotlib package, which is one of our requirements.
 
 The package and some of its dependencies use several modules in Essentia. Follow the [instructions](essentia.upf.edu/documentation/installing.html) to install the library. Then you should link the python bindings of Essentia in the virtual environment:
 
@@ -24,20 +27,25 @@ The package and some of its dependencies use several modules in Essentia. Follow
     
 Don't forget to change the `path_to_essentia_bindings` and `path_to_env` with the actual path of the installed Essentia Python bindings and the path of your virtualenv, respectively. Depending on the Essentia version, the default installation path of the Essentia bindings is either `/usr/local/lib/python2.7/dist-packages/essentia` or `/usr/local/lib/python2.7/site-packages/essentia`.
 
-Now you can install the rest of the dependencies:
+Next, enter to the directory of the repository in the terminal:
 
     cd path_to_makam_recognition_experiments
+
+You should initialize and update the [dataset](https://github.com/MTG/otmm_makam_recognition_dataset/releases/tag/dlfm2016), which is linked as a submodule:
+
+    git submodule init
+    git submodule update
+
+Now you can install the rest of the dependencies:
+
     pip install -r requirements
 
 Note that you might need to install several additional packages for the dependencies depending on your operating system. 
     
 ### Experimentation Scripts
+<a name="scripts"></a>
 
-We use Jupyter notebooks for the general experimentation and MATLAB for statistical significance tests. To open the notebooks, simply run:
-
-    jupyter notebook
-
-in your terminal __with the virtualenv activated.__
+We use Jupyter notebooks for the general experimentation and MATLAB for statistical significance tests. To open the notebooks, simply run `jupyter notebook` in your terminal __with the virtualenv activated.__
 
 Note that the notebooks use parallelization to speed up the run time. You have to open a __second terminal with the virtualenv activated__ and run `ipcluster start` in that terminal before running the scripts.
 
@@ -48,6 +56,8 @@ To reproduce the experiments, run the scripts in the order given below.
 3. [plot_tonicdist_confusionmat.ipynb](https://github.com/sertansenturk/makam_recognition_experiments/blob/master/plot_tonicdist_confusionmat.ipynb): Display the tonic identification errors for all parameter sets with 7.5 cent bin size and the confusion matrix in mode recognition for the best parameter set
 4. [summarize_evaluation.m](https://github.com/sertansenturk/makam_recognition_experiments/blob/master/summarize_evaluation.m): Read and store a summarization of the evaluation obtained for all parameter sets
 5. [stat_significance.m](https://github.com/sertansenturk/makam_recognition_experiments/blob/master/stat_significance.m): Conduct statistical significance tests. The last block in the MATLAB code is where the tests are carried semi-automatically. The parameters that are checked for significance are commented.
+
+ We suggest you to use a cluster to run the training and testing steps. Otherwise it might take __days__ to reproduce the experiments.
 
 ### License
 
