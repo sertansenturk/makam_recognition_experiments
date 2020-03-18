@@ -1,9 +1,5 @@
-import configparser
 import os
 import re
-import subprocess
-import zipfile
-from io import BytesIO
 
 from setuptools import find_packages, setup
 
@@ -20,7 +16,8 @@ def get_version():
     Returns:
         str -- value of __version__ as defined in __init__.py
     """
-    version_file2 = os.path.join(HERE, EXP_DIR, "experimentation_code", "__init__.py")
+    version_file2 = os.path.join(
+        HERE, EXP_DIR, "experimentation_code", "__init__.py")
     with open(version_file2) as f:
         init_contents = f.read().strip()
 
@@ -28,8 +25,9 @@ def get_version():
         mo = re.search(exp, init_contents, re.M)
         if mo:
             return mo.group(1)
-        else:
-            raise ValueError("Unable to find version string in %s." % (f,))
+
+        raise ValueError("Unable to find version string in %s." % (f,))
+
 
 setup(
     name="experimentation_code",
@@ -38,13 +36,13 @@ setup(
     author_email="contact AT sertansenturk DOT com",
     maintainer="Sertan Senturk",
     maintainer_email="contact AT sertansenturk DOT com",
-    url="https://github.com/sertansenturk/makam_recognition_experiment",
+    url="https://github.com/sertansenturk/makam_recognition_experiments",
     description="Makam Recognition Experiments",
     download_url=(
-        "https://github.com/sertansenturk/makam_recognition_experiment.git"
+        "https://github.com/sertansenturk/makam_recognition_experiments.git"
         if "dev" in get_version()
-        else "https://github.com/sertansenturk/makam_recognition_experiment/releases/tag/"
-        "v{0:s}".format(get_version())
+        else "https://github.com/sertansenturk/makam_recognition_experiments/"
+        "releases/tag/v{0:s}".format(get_version())
     ),
     classifiers=[
         "Development Status :: 4 - Beta",
