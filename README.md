@@ -23,23 +23,31 @@ Rewrite XX
 
 # Setup
 
+## Data
+
 First, you should initialize and update the [dataset](https://github.com/MTG/otmm_makam_recognition_dataset/releases/tag/dlfm2016), which is linked as a submodule:
 
     cd path/to/makam_recognition_experiments
     git submodule init
     git submodule update
 
+Zenodo data XX
+
+## Docker
+
 For the sake of reproducibility, you can run the experiments within Docker. To run Docker, you need to setup the Docker engine. Please refer to the [documentation](https://docs.docker.com/install/) to how to install the free, community version.
+
+## Running Experiments
+
+**Note:** We suggest you to use a cluster to run the training and testing steps. Otherwise it might take **days** to reproduce the experiments.
 
 To run the container simply run on the terminal:
 
 `docker-compose up`
 
+Then follow the link in the terminal to open [Jupyter](https://jupyter.org).
 
-
-## Running Experiments
-
-**Note:** We suggest you to use a cluster to run the training and testing steps. Otherwise it might take **days** to reproduce the experiments.
+Further instructions XX.
 
 ## License
 
