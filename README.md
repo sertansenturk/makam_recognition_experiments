@@ -27,9 +27,11 @@ Rewrite XX
 
 First, you should initialize and update the [dataset](https://github.com/MTG/otmm_makam_recognition_dataset/releases/tag/dlfm2016), which is linked as a submodule:
 
+    ```bash
     cd path/to/makam_recognition_experiments
     git submodule init
     git submodule update
+    ```
 
 Zenodo data XX
 
@@ -43,7 +45,9 @@ For the sake of reproducibility, you can run the experiments within Docker. To r
 
 To run the container simply run on the terminal:
 
-`docker-compose up`
+    ```bash
+    docker-compose up
+    ```
 
 Then follow the link in the terminal to open [Jupyter](https://jupyter.org).
 
@@ -51,13 +55,17 @@ Further instructions XX.
 
 ## Development
 
-If you'd further like to do development in this repo, the most straightforward way is to run `tox` on a virtual environment. The `Makefile` automates the steps. On the terminal simply run:
+We use `tox` on a virtualenv to automate unittests, linting. The `Makefile` automates the steps. On the terminal simply run:
 
-`make dev-venv`
+    ```bash
+    make dev
+    ```
 
-which will create a virtualenv called `venv` and install `tox`. To test your work, finally run:
+which will create a virtualenv called `venv` and install `tox`. To test your work, then run:
 
-`make test`
+    ```bash
+    make tox
+    ```
 
 ## License
 

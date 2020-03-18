@@ -37,6 +37,7 @@ help:
 	@printf "======= General ======\n"
 	@printf "$(pretty_command): run \"default\" (see below)\n"
 	@printf "$(pretty_command): run \"purge\", \"$(VENV_NAME)\", and \"install\"\n" default
+	@printf "$(pretty_command): run \"purge\", \"$(VENV_NAME)\", and \"install-dev-requirements\"\n" dev
 	@printf "$(pretty_command): run \"purge\", \"$(VENV_NAME)\", and \"install-all\"\n" all
 	@printf "\n"
 	@printf "======= Cleanup ======\n"
@@ -73,7 +74,6 @@ help:
 	@printf "\n"
 	@printf "======= Test and linting =======\n"
 	@printf "$(pretty_command): run all test and linting automations using tox\n" test
-	@printf "$(pretty_command): run docker build and test automation using tox\n" test-docker
 	@printf "$(pretty_command): run all style checking and linting automation using tox \n" lint
 	@printf "$(pretty_command): run flake8 for style guide (PEP8) checking using tox\n" flake8
 	@printf "$(pretty_command): run pylint using tox\n" pylint
@@ -81,7 +81,7 @@ help:
 
 default: purge $(VENV_NAME) install
 
-dev-env: purge $(VENV_NAME) install-dev-requirements
+dev: purge $(VENV_NAME) install-dev-requirements
 
 all: purge $(VENV_NAME) install-all
 
@@ -142,20 +142,22 @@ docker-build:
 		-t $(DOCKER_TAG):$(DOCKER_VER) \
 		$(DOCKER_FLAG)
 
-test:
+tox:
+	source $(VENV_NAME)/bin/activate ; \
 	tox
 
-test-docker:
-	tox -e docker
-
 lint:
+	source $(VENV_NAME)/bin/activate ; \
 	tox -e lint
 
 flake8:
+	source $(VENV_NAME)/bin/activate ; \
 	tox -e flake8
 
 pylint:
+	source $(VENV_NAME)/bin/activate ; \
 	tox -e pylint
 
 isort:
+	source $(VENV_NAME)/bin/activate ; \
 	isort --skip-glob=.tox --recursive . 
