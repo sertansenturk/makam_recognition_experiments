@@ -13,7 +13,8 @@ VENV_NAME ?= venv
 
 PIP_INST_EXTRA = 
 PIP_INST_DEV = development
-PIP_INST_ALL = $(PIP_INST_DEV)
+PIP_INST_DEMO = demo
+PIP_INST_ALL = $(PIP_INST_DEV),$(PIP_INST_DEMO)
 PIP_FLAG = 
 PIP_INST_FLAG = 
 PIP_INST_EDIT = -e
@@ -79,6 +80,8 @@ help:
 	@printf "$(pretty_command): sorts python imports\n" isort
 
 default: purge $(VENV_NAME) install
+
+dev-env: purge $(VENV_NAME) install-dev-requirements
 
 all: purge $(VENV_NAME) install-all
 

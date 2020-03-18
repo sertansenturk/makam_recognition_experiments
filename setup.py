@@ -79,6 +79,9 @@ setup(
             "pytest",
             "rope",
             "tox"
-        ]
-    },
+        ],
+        "demo": {
+            "jupyter"
+        }
+    }
 )

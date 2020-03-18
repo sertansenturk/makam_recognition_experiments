@@ -49,6 +49,16 @@ Then follow the link in the terminal to open [Jupyter](https://jupyter.org).
 
 Further instructions XX.
 
+## Development
+
+If you'd further like to do development in this repo, the most straightforward way is to run `tox` on a virtual environment. The `Makefile` automates the steps. On the terminal simply run:
+
+`make dev-venv`
+
+which will create a virtualenv called `venv` and install `tox`. To test your work, finally run:
+
+`make test`
+
 ## License
 
 The source code hosted in this repository is licenced under [Affero GPL version 3](https://www.gnu.org/licenses/agpl-3.0.en.html). The data (the features, models,  figures, results etc.) are licenced under [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/).
