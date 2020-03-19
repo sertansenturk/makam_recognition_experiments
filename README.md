@@ -43,17 +43,25 @@ For the sake of reproducibility, you can run the experiments within Docker. To r
 
 **Note:** We suggest you to use a cluster to run the training and testing steps. Otherwise it might take **days** to reproduce the experiments.
 
-To run the container simply run on the terminal:
+First build the service:
+
+    ```bash
+    docker-compose build
+    ```
+
+Then, run on the terminal:
 
     ```bash
     docker-compose up
     ```
 
-Then follow the link in the terminal to open [Jupyter](https://jupyter.org).
+Follow the link in the terminal to open [Jupyter](https://jupyter.org).
 
 Further instructions XX.
 
 ## Development
+
+The `experimentation_code` is installed in editable mode, and the repo is mounted on `work` folder when running docker. Therefore you can simply do the development without touching Python in your local machine.
 
 We use `tox` on a virtualenv to automate unittests, linting. The `Makefile` automates the steps. On the terminal simply run:
 

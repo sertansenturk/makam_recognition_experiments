@@ -60,7 +60,11 @@ setup(
     platforms="Linux",
     license="agpl 3.0",
     keywords=(
-        "audio-recordings makam-music music-information-retrieval "
+        "audio-recordings "
+        "makam-music "
+        "mode-recognition "
+        "machine-learning "
+        "music-information-retrieval "
         "computational-analysis"
     ),
     packages=find_packages(EXP_DIR),

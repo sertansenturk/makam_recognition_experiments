@@ -18,7 +18,13 @@ RUN ldconfig && \
 # switch to default user
 USER $NB_UID
 
-# # install experimentation code in editable mode
-# COPY ./src/ ./work/src/
-# COPY ./setup.py ./work/
-# RUN python3 -m pip install -e ./work/
+# Install Python dependencies from requirements.txt in advance
+# Useful for development since changes in code will not trigger a layer re-build
+COPY --chown=$NB_UID requirements.txt ./work/
+RUN pip install --upgrade pip && \
+    pip install -r ./work/requirements.txt
+
+# install experimentation code in editable mode
+COPY --chown=$NB_UID ./src/ ./work/src/
+COPY --chown=$NB_UID ./setup.py ./work/
+RUN pip install -e ./work/
