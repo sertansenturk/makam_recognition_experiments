@@ -12,7 +12,7 @@ The dataset used in the experiments was curated as part of the paper:
 
 Please cite the papers above, if you are using the contents of this repository for your works.
 
-# Repository Structure
+## Repository Structure
 
 Rewrite XX
 
@@ -21,9 +21,9 @@ Rewrite XX
 - By running the [Jupyter notebooks](#scripts) in this repository, you can reproduce the extensive experiments reported in the paper. The outputs will also be saved to the folder [./data](https://github.com/sertansenturk/makam_recognition_experiments/tree/master/data). However the experiments might run for days (in a local machine), unless you use a cluster. For this reason, the computed features, training models, results and evaluation files are also dowloadable from Zenodo ([link](https://zenodo.org/record/57999)).
 - The folder [./dlfm_code](https://github.com/sertansenturk/makam_recognition_experiments/tree/master/dlfm_code) has the relevant Python and MATLAB modules for the training, testing and evaluation.
 
-# Setup
+## Setup
 
-## Data
+### Data
 
 First, you should initialize and update the [dataset](https://github.com/MTG/otmm_makam_recognition_dataset/releases/tag/dlfm2016), which is linked as a submodule:
 
@@ -35,7 +35,7 @@ First, you should initialize and update the [dataset](https://github.com/MTG/otm
 
 Zenodo data XX
 
-## Docker
+### Docker
 
 For the sake of reproducibility, you can run the experiments within Docker. To run Docker, you need to setup the Docker engine. Please refer to the [documentation](https://docs.docker.com/install/) to how to install the free, community version.
 
@@ -61,9 +61,30 @@ Further instructions XX.
 
 ## Development
 
-The `experimentation_code` is installed in editable mode, and the repo is mounted on `work` folder when running docker. Therefore you can simply do the development without touching Python in your local machine.
+For development purposes, you can build the docker image in development mode:
 
-We use `tox` on a virtualenv to automate unittests, linting. The `Makefile` automates the steps. On the terminal simply run:
+    ```bash
+    docker-compose -f docker-compose.dev.yml build
+    ```
+
+Then, run on the terminal:
+
+    ```bash
+    docker-compose -f docker-compose.dev.yml up
+    ```
+
+Here, the `experimentation_code` is installed in editable mode, test & development tools (such as `pytest`, `pylint`) are included, and 3) the repo is mounted on `work` folder when running docker.
+
+### Testing
+
+We use `tox` on a virtualenv to automate unittests, linting etc. You can use development docker-compose (explained above). Simply open a terminal in the running container (e.g. from Jupyter interface) and run:
+
+    ```bash
+    cd work/
+    tox
+    ```
+
+Alternatively, you can install `tox` locally on a virtual environment. The `Makefile` automates the steps. To create virtualenv, simply run:
 
     ```bash
     make dev
