@@ -3,7 +3,7 @@ services:
     jupyter:
         build:
             context: ./
-            target: experiment
+            target: experimentation
         image: sertansenturk/makam_recognition_experiments:latest
         ports:
             - 8888:8888
