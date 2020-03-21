@@ -84,13 +84,15 @@ We use `tox` on a virtualenv to automate unittests, linting etc. You can use dev
     tox
     ```
 
-Alternatively, you can install `tox` locally on a virtual environment. The `Makefile` automates the steps. To create virtualenv, simply run:
+Alternatively, you can install `tox` locally on a virtual environment. This method requires you to have Python 3.7 available on your local machine.
+
+The `Makefile` automates the rest of the steps. To create virtualenv, simply run:
 
     ```bash
     make dev
     ```
 
-which will create a virtualenv called `venv` and install `tox`. To test your work, then run:
+which creates a virtualenv called `venv` and installs `tox`. To test your work, then run:
 
     ```bash
     make tox

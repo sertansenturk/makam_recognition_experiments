@@ -1,10 +1,10 @@
 version: "3.7"
 services:
-    jupyter:
+    jupyter-dev:
         build:
             context: ./
             target: development
-        image: makam_recognition_experiments:dev
+        image: sertansenturk/makam_recognition_experiments:dev
         ports:
             - 8888:8888
         volumes:
