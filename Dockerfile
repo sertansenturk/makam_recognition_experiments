@@ -19,24 +19,27 @@ USER $NB_UID
 ################# experiment image ################
 FROM jupyter-custom AS experimentation
 
-COPY --chown=$NB_UID ./src/ ./work/src/
-COPY --chown=$NB_UID ./setup.py ./work/
+COPY ./src/ ./work/src/
+COPY ./setup.py ./work/
 RUN pip install ./work/
 
 ################# development image ################
 FROM jupyter-custom AS development
 # Install Python dependencies from requirements.txt in advance
 # Useful for development since changes in code will not trigger a layer re-build
-COPY --chown=$NB_UID ./.pylintrc ./work/
-COPY --chown=$NB_UID ./tox.ini ./work/
-COPY --chown=$NB_UID ./requirements.txt ./work/
-COPY --chown=$NB_UID ./requirements.dev.txt ./work/
-COPY --chown=$NB_UID ./tests/ ./work/tests/
+COPY ./.pylintrc ./work/
+COPY ./tox.ini ./work/
+COPY ./requirements.txt ./work/
+COPY ./requirements.dev.txt ./work/
+COPY ./tests/ ./work/tests/
 RUN pip install --upgrade pip && \
     pip install -r ./work/requirements.txt && \
     pip install -r ./work/requirements.dev.txt
 
 # install experimentation code in editable mode
-COPY --chown=$NB_UID ./setup.py ./work/
-COPY --chown=$NB_UID ./src/ ./work/src/
+COPY ./setup.py ./work/
+COPY ./src/ ./work/src/
+USER root
+RUN chown -R $NB_USER:$NB_GID ./work/src/
+USER $NB_UID
 RUN pip install -e ./work/
