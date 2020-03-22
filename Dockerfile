@@ -38,5 +38,6 @@ RUN pip install --upgrade pip && \
 
 # install experimentation code in editable mode
 COPY ./setup.py ./work/
-COPY --chown=$NB_UID ./src/ ./work/src/
+ARG USR=$NB_UID
+COPY --chown=${USR} ./src/ ./work/src/
 RUN pip install -e ./work/
