@@ -1,0 +1,11 @@
+version: "3.7"
+services:
+    jupyter:
+        build:
+            context: ./
+            target: experimentation
+        image: sertansenturk/makam_recognition_experiments:latest
+        ports:
+            - 8888:8888
+        volumes:
+            - ./:/home/jovyan/work
