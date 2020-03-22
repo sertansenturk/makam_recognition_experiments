@@ -1,7 +1,7 @@
 language: python
 jobs:
   include:
-    - name: "docker"
+    - name: "docker-experimentation"
       if: branch IN (master, dev)
       services: docker
       python: 3.7
@@ -10,6 +10,17 @@ jobs:
       install: 
         - pip install -U pip
       script: docker-compose build
+      after_success:
+        -
+    - name: "docker-development"
+      if: branch IN (master, dev)
+      services: docker
+      python: 3.7
+      before_install:
+        - docker --version
+      install: 
+        - pip install -U pip
+      script: docker-compose -f docker-compose.dev.yml build
       after_success:
         -
     - name: "Python 3.7"
