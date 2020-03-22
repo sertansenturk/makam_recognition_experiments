@@ -1,0 +1,24 @@
+# Ignore everything
+**
+
+# Allow files and directories
+!data
+!notebooks
+!tests
+!requirements.txt
+!requirements.dev.txt
+!setup.py
+!src
+!tox.ini
+!.pylintrc
+
+# ignore unnecessary files inside the folders
+**/*~
+**/*.log
+**/.DS_Store
+**/Thumbs.Distribution
+**/.idea
+**/*.pyc
+
+# Jupyter Notebook
+**/.ipynb_checkpoints
