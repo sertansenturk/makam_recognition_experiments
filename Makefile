@@ -24,7 +24,7 @@ DEV_REQUIREMENTS_FILE = requirements.dev.txt
 
 DOCKER_TAG = sertansenturk/makam-recognition-experiments
 DOCKER_VER = latest
-DOCKER_FILE = Dockerfile
+DOCKER_FILE = ./docker/experiment/Dockerfile
 DOCKER_FLAG = 
 
 HELP_PADDING = 28
