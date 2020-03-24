@@ -73,7 +73,7 @@ Then, run on the terminal:
     docker-compose -f docker-compose.dev.yml up
     ```
 
-Here, the `experimentation_code` is installed in editable mode, test & development tools (such as `pytest`, `pylint`) are included, and 3) the repo is mounted on `work` folder when running docker.
+Here, the `experiment_code` is installed in editable mode, test & development tools (such as `pytest`, `pylint`) are included, and 3) the repo is mounted on `work` folder when running docker.
 
 ### Testing
 

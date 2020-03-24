@@ -1,9 +1,10 @@
 version: "3.7"
 services:
-    jupyter:
+    experiment:
         build:
             context: ./
-            target: experimentation
+            dockerfile: docker/experiment/Dockerfile
+            target: experiment
         image: sertansenturk/makam_recognition_experiments:latest
         ports:
             - 8888:8888

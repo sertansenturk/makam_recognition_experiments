@@ -17,7 +17,7 @@ RUN ldconfig && \
 USER $NB_UID
 
 ################# experiment image ################
-FROM jupyter-custom AS experimentation
+FROM jupyter-custom AS experiment
 
 COPY ./src/ ./work/src/
 COPY ./setup.py ./work/
@@ -36,7 +36,7 @@ RUN pip install --upgrade pip && \
     pip install -r ./work/requirements.txt && \
     pip install -r ./work/requirements.dev.txt
 
-# install experimentation code in editable mode
+# install experiment code in editable mode
 COPY ./setup.py ./work/
 COPY ./src/ ./work/src/
 USER root

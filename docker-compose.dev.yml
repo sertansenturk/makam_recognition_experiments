@@ -1,8 +1,9 @@
 version: "3.7"
 services:
-    jupyter-dev:
+    experiment-dev:
         build:
             context: ./
+            dockerfile: docker/experiment/Dockerfile
             target: development
         image: sertansenturk/makam_recognition_experiments:dev
         ports:

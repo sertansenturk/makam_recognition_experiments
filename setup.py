@@ -17,7 +17,7 @@ def get_version():
         str -- value of __version__ as defined in __init__.py
     """
     version_file2 = os.path.join(
-        HERE, EXP_DIR, "experimentation_code", "__init__.py")
+        HERE, EXP_DIR, "experiment_code", "__init__.py")
     with open(version_file2) as f:
         init_contents = f.read().strip()
 
@@ -30,7 +30,7 @@ def get_version():
 
 
 setup(
-    name="experimentation_code",
+    name="experiment_code",
     version=get_version(),
     author="Sertan Senturk",
     author_email="contact AT sertansenturk DOT com",
@@ -84,8 +84,11 @@ setup(
             "rope",
             "tox"
         ],
-        "demo": {
+        "demo": [
             "jupyter"
-        }
+        ],
+        "tracking": [
+            "mlflow>=1.7.*<2.0.*"
+        ]
     }
 )

@@ -1,4 +1,4 @@
-import experimentation_code
+import experiment_code
 
 def test_version():
-    assert experimentation_code.__version__, "version not found"
+    assert experiment_code.__version__, "version not found"
