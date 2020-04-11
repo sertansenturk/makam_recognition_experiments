@@ -1,14 +1,16 @@
 FROM python:3.7
 
-COPY ./requirements.txt /server/
-RUN pip install -r /server/requirements.txt && \
-    rm /server/requirements.txt
+EXPOSE 5000
 
-# RUN useradd --create-home -s /bin/bash mlflow
-# USER mlflow
+RUN pip install mlflow==1.7.* psycopg2==2.8.* && \
+    mkdir -p /server
 
-WORKDIR /server/
-COPY ./entrypoint.sh /server/
-COPY ./mlflow_test.py /server/
-ENTRYPOINT ["./entrypoint.sh"]
-CMD ["server"]
+COPY ./scripts/wait-for-it.sh /server/
+RUN chmod +x /server/wait-for-it.sh
+
+WORKDIR /server
+CMD ./wait-for-it.sh ${MLFLOW_BACKEND_STORE}:${POSTGRES_PORT} -- mlflow server \
+    --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${MLFLOW_BACKEND_STORE}:${POSTGRES_PORT}/${POSTGRES_DATABASE} \
+    --default-artifact-root /${MLFLOW_ARTIFACT_STORE} \
+    --host ${MLFLOW_TRACKING_SERVER_HOST} \
+    --port ${MLFLOW_TRACKING_SERVER_PORT}

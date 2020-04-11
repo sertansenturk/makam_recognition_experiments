@@ -1,3 +1,6 @@
+# TODO
+TODO*
+
 # latex temporary files
 *.aux
 *.bbl
@@ -12,18 +15,6 @@ data/
 !.gitignore
 !.travis.yml
 !.codeclimate.yml
-
-# binaries
-*alignAudioScore*
-*extractTonicTempoTuning*
-*phraseSeg*
-*MusikiToMusicXml*
-
-# score outputs
-*.svg
-*.xml
-*.ly
-
 *.pkl
 
 # Byte-compiled / optimized / DLL files
