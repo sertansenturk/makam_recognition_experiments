@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/21104/sertansenturk/makam_recognition_experiments.svg)](https://zenodo.org/badge/latestdoi/21104/sertansenturk/makam_recognition_experiments)
+[![DOI](https://zenodo.org/badge/21104/sertansenturk/makam_recognition_experiments.svg)](https://zenodo.org/badge/latestdoi/21104/sertansenturk/makam_recognition_experiments) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/sertansenturk/makam_recognition_experiments) [![Build Status](https://travis-ci.com/sertansenturk/ds-template.svg?branch=master)](https://travis-ci.com/sertansenturk/makam_recognition_experiments) [![codecov](https://codecov.io/gh/sertansenturk/makam_recognition_experiments/branch/master/graph/badge.svg)](https://codecov.io/gh/sertansenturk/makam_recognition_experiments) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-ff69b4.svg)](http://www.gnu.org/licenses/agpl-3.0) [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-ff69b4.svg)](http://creativecommons.org/licenses/by-nc-sa/4.0/)
 
 # [ConferenceXX] Ottoman-Turkish Makam Recognition Experiments
 
@@ -8,7 +8,7 @@ This repository hosts the experiments conducted in the paper:
 
 The dataset used in the experiments was curated as part of the paper:
 
-> Karakurt, A., Şentürk S., & Serra X. (2016).  [MORTY: A Toolbox for Mode Recognition and Tonic Identification](http://mtg.upf.edu/node/3538). 3rd International Digital Libraries for Musicology Workshop. pages 9-16, New York, USA
+> Karakurt, A., Şentürk S., & Serra X. (2016). [MORTY: A Toolbox for Mode Recognition and Tonic Identification](http://mtg.upf.edu/node/3538). 3rd International Digital Libraries for Musicology Workshop. pages 9-16, New York, USA
 
 Please cite the papers above, if you are using the contents of this repository for your works.
 
