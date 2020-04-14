@@ -73,6 +73,7 @@ setup(
     python_requires="==3.7.*",
     install_requires=[
         "essentia>=2.1b5;platform_system=='Linux'",  # audio signal processing
+        "pycompmusic @ git+https://github.com/MTG/pycompmusic.git@88d98a0bc37b2c3ca040dbe6141a53bf9bcff9e4#egg=compmusic",  # accesing the makam corpus
     ],
     extras_require={
         "development": [
