@@ -1,5 +1,5 @@
 [submodule "data/otmm_makam_recognition_dataset"]
-	path = data/otmm_makam_recognition_dataset
+	path = old_data/otmm_makam_recognition_dataset
 	url = https://github.com/MTG/otmm_makam_recognition_dataset.git
 [submodule "dlfm_code/jsonlab"]
 	path = dlfm_code/jsonlab
