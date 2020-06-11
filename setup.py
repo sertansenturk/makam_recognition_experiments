@@ -5,6 +5,7 @@ from setuptools import find_packages, setup
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 EXP_DIR = "src"
+PACKAGE_NAME = "mre"
 
 
 def get_version():
@@ -17,7 +18,7 @@ def get_version():
         str -- value of __version__ as defined in __init__.py
     """
     version_file = os.path.join(
-        HERE, EXP_DIR, "mre", "__init__.py")
+        HERE, EXP_DIR, PACKAGE_NAME, "__init__.py")
     with open(version_file) as f:
         init_contents = f.read().strip()
 
@@ -30,7 +31,7 @@ def get_version():
 
 
 setup(
-    name="mre",
+    name=PACKAGE_NAME,
     version=get_version(),
     author="Sertan Senturk",
     author_email="contact AT sertansenturk DOT com",
@@ -69,12 +70,15 @@ setup(
     ),
     packages=find_packages(EXP_DIR),
     package_dir={"": EXP_DIR},
-    include_package_data=True,
+    package_data={
+        "config": ["*.ini"],
+    },
     python_requires="==3.7.*",
     install_requires=[
         "essentia>=2.1b5;platform_system=='Linux'",  # audio signal processing
-        "pycompmusic @ git+https://github.com/MTG/pycompmusic.git"  # corpus
-        "@88d98a0bc37b2c3ca040dbe6141a53bf9bcff9e4#egg=compmusic",
+        "pycompmusic @ git+https://github.com/MTG/pycompmusic.git"
+        "@88d98a0bc37b2c3ca040dbe6141a53bf9bcff9e4#egg=compmusic",  # corpus
+        "pandas>=1.0.*"
     ],
     extras_require={
         "development": [
