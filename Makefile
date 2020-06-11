@@ -8,6 +8,7 @@ SHELL := /bin/bash
 	prune build \
 	up run down down-all \
 	python-dev-build tox \
+	sphinx-build sphinx-clean sphinx-apidoc sphinx-html sphinx-html-test \
 	find-port-usage debug-travis
 
 HELP_PADDING = 28
@@ -32,6 +33,9 @@ UP_OPTS =
 RUN_OPTS =
 
 PYTHON_DEV_CMD =
+
+DOCS_FOLDER = docs
+SPHINX_OPTS := -nWT -b linkcheck --keep-going
 
 CHK_PORT = ${MLFLOW_TRACKING_SERVER_PORT}
 
@@ -63,7 +67,7 @@ help:
 	@printf "\n"
 	@printf "======= Cleanup ======\n"
 	@printf "$(pretty_command): run \"down\" and \"prune\"\n" clean
-	@printf "$(pretty_command): run \"down-all\", \"prune\" and \"clean-stores\"\n" clean-all
+	@printf "$(pretty_command): run \"down-all\", \"prune\", \"clean-python\" and \"clean-stores\"\n" clean-all
 	@printf "$(pretty_command): remove local folders mounted as volumes in docker-compose\n" clean-stores
 	@printf "$(pretty_command): clean python-related artifacts\n" clean-python
 	@printf "$(pretty_command): alias of \"clean-all\"\n" purge
@@ -83,7 +87,17 @@ help:
 	@printf "$(pretty_command): build \"python-dev\" image\n" python-dev-build
 	@printf "$(pretty_command): run automated checks inside \"python-dev\" using tox\n" tox
 	@printf "\n"
+	@printf "======= Documentation ======\n"
+	@printf "$(pretty_command): builds sphinx docker image\n" sphinx-build
+	@printf "$(pretty_command): cleans documentation at \"./docs/_build/\"\n" sphinx-clean
+	@printf "$(pretty_command): creates rst documentation from python docstring\n" sphinx-apidoc
+	@printf "$(pretty_command): builds sphinx html docs at \"./docs/_build/html\"\n" sphinx-html
+	@printf "$(padded_str)SPHINX_OPTS, options to pass to sphinx (default: $(SPHINX_OPTS))\n"
+	@printf "$(pretty_command): tests sphinx html build\n" sphinx-html-test
+	@printf "\n"
 	@printf "========= Misc =======\n"
+	@printf "$(pretty_command): create the local mlflow artifact store\n" ${MLFLOW_ARTIFACT_STORE}
+	@printf "$(pretty_command): create the local posgres store\n" ${POSTGRES_STORE}
 	@printf "$(pretty_command): identify applications, which are bound to the given port. Useful for freeing ports from phantom tasks\n" find-port-usage
 	@printf "$(padded_str)CHK_PORT, Port to check (default: $(CHK_PORT))\n"
 	@printf "$(pretty_command): send a job debug request to travis\n" debug-travis
@@ -109,9 +123,12 @@ pyspark: JUPYTER_BASE_VERSION=${JUPYTER_PYSPARK_VERSION}
 pyspark: default
 
 test: JUPYTER_TARGET:=${JUPYTER_TEST_TARGET}
-test: RUN_OPTS:=jupyter start.sh ./run_pytest.sh
+test: RUN_OPTS:=jupyter start.sh ./run_pytest.sh ${MLFLOW_IMAGE_NAME} ${MLFLOW_TRACKING_SERVER_PORT} ${WAIT_FOR_IT_TIMEOUT}
 test: JUPYTER_CHOWN_EXTRA:="/${DATA_DIR},/tests"
-test: clean build run chk-store-permissions down
+test: clean build run chk-store-permissions
+	$(MAKE) down
+# NOTE: above, `clean` had already called `down` so we had to make
+# an explicit recursive call by `$(MAKE) down` 
 
 chk-store-permissions:
 	@if [ $(shell find data ! -user ${HOST_USERNAME} | wc -l) -gt 0 ]; then \
@@ -152,12 +169,17 @@ prune:
 build:
 	DOCKER_BUILDKIT=${BUILDKIT} COMPOSE_DOCKER_CLI_BUILD=${BUILDKIT} \
 	JUPYTER_BASE_IMAGE=${JUPYTER_BASE_IMAGE} JUPYTER_BASE_VERSION=${JUPYTER_BASE_VERSION} \
-	JUPYTER_TARGET=${JUPYTER_TARGET} \
+	JUPYTER_TARGET=${JUPYTER_TARGET} MLFLOW_VERSION=${MLFLOW_VERSION} \
 	POSTGRES_UID=${POSTGRES_UID} POSTGRES_GID=${POSTGRES_GID} \
 	docker-compose build ${BUILD_OPTS}
 
-up: 
-	mkdir -p ${MLFLOW_ARTIFACT_STORE} ${POSTGRES_STORE}
+${MLFLOW_ARTIFACT_STORE}:
+	mkdir -p ${MLFLOW_ARTIFACT_STORE}
+
+${POSTGRES_STORE}:
+	mkdir -p ${POSTGRES_STORE}
+
+up: ${MLFLOW_ARTIFACT_STORE} ${POSTGRES_STORE}
 	JUPYTER_BASE_IMAGE=${JUPYTER_BASE_IMAGE} JUPYTER_BASE_VERSION=${JUPYTER_BASE_VERSION} \
 	JUPYTER_TARGET=${JUPYTER_TARGET} \
 	JUPYTER_CHOWN_EXTRA=${JUPYTER_CHOWN_EXTRA} \
@@ -165,8 +187,8 @@ up:
 	JUPYTER_ENABLE_LAB=${JUPYTER_ENABLE_LAB} \
 	POSTGRES_UID=${POSTGRES_UID} POSTGRES_GID=${POSTGRES_GID} \
 	docker-compose up ${UP_OPTS}
-run:
-	mkdir -p ${MLFLOW_ARTIFACT_STORE} ${POSTGRES_STORE}
+
+run: ${MLFLOW_ARTIFACT_STORE} ${POSTGRES_STORE}
 	JUPYTER_BASE_IMAGE=${JUPYTER_BASE_IMAGE} JUPYTER_BASE_VERSION=${JUPYTER_BASE_VERSION} \
 	JUPYTER_TARGET=${JUPYTER_TARGET} \
 	JUPYTER_CHOWN_EXTRA=${JUPYTER_CHOWN_EXTRA} \
@@ -176,7 +198,6 @@ run:
 	docker-compose run ${RUN_OPTS}
 
 down:
-	POSTGRES_UID=${POSTGRES_UID} POSTGRES_GID=${POSTGRES_GID} \
 	docker-compose down ${DOWN_OPTS}
 down-all: DOWN_OPTS:=${DOWN_ALL_OPTS}
 down-all: down
@@ -191,6 +212,35 @@ python-dev-build:
 tox: PYTHON_DEV_CMD := tox
 tox: python-dev-build
 	docker run -it ${IMAGE_OWNER}/${PYTHON_DEV_IMAGE_NAME}:${VERSION} ${PYTHON_DEV_CMD}
+
+sphinx-build:
+	DOCKER_BUILDKIT=${BUILDKIT} \
+	docker build \
+		--build-arg SPHINX_VERSION=${SPHINX_VERSION} \
+		. \
+		-f ./docker/sphinx/Dockerfile \
+		-t ${IMAGE_OWNER}/${SPHINX_IMAGE_NAME}:${SPHINX_VERSION}
+
+sphinx-clean: sphinx-build
+	docker run -it --rm \
+		-v ${MAKEFILE_DIR}:/makam_recognition_experiments/ \
+		${IMAGE_OWNER}/${SPHINX_IMAGE_NAME}:${SPHINX_VERSION} \
+		make clean
+
+sphinx-apidoc: sphinx-build
+	docker run -it --rm \
+		-v ${MAKEFILE_DIR}:/makam_recognition_experiments/ \
+		${IMAGE_OWNER}/${SPHINX_IMAGE_NAME}:${SPHINX_VERSION} \
+		sphinx-apidoc -f -o ./ ../src/mre
+
+sphinx-html: sphinx-clean sphinx-apidoc
+	docker run -it --rm \
+		-v ${MAKEFILE_DIR}:/makam_recognition_experiments/ \
+		-e SPHINX_OPTS="${SPHINX_OPTS}" \
+		${IMAGE_OWNER}/${SPHINX_IMAGE_NAME}:${SPHINX_VERSION}
+
+sphinx-html-test: SPHINX_OPTS:=${SPHINX_OPTS} -b dummy
+sphinx-html-test: sphinx-html
 
 find-port-usage:
 	sudo lsof -i -P -n | grep ${CHK_PORT}
