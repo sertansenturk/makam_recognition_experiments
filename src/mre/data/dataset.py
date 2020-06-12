@@ -1,6 +1,3 @@
-import configparser
-import os
-
 
 class Dataset:
     name = "otmm_makam_recognition_dataset"
@@ -19,4 +16,4 @@ class Dataset:
 
     @classmethod
     def get_annotation_url(cls):
-        return f"{cls.url}/{cls.git_release_tag}/annotations.json"
+        return f"{cls.get_url}/{cls.git_release_tag}/annotations.json"
