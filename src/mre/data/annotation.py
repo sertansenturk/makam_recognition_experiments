@@ -8,19 +8,17 @@ logger = logging.Logger(  # pylint: disable-msg=C0103
 
 
 class Annotation:
-    """class to read and parse makam recognition annotations"""
+    """class to read and process makam recognition annotations"""
     def __init__(self):
         """instantiates an Annotation object
         """
-        cfg = config.read()
-        self.annotation_url = cfg["dataset"]["annotation_file"]
-        self.num_recordings = cfg.getint("dataset", "num_recordings")
-        self.num_recordings_per_makam = cfg.getint(
-            "dataset", "num_recordings_per_makam")
+        self.annotation_url = config.read()["dataset"]["annotation_file"]
+        
         logger.info(f"Reading annotations from: {self.annotation_url}")
 
         self.annotations = self._read_from_github()
         self._validate()
+
         self._parse_mbids()
         self._patch_uids()
 
@@ -38,43 +36,67 @@ class Annotation:
         """reads the annotation file from github and validates
         """
         return pd.read_json(self.annotation_url)
-        
+
+    def _get_num_recs_per_makam(self) -> int:
+        """[summary]
+
+        Returns
+        -------
+        int
+            [description]
+        """
+        num_recordings_per_makam = list(
+            self.annotations.makam.value_counts())
+
+        # balanced dataset; all classes have the same number of instances
+        if num_recordings_per_makam == num_recordings_per_makam[0]:
+            num_recordings_per_makam = num_recordings_per_makam[0]
+        return num_recordings_per_makam
+
     def _validate(self):
         """validates the annotations
         
-        Verifies that the:
+        Read the expected values mre config and verifies that:
             1) number of recordings
             2) number of makams
             3) number of recordings per makam
         have the expected values.
         """
-        if len(self.annotations.mbid) != self.num_recordings:
-            raise ValueError(
-                f"There are {len(self.annotations.mbid)} recordings. "
-                f"Expected: {self.num_recordings}")
-        if len(self.annotations.mbid.unique()) != self.num_recordings:
-            raise ValueError("MusicBrainz ID (MBIDs) are not unique")
-        logger.info(f"{self.num_recordings} annotated recordings.")
+        cfg = config.read()
 
-        num_makams = self.num_recordings / self.num_recordings_per_makam
-        makam_counts = self.annotations.makam.value_counts()
-        if len(makam_counts) != num_makams:
+        num_recordings = len(self.annotations.mbid)
+        expected_num_recs = cfg.getint("dataset", "num_recordings")
+        if num_recordings != expected_num_recs:
             raise ValueError(
-                f"There are less than {num_makams} makams")
+                f"There are {num_recordings} recordings. "
+                f"Expected: {expected_num_recs}.")
+
+        unique_num_recordings = self.annotations.mbid.nunique()
+        if unique_num_recordings != num_recordings:
+            raise ValueError("MusicBrainz ID (MBIDs) are not unique.")
+        logger.info(f"{num_recordings} annotated recordings.")
+
+        num_recordings_per_makam = self._get_num_recs_per_makam()
+        expected_num_recs_per_makam = cfg.getint(
+            "dataset", "num_recordings_per_makam")
+        if num_recordings_per_makam == expected_num_recs_per_makam:
+            raise ValueError(
+                f"{num_recordings_per_makam} number of recordings per makam. "
+                f"Expected: {expected_num_recs_per_makam}")
+        logger.info(f"{num_recordings_per_makam} recordings per makam.")
+
+        num_makams = len(self.annotations.makam.value_counts())
+        expected_num_makams = expected_num_recs / expected_num_recs_per_makam
+        if num_makams != expected_num_makams:
+            raise ValueError(
+                f"There are {num_makams} makams. "
+                f"Expected: {expected_num_makams}.")
         logger.info(f"{num_makams} makams.")
 
-        num_recs_per_makam = makam_counts.unique()
-        is_rec_makam_valid = (
-            (len(num_recs_per_makam) == 1) and
-            (num_recs_per_makam[0] == self.num_recordings_per_makam))
-        if not is_rec_makam_valid:
-            raise ValueError("The number of recorings per makam should have "
-                             f"been {self.num_recordings_per_makam}")
-        logger.info(f"{self.num_recordings_per_makam} recordings per makam.")
-
     def _parse_mbids(self):
-        """
-        the mbid's in the "otmm_makam_recognition_dataset" are stored as 
+        """Parses mbid field
+
+        The mbid's in the "otmm_makam_recognition_dataset" are stored as 
         URL's pointing to the MusicBrainz website.
 
         This method moves the URL to a new mb_url field and trims mbid's
@@ -93,8 +115,8 @@ class Annotation:
         in the dunya_uid field. This field is not populated if the dunya_uid
         & mbid are the same.
 
-        This method merges the mbid and dunya_uid to simplify sending 
-        requests to Dunya API later
+        This method populates all dunya_uid's by merging the mbid and dunya_uid
+        fields.
         """
         self.annotations.loc[
             self.annotations["dunya_uid"].isna(), "dunya_uid"] = (
