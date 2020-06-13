@@ -1,6 +1,6 @@
 import os
 
-import mre.config.config as config
+from mre.config import config
 
 
 def test_get_config_filepath():
