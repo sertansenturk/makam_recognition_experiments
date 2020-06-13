@@ -1,1 +1,1 @@
-from .config import read_config
+from . config import read
