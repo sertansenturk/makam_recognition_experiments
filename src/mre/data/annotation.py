@@ -19,8 +19,8 @@ class Annotation:
         self.annotations = self._read_from_github()
         self._validate()
 
-        self._parse_mbids()
-        self._patch_uids()
+        self._parse_mbid_urls()
+        self._patch_dunya_uids()
 
     def head(self) -> pd.DataFrame:
         """returns the first five annotations
@@ -38,12 +38,12 @@ class Annotation:
         return pd.read_json(self.annotation_url)
 
     def _get_num_recs_per_makam(self) -> int:
-        """[summary]
+        """returns number of recordings per makam
 
         Returns
         -------
         int
-            [description]
+            number of recordings per makam
         """
         num_recordings_per_makam = list(
             self.annotations.makam.value_counts())
@@ -93,19 +93,20 @@ class Annotation:
                 f"Expected: {expected_num_makams}.")
         logger.info("%d makams.", num_makams)
 
-    def _parse_mbids(self):
-        """Parses mbid field
+    def _parse_mbid_urls(self):
+        """Parses the urls in the mbid field
 
-        The mbid's in the "otmm_makam_recognition_dataset" are stored as
-        URL's pointing to the MusicBrainz website.
+        The MBIDs in the "otmm_makam_recognition_dataset" are stored as
+        URLs pointing to the MusicBrainz website.
 
-        This method moves the URL to a new mb_url field and trims mbid's
+        This method trims mbid's while moving the URL to a new field called
+        mb_url.
         """
         self.annotations["mb_url"] = self.annotations["mbid"]
         self.annotations["mbid"] = self.annotations["mbid"].str.split(
             pat="/").apply(lambda a: a[-1])
 
-    def _patch_uids(self):
+    def _patch_dunya_uids(self):
         """Patches the mbid and dunya_uid's
 
         Some recordings in "CompMusic makam music corpus" may not point to the

@@ -71,7 +71,7 @@ setup(
     packages=find_packages(EXP_DIR),
     package_dir={"": EXP_DIR},
     package_data={
-        "config": ["*.ini"],
+        "": ["*.ini"],
     },
     python_requires="==3.7.*",
     install_requires=[
