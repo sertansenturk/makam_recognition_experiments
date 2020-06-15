@@ -7,7 +7,7 @@ logger = logging.Logger(  # pylint: disable-msg=C0103
     __name__, level=logging.INFO)
 
 
-class Annotation:
+class Annotation(object):
     """class to read and process makam recognition annotations"""
     def __init__(self):
         """instantiates an Annotation object
@@ -16,7 +16,7 @@ class Annotation:
 
         logger.info("Reading annotations from: %s", self.annotation_url)
 
-        self.annotations = self._read_from_github()
+        self.data = self._read_from_github()
         self._validate()
 
         self._parse_mbid_urls()
@@ -30,7 +30,7 @@ class Annotation:
         pd.DataFrame
             first five annotations
         """
-        return self.annotations.head()
+        return self.data.head()
 
     def _read_from_github(self):
         """reads the annotation file from github and validates
@@ -46,7 +46,7 @@ class Annotation:
             number of recordings per makam
         """
         num_recordings_per_makam = list(
-            self.annotations.makam.value_counts())
+            self.data.makam.value_counts())
 
         # balanced dataset; all classes have the same number of instances
         if num_recordings_per_makam == num_recordings_per_makam[0]:
@@ -64,14 +64,14 @@ class Annotation:
         """
         cfg = config.read()
 
-        num_recordings = len(self.annotations.mbid)
+        num_recordings = len(self.data.mbid)
         expected_num_recs = cfg.getint("dataset", "num_recordings")
         if num_recordings != expected_num_recs:
             raise ValueError(
                 f"There are {num_recordings} recordings. "
                 f"Expected: {expected_num_recs}.")
 
-        unique_num_recordings = self.annotations.mbid.nunique()
+        unique_num_recordings = self.data.mbid.nunique()
         if unique_num_recordings != num_recordings:
             raise ValueError("MusicBrainz ID (MBIDs) are not unique.")
         logger.info("%d annotated recordings.", num_recordings)
@@ -85,7 +85,7 @@ class Annotation:
                 f"Expected: {expected_num_recs_per_makam}")
         logger.info("%d recordings per makam.", num_recordings_per_makam)
 
-        num_makams = len(self.annotations.makam.value_counts())
+        num_makams = len(self.data.makam.value_counts())
         expected_num_makams = expected_num_recs / expected_num_recs_per_makam
         if num_makams != expected_num_makams:
             raise ValueError(
@@ -102,12 +102,12 @@ class Annotation:
         This method trims mbid's while moving the URL to a new field called
         mb_url.
         """
-        self.annotations["mb_url"] = self.annotations["mbid"]
-        self.annotations["mbid"] = self.annotations["mbid"].str.split(
+        self.data["mb_url"] = self.data["mbid"]
+        self.data["mbid"] = self.data["mbid"].str.split(
             pat="/").apply(lambda a: a[-1])
 
     def _patch_dunya_uids(self):
-        """Patches the mbid and dunya_uid's
+        """Patches missing dunya uid's with mbid's
 
         Some recordings in "CompMusic makam music corpus" may not point to the
         master MBID in MusicBrainz due to database merges.
@@ -116,10 +116,8 @@ class Annotation:
         in the dunya_uid field. This field is not populated if the dunya_uid
         & mbid are the same.
 
-        This method populates all dunya_uid's by merging the mbid and dunya_uid
-        fields.
+        This method fills missing dunya_uid's by the corresponding mbid
         """
-        self.annotations.loc[
-            self.annotations["dunya_uid"].isna(), "dunya_uid"] = (
-                self.annotations.loc[
-                    self.annotations["dunya_uid"].isna(), "mbid"])
+        self.data.loc[self.data["dunya_uid"].isna(), "dunya_uid"] = (
+            self.data.loc[self.data["dunya_uid"].isna(), "mbid"])
+        self.data.loc[self.data["dunya_uid"].isna(), "dunya_uid"] = 5

@@ -1,25 +1,20 @@
 import os
-
-import mock
-import unittest
+from unittest import mock
 
 from mre.config import config
 
 
-class ReadTestCase(unittest.TestCase):
+class TestRead(object):
     @mock.patch.object(config.configparser.ConfigParser, 'read')
     def test_read(self, mock_read):
-        # set up mock
+        # WHEN
         config.read()
 
-        # test that rm called os.remove with the right parameters
+        # THEN
         mock_read.assert_called_with(config._get_config_filepath())
 
 
 def test_get_config_filepath():
-    # GIVEN
-    pass
-
     # WHEN
     path = config._get_config_filepath()
 
