@@ -7,7 +7,7 @@ from mre.config import config
 
 
 class ReadTestCase(unittest.TestCase):
-    @mock.patch('mre.config.configparser.ConfigParser.read')
+    @mock.patch.object(config.configparser.ConfigParser, 'read')
     def test_read(self, mock_read):
         # set up mock
         config.read()
