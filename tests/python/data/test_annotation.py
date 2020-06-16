@@ -16,14 +16,11 @@ class TestAnnotation(object):
          pd.DataFrame([{"dunya_uid": "some_uid", "mbid": "some_mbid"}])),
         (pd.DataFrame([{"dunya_uid": "some_uid", "mbid": None}]),
          pd.DataFrame([{"dunya_uid": "some_uid", "mbid": None}]))])
-    @mock.patch('mre.data.Annotation.__init__')
-    def test_patch_dunya_uids(self, mock_init, data, expected):
-        # set up mock
-        mock_init.return_value = None
-        annotations = Annotation()
-
+    def test_patch_dunya_uids(self, data, expected):
         # GIVEN
-        annotations.data = data
+        with mock.patch("mre.data.Annotation.__init__", return_value=None):
+            annotations = Annotation()
+            annotations.data = data
 
         # WHEN
         annotations._patch_dunya_uids()
