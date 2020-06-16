@@ -8,8 +8,10 @@ logger = logging.Logger(  # pylint: disable-msg=C0103
     __name__, level=logging.INFO)
 
 
-class Annotation(object):
+class Annotation:
     """class to read and process makam recognition annotations"""
+    MUSICBRAINZ_RECORDING_URL = "http://musicbrainz.org/recording/"
+
     def __init__(self):
         """instantiates an Annotation object
         """
@@ -104,8 +106,15 @@ class Annotation(object):
         mb_url.
         """
         self.data["mb_url"] = self.data["mbid"]
-        self.data["mbid"] = self.data["mbid"].str.split(
-            pat="/").apply(lambda a: a[-1])
+
+        invalid_url_bool = ~self.data["mb_url"].str.startswith(
+            self.MUSICBRAINZ_RECORDING_URL, na=False)
+        if any(invalid_url_bool):
+            raise ValueError('Invalid urls:\n{}'.format(
+                self.data.to_string()))
+
+        self.data["mbid"] = self.data["mb_url"].str.split(pat="/").apply(
+            lambda a: a[-1])
 
     def _patch_dunya_uids(self):
         """Patches missing dunya uid's with mbid's

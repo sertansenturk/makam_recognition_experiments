@@ -4,7 +4,7 @@ from unittest import mock
 from mre.config import config
 
 
-class TestRead(object):
+class TestRead:
     @mock.patch.object(config.configparser.ConfigParser, 'read')
     def test_read(self, mock_read):
         # WHEN
