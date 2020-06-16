@@ -1,10 +1,9 @@
 import os
 from unittest import mock
 
-import pytest
-
 import pandas as pd
 
+import pytest
 from mre.data import Annotation
 
 

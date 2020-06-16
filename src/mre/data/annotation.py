@@ -1,7 +1,8 @@
 import logging
 
 import pandas as pd
-from .. config import config
+
+from ..config import config
 
 logger = logging.Logger(  # pylint: disable-msg=C0103
     __name__, level=logging.INFO)
