@@ -15,7 +15,44 @@ def mock_annotation(scope="session"):
     return annotations
 
 
+
+# def mock_read_from_github():
+#     assert True
+
+
+# def test_validate():
+#     assert True
+
+
 class TestAnnotation:
+    def test_get_num_recs_per_makam_inbalanced_dataset(self, mock_annotation):
+        # GIVEN
+        annotations = mock_annotation
+        annotations.data = pd.DataFrame([  # inbalanced
+            {"makam": "makam1"}, {"makam": "makam1"}, {"makam": "makam2"}])
+
+        # WHEN; THEN
+        with pytest.raises(ValueError):
+            annotations._get_num_recs_per_makam()
+
+
+    @pytest.mark.parametrize("data,expected", [
+        (pd.DataFrame([{"makam": "makam1"}]), 1),
+        (pd.DataFrame([{"makam": "makam1"}, {"makam": "makam2"}]), 1),
+        (pd.DataFrame([{"makam": "makam1"}, {"makam": "makam1"},
+                       {"makam": "makam2"}, {"makam": "makam2"}]), 2)])
+    def test_get_num_recs_per_makam(self, mock_annotation, data, expected):
+        # GIVEN
+        annotations = mock_annotation
+        annotations.data = data
+
+        # WHEN
+        result = annotations._get_num_recs_per_makam()
+
+        # THEN
+        assert result == expected
+
+
     @pytest.mark.parametrize("invalid_url", [
         None,
         "",
@@ -64,34 +101,3 @@ class TestAnnotation:
 
         # THEN
         assert_frame_equal(annotations.data, expected, check_like=True)
-
-
-
-# def test_head():
-#     assert True
-
-
-# def mock_annotation():
-#     assert True
-
-
-# def test_get_num_recs_per_makam():
-#     assert True
-
-
-# def test_validate():
-#     assert True
-
-
-# def test_parse_mbid_urls():
-#     assert True
-
-
-def test_patch_dunya_uids():
-    # GIVEN
-
-    # WHEN
-
-    # THEN
-
-    assert True

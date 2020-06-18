@@ -48,13 +48,13 @@ class Annotation:
         int
             number of recordings per makam
         """
-        num_recordings_per_makam = list(
-            self.data.makam.value_counts())
+        num_recordings_per_makam = self.data.makam.value_counts()
 
         # balanced dataset; all classes have the same number of instances
-        if num_recordings_per_makam == num_recordings_per_makam[0]:
-            num_recordings_per_makam = num_recordings_per_makam[0]
-        return num_recordings_per_makam
+        if num_recordings_per_makam.nunique() == 1:
+            return num_recordings_per_makam[0]
+
+        raise ValueError("Inbalanced datasets are not supported")
 
     def _validate(self):
         """validates the annotations
