@@ -30,6 +30,26 @@ class TestAnnotation:
         # THEN
         mock_read_json.assert_called_once_with(mock_annotation.URL)
 
+    @mock.patch('mre.data.Annotation._validate_num_makams')
+    @mock.patch('mre.data.Annotation._validate_num_recordings_per_makam')
+    @mock.patch('mre.data.Annotation._validate_mbids')
+    @mock.patch('mre.data.Annotation._validate_num_recordings')
+    def test_validate(self,
+                      mock_validate_num_recordings,
+                      mock_validate_mbids,
+                      mock_validate_num_recordings_per_makam,
+                      mock_validate_num_makams,
+                      mock_annotation):
+
+        # WHEN
+        mock_annotation._validate()
+
+        #THEN
+        mock_validate_num_recordings.assert_called_once_with()
+        mock_validate_mbids.assert_called_once_with()
+        mock_validate_num_recordings_per_makam.assert_called_once_with()
+        mock_validate_num_makams.assert_called_once_with()
+
     def test_validate_num_recordings(self, mock_annotation):
         # GIVEN
         mock_annotation.data = pd.DataFrame(
@@ -76,10 +96,12 @@ class TestAnnotation:
     def test_val_num_recs_per_makam(self, mock_annotation, data, expected):
         # GIVEN
         mock_annotation.data = data
-        mock_annotation.EXPECTED_NUM_RECORDINGS_PER_MAKAM = expected
 
         # WHEN; THEN
-        mock_annotation._validate_num_recordings_per_makam()
+        with mock.patch.object(mock_annotation,
+                               'EXPECTED_NUM_RECORDINGS_PER_MAKAM',
+                               expected):
+            mock_annotation._validate_num_recordings_per_makam()
 
     def test_val_num_recs_per_makam_unbalanced(self, mock_annotation):
         # GIVEN
@@ -94,11 +116,13 @@ class TestAnnotation:
         # GIVEN
         mock_annotation.data = pd.DataFrame([  # 2 recordings per makams
             {"makam": "makam1"}, {"makam": "makam2"}])
-        mock_annotation.EXPECTED_NUM_RECORDINGS_PER_MAKAM = 5  # not 2
 
         # WHEN; THEN
-        with pytest.raises(ValueError):
-            mock_annotation._validate_num_recordings_per_makam()
+        with mock.patch.object(mock_annotation,
+                               'EXPECTED_NUM_RECORDINGS_PER_MAKAM',
+                               5):  # not 2
+            with pytest.raises(ValueError):
+                mock_annotation._validate_num_recordings_per_makam()
 
     @pytest.mark.parametrize("data,expected", [
         (pd.DataFrame([{"makam": "makam1"}]), 1),
@@ -106,20 +130,24 @@ class TestAnnotation:
     def test_validate_num_makams(self, mock_annotation, data, expected):
         # GIVEN
         mock_annotation.data = data
-        mock_annotation.EXPECTED_NUM_MAKAMS = expected
 
         # WHEN; THEN
-        mock_annotation._validate_num_makams()
+        with mock.patch.object(mock_annotation,
+                               'EXPECTED_NUM_MAKAMS',
+                               expected):
+            mock_annotation._validate_num_makams()
 
     def test_validate_num_makams_incorrect(self, mock_annotation):
         # GIVEN
         mock_annotation.data = pd.DataFrame([  # 3 makams
             {"makam": "makam1"}, {"makam": "makam2"}, {"makam": "makam3"}])
-        mock_annotation.EXPECTED_NUM_MAKAMS = 5  # not 2
 
         # WHEN; THEN
-        with pytest.raises(ValueError):
-            mock_annotation._validate_num_makams()
+        with mock.patch.object(mock_annotation,
+                               'EXPECTED_NUM_MAKAMS',
+                               5):  # not 3
+            with pytest.raises(ValueError):
+                mock_annotation._validate_num_makams()
 
     def test_parse_mbid_urls(self, mock_annotation):
         # GIVEN
