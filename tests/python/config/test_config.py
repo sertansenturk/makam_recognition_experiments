@@ -11,7 +11,7 @@ class TestRead:
         config.read()
 
         # THEN
-        mock_read.assert_called_with(config._get_config_filepath())
+        mock_read.assert_called_once_with(config._get_config_filepath())
 
 
 def test_get_config_filepath():

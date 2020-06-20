@@ -15,9 +15,9 @@ class Annotation:
     def __init__(self):
         """instantiates an Annotation object
         """
-        self.annotation_url = config.read()["dataset"]["annotation_file"]
+        self.url = config.read()["dataset"]["annotation_file"]
 
-        logger.info("Reading annotations from: %s", self.annotation_url)
+        logger.info("Reading annotations from: %s", self.url)
 
         self.data = self._read_from_github()
         self._validate()
@@ -38,7 +38,7 @@ class Annotation:
     def _read_from_github(self):
         """reads the annotation file from github and validates
         """
-        return pd.read_json(self.annotation_url)
+        return pd.read_json(self.url)
 
     def _get_num_recs_per_makam(self) -> int:
         """returns number of recordings per makam

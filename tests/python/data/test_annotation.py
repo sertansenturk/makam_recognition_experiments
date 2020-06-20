@@ -16,8 +16,6 @@ def mock_annotation(scope="session"):
 
 
 
-# def mock_read_from_github():
-#     assert True
 
 
 # def test_validate():
@@ -25,6 +23,16 @@ def mock_annotation(scope="session"):
 
 
 class TestAnnotation:
+    @mock.patch('pandas.read_json')
+    def test_read_from_github(self, mock_read_json, mock_annotation):
+        # WHEN
+        annotations = mock_annotation
+        annotations.url = "mock_url"
+        _ = annotations._read_from_github()
+
+        # THEN
+        mock_read_json.assert_called_once_with(annotations.url)
+
     def test_get_num_recs_per_makam_inbalanced_dataset(self, mock_annotation):
         # GIVEN
         annotations = mock_annotation
