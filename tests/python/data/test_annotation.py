@@ -22,13 +22,13 @@ class TestAnnotation:
     @mock.patch('pandas.read_json', autospec=True)
     def test_read_from_github(self, mock_read_json, mock_annotation):
         # GIVEN
-        mock_annotation.URL = "mock_url"
-
+        url = "mock_url"
         # WHEN
-        _ = mock_annotation._read_from_github()
+        with mock.patch.object(mock_annotation, 'URL', url):
+            _ = mock_annotation._read_from_github()
 
         # THEN
-        mock_read_json.assert_called_once_with(mock_annotation.URL)
+        mock_read_json.assert_called_once_with(url)
 
     @mock.patch('mre.data.Annotation._validate_num_makams')
     @mock.patch('mre.data.Annotation._validate_num_recordings_per_makam')
@@ -40,7 +40,6 @@ class TestAnnotation:
                       mock_validate_num_recordings_per_makam,
                       mock_validate_num_makams,
                       mock_annotation):
-
         # WHEN
         mock_annotation._validate()
 
@@ -54,10 +53,12 @@ class TestAnnotation:
         # GIVEN
         mock_annotation.data = pd.DataFrame(
             [{"col1": "val1"}, {"col1": "val2"}])
-        mock_annotation.EXPECTED_NUM_RECORDINGS = 2
-
+        
         # WHEN; THEN
-        mock_annotation._validate_num_recordings()
+        with mock.patch.object(mock_annotation,
+                               'EXPECTED_NUM_RECORDINGS',
+                               2):
+            mock_annotation._validate_num_recordings()
 
     def test_validate_mbids(self, mock_annotation):
         # GIVEN
