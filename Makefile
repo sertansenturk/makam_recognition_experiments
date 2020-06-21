@@ -213,7 +213,10 @@ python-dev-build:
 
 tox: PYTHON_DEV_CMD := tox
 tox: python-dev-build
-	docker run -it ${IMAGE_OWNER}/${PYTHON_DEV_IMAGE_NAME}:${VERSION} ${PYTHON_DEV_CMD}
+	docker run -it --rm \
+		-v ${MAKEFILE_DIR}:/repo/ \
+		${IMAGE_OWNER}/${PYTHON_DEV_IMAGE_NAME}:${VERSION} \
+		${PYTHON_DEV_CMD}
 
 sphinx-build:
 	DOCKER_BUILDKIT=${BUILDKIT} \

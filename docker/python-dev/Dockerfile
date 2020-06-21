@@ -10,6 +10,5 @@ COPY docker/python-dev/requirements.txt /install/
 RUN pip install -r /install/requirements.txt && \
     rm -rf /install
 
-COPY ./ /repo/
 WORKDIR /repo/
 CMD ["tox"]
