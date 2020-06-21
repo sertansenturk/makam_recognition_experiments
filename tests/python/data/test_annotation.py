@@ -1,4 +1,3 @@
-import os
 from unittest import mock
 
 import numpy as np
@@ -7,7 +6,6 @@ from pandas.testing import assert_frame_equal
 
 import pytest
 from mre.data import Annotation
-from mre.config import config
 
 
 @pytest.fixture
@@ -44,7 +42,7 @@ class TestAnnotation:
         # WHEN
         mock_annotation._validate()
 
-        #THEN
+        # THEN
         mock_validate_num_recordings.assert_called_once_with()
         mock_validate_mbids.assert_called_once_with()
         mock_validate_num_recordings_per_makam.assert_called_once_with()
