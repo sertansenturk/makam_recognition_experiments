@@ -23,6 +23,7 @@ class TestAnnotation:
     def test_read_from_github(self, mock_read_json, mock_annotation):
         # GIVEN
         url = "mock_url"
+
         # WHEN
         with mock.patch.object(mock_annotation, 'URL', url):
             _ = mock_annotation._read_from_github()
@@ -53,7 +54,7 @@ class TestAnnotation:
         # GIVEN
         mock_annotation.data = pd.DataFrame(
             [{"col1": "val1"}, {"col1": "val2"}])
-        
+
         # WHEN; THEN
         with mock.patch.object(mock_annotation,
                                'EXPECTED_NUM_RECORDINGS',
