@@ -24,6 +24,16 @@ def mock_experiment(scope="session") -> mock.MagicMock:
 
 
 class TestAnnotation:
+    @mock.patch('mre.data.Annotation._validate')
+    @mock.patch('mre.data.Annotation._read_from_github')
+    def test_annotation_init(self, mock_read, mock_validate):
+        # WHEN
+        _ = Annotation()
+
+        # THEN
+        mock_read.assert_called_once_with()
+        mock_validate.assert_called_once_with()
+
     @mock.patch('pandas.read_json', autospec=True)
     def test_read_from_github(self, mock_read_json, mock_annotation):
         # GIVEN
@@ -65,6 +75,18 @@ class TestAnnotation:
                                'EXPECTED_NUM_RECORDINGS',
                                2):
             mock_annotation._validate_num_recordings()
+
+    def test_validate_unexpected_num_recordings(self, mock_annotation):
+        # GIVEN
+        mock_annotation.data = pd.DataFrame(
+            [{"col1": "val1"}, {"col1": "val2"}])
+
+        # WHEN; THEN
+        with mock.patch.object(mock_annotation,
+                               'EXPECTED_NUM_RECORDINGS',
+                               3):  # not 2
+            with pytest.raises(ValueError):
+                mock_annotation._validate_num_recordings()
 
     def test_validate_mbids(self, mock_annotation):
         # GIVEN
