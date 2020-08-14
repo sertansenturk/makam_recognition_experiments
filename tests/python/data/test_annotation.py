@@ -156,6 +156,19 @@ class TestAnnotation:
             with pytest.raises(ValueError):
                 mock_annotation._validate_num_makams()
 
+    @mock.patch('mre.data.Annotation._parse_mbid_urls')
+    @mock.patch('mre.data.Annotation._patch_dunya_uids')
+    def test_parse(self,
+                   mock_patch_dunya_uids,
+                   mock_parse_mbid_urls,
+                   mock_annotation):
+        # WHEN
+        mock_annotation.parse()
+
+        # THEN
+        mock_patch_dunya_uids.assert_called_once_with()
+        mock_parse_mbid_urls.assert_called_once_with()
+
     def test_parse_mbid_urls(self, mock_annotation):
         # GIVEN
         mb_url = "http://musicbrainz.org/recording/some_mbid"

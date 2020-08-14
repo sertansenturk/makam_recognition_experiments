@@ -35,9 +35,6 @@ class Annotation:
         self.data = self._read_from_github()
         self._validate()
 
-        self._parse_mbid_urls()
-        self._patch_dunya_uids()
-
     def head(self) -> pd.DataFrame:
         """returns the first five annotations
 
@@ -139,6 +136,10 @@ class Annotation:
                 f"There are {num_makams} makams. "
                 f"Expected: {self.EXPECTED_NUM_MAKAMS}.")
         logger.info("%d makams.", num_makams)
+
+    def parse(self):
+        self._parse_mbid_urls()
+        self._patch_dunya_uids()
 
     def _parse_mbid_urls(self):
         """Parses the urls in the MBID field
