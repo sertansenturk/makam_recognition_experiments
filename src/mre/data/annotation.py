@@ -1,5 +1,8 @@
 import logging
+import tempfile
+import os
 
+import mlflow
 import numpy as np
 import pandas as pd
 
@@ -18,6 +21,9 @@ class Annotation:
         "dataset", "num_recordings_per_makam")
     EXPECTED_NUM_MAKAMS = (
         EXPECTED_NUM_RECORDINGS / EXPECTED_NUM_RECORDINGS_PER_MAKAM)
+
+    EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
+    RUN_NAME = cfg.get("mlflow", "annotation_run_name")
 
     URL = cfg["dataset"]["annotation_file"]
 
@@ -168,4 +174,34 @@ class Annotation:
         """
         self.data.loc[self.data["dunya_uid"].isna(), "dunya_uid"] = (
             self.data.loc[self.data["dunya_uid"].isna(), "mbid"])
-        self.data.loc[self.data["dunya_uid"].isna(), "dunya_uid"] = 5
+
+    def log(self):
+        """Logs the annotations as an artifact to mlflow
+        """
+        # skip if the run exists
+        experiment = mlflow.get_experiment_by_name(self.EXPERIMENT_NAME)
+        if experiment is not None:
+            annotation_runs = mlflow.search_runs(
+                experiment_ids=experiment.experiment_id,
+                filter_string=f"tags.mlflow.runName = '{self.RUN_NAME}'")
+            if not annotation_runs.empty:
+                logger.warning(
+                    "There is already a run for %s:%s. Overwriting is not"
+                    "permitted. Please delete the run manually if you want "
+                    "to log the annotations again.", self.RUN_NAME,
+                    ', '.join(annotation_runs.run_id))
+                return
+
+        # else log self.data as JSON-lines
+        mlflow.set_experiment(self.EXPERIMENT_NAME)
+        with mlflow.start_run(run_name=self.RUN_NAME) as mlflow_run:
+            dataset_tags = {"dataset_" + key: val
+                            for key, val in dict(cfg["dataset"]).items()}
+            mlflow.set_tags(dataset_tags)
+
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                annotations_tmp_file = os.path.join(tmp_dir, "annotations.json")
+                self.data.to_json(annotations_tmp_file, orient="records")
+                mlflow.log_artifacts(tmp_dir)
+                logger.info("Logged artifacts to mlflow under %s - %s",
+                            self.EXPERIMENT_NAME, self.RUN_NAME)
