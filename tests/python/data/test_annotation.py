@@ -2,11 +2,9 @@ from unittest import mock
 
 import pytest
 
-import mlflow
 import numpy as np
 import pandas as pd
 from mre.data import Annotation
-from mre.data.annotation import logger
 from pandas.testing import assert_frame_equal
 
 
@@ -249,7 +247,8 @@ class TestAnnotation:
             with mock.patch.object(mock_annotation.data, 'to_json'):
                 with mock.patch('tempfile.TemporaryDirectory',
                                 autospec=True) as tmp_dir_context:
-                    tmp_dir_context.return_value.__enter__.return_value = tmp_dir
+                    tmp_dir_context.return_value.__enter__.return_value = \
+                        tmp_dir
                     mock_annotation.log()
 
                     mock_logger_warning.assert_not_called()

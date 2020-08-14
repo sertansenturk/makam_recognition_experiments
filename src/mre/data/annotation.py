@@ -186,7 +186,7 @@ class Annotation:
                 filter_string=f"tags.mlflow.runName = '{self.RUN_NAME}'")
             if not annotation_runs.empty:
                 logger.warning(
-                    "There is already a run for %s:%s. Overwriting is not"
+                    "There is already a run for %s:%s. Overwriting is not "
                     "permitted. Please delete the run manually if you want "
                     "to log the annotations again.", self.RUN_NAME,
                     ', '.join(annotation_runs.run_id))
@@ -194,14 +194,15 @@ class Annotation:
 
         # else log self.data as JSON-lines
         mlflow.set_experiment(self.EXPERIMENT_NAME)
-        with mlflow.start_run(run_name=self.RUN_NAME) as mlflow_run:
+        with mlflow.start_run(run_name=self.RUN_NAME):
             dataset_tags = {"dataset_" + key: val
                             for key, val in dict(cfg["dataset"]).items()}
             mlflow.set_tags(dataset_tags)
 
             with tempfile.TemporaryDirectory() as tmp_dir:
-                annotations_tmp_file = os.path.join(tmp_dir, "annotations.json")
+                annotations_tmp_file = os.path.join(
+                    tmp_dir, "annotations.json")
                 self.data.to_json(annotations_tmp_file, orient="records")
                 mlflow.log_artifacts(tmp_dir)
-                logger.info("Logged artifacts to mlflow under %s - %s",
-                            self.EXPERIMENT_NAME, self.RUN_NAME)
+                logger.info("Logged artifacts to mlflow under experiment %s - "
+                            "run %s", self.EXPERIMENT_NAME, self.RUN_NAME)
