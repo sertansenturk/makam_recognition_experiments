@@ -2,6 +2,7 @@ from unittest import mock
 
 import pytest
 
+import mlflow
 import numpy as np
 import pandas as pd
 from mre.data import Annotation
@@ -16,15 +17,41 @@ def mock_experiment(scope="session") -> mock.MagicMock:
 
 
 class TestAnnotation:
-    # def test_from_mlflow(self):
-    #     # GIVEN
-    #     annotations = Annotation()
+    def test_from_mlflow_no_run(self):
+        # GIVEN
+        annotation = Annotation()
 
-    #     # WHEN
-    #     annotations.read()
+        # WHEN; THEN
+        with mock.patch("mre.data.annotation.Annotation.get_mlflow_run",
+                        return_value=None):
+            with pytest.raises(ValueError):
+                annotation.from_mlflow()
 
-    #     # THEN
-    #     assert False
+    def test_from_mlflow(self):
+        # GIVEN
+        annotation = Annotation()
+        mock_run = pd.Series({"run_id": "rid1", "artifact_uri": "uri1"})
+        annotation_filepath = "annotation_path.json"
+
+        # WHEN; THEN
+        with mock.patch("mre.data.annotation.Annotation.get_mlflow_run",
+                        return_value=mock_run):
+            with mock.patch('mlflow.tracking.MlflowClient.__init__',
+                            autospec=True,
+                            return_value=None):
+                with mock.patch.object(mlflow.tracking.MlflowClient,
+                                       "download_artifacts",
+                                       autospec=True,
+                                       return_value=annotation_filepath
+                                       ) as mock_download_artifacts:
+                    with mock.patch('pandas.read_json',
+                                    autospec=True
+                                    ) as mock_read_json:
+                        annotation.from_mlflow()
+
+                        mock_download_artifacts.assert_called_once()
+                        mock_read_json.assert_called_once_with(
+                            annotation_filepath, orient="records")
 
     @mock.patch("mre.data.annotation.logger.warning")
     def test_get_mlflow_run_no_experiment(self, mock_warning):

@@ -44,6 +44,21 @@ class Annotation:
         """
         return self.data.head()
 
+    def from_mlflow(self):
+        """Read annotations from the relevant mlflow run or github
+        """
+        mlflow_run = self.get_mlflow_run()
+        if mlflow_run is None:
+            raise ValueError("Annotations are not logged in mlflow")
+
+        annotation_file = (
+            mlflow.tracking.MlflowClient()
+            .download_artifacts(
+                mlflow_run.artifact_uri,
+                self.ANNOTATION_ARTIFACT_NAME))
+
+        self.data = pd.read_json(annotation_file, orient="records")
+
     @classmethod
     def get_mlflow_run(cls) -> pd.Series:
         """Returns the mlflow run metadata, which stores the annotation
