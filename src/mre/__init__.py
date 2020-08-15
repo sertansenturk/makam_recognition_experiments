@@ -1,5 +1,5 @@
 """mre top level imports and version"""
 from . import data, logging
-from . config import config
+from .config import config
 
 __version__ = "0.1.0.dev1"

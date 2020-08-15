@@ -8,8 +8,9 @@ import pandas as pd
 
 from ..config import config
 
-logger = logging.Logger(  # pylint: disable-msg=C0103
-    __name__, level=logging.INFO)
+logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
+logger.setLevel(logging.INFO)
+
 cfg = config.read()
 
 
@@ -24,16 +25,14 @@ class Annotation:
 
     EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = cfg.get("mlflow", "annotation_run_name")
+    ANNOTATION_ARTIFACT_NAME = cfg.get("mlflow", "annotation_artifact_name")
 
     URL = cfg["dataset"]["annotation_file"]
 
     def __init__(self):
         """instantiates an Annotation object
         """
-        logger.info("Reading annotations from: %s", self.URL)
-
-        self.data = self._read_from_github()
-        self._validate()
+        self.data = None
 
     def head(self) -> pd.DataFrame:
         """returns the first five annotations
@@ -45,7 +44,7 @@ class Annotation:
         """
         return self.data.head()
 
-    def _read_from_github(self) -> pd.DataFrame:
+    def from_github(self):
         """reads the annotation file from github and validates
 
         Returns
@@ -53,7 +52,8 @@ class Annotation:
         pd.DataFrame
             annotations
         """
-        return pd.read_json(self.URL)
+        self.data = pd.read_json(self.URL)
+        self._validate()
 
     def _validate(self):
         """runs all validations
@@ -202,8 +202,8 @@ class Annotation:
 
             with tempfile.TemporaryDirectory() as tmp_dir:
                 annotations_tmp_file = os.path.join(
-                    tmp_dir, "annotations.json")
+                    tmp_dir, self.ANNOTATION_ARTIFACT_NAME)
                 self.data.to_json(annotations_tmp_file, orient="records")
                 mlflow.log_artifacts(tmp_dir)
-                logger.info("Logged artifacts to mlflow under experiment %s - "
+                logger.info("Logged artifact to mlflow under experiment %s, "
                             "run %s", self.EXPERIMENT_NAME, self.RUN_NAME)
