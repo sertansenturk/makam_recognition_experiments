@@ -44,6 +44,46 @@ class Annotation:
         """
         return self.data.head()
 
+    @classmethod
+    def get_mlflow_run(cls) -> pd.Series:
+        """Returns the mlflow run metadata, which stores the annotation
+        artifact, if it exists
+
+        Returns
+        -------
+        pd.Series
+            None, if the run does not exist (annotations haven't been logged)
+            run information storing the annotations
+
+        Raises
+        ------
+        ValueError
+            If there is more a single run with the same name
+        """
+        # Check if the artifact is logged in mlflow
+        experiment = mlflow.get_experiment_by_name(cls.EXPERIMENT_NAME)
+        if experiment is not None:
+            annotation_runs = mlflow.search_runs(
+                experiment_ids=experiment.experiment_id,
+                filter_string=f"tags.mlflow.runName = '{cls.RUN_NAME}'")
+
+            if annotation_runs.empty:
+                logger.warning("No runs with the name %s in experiment %s",
+                               cls.RUN_NAME, cls.EXPERIMENT_NAME)
+                return None
+
+            if len(annotation_runs) > 1:
+                raise ValueError(
+                    "There are more than one runs for %s: %s . Please "
+                    "inspect the run in the mlflow UI and manually make "
+                    "necessary corrections."
+                    % (cls.RUN_NAME, ', '.join(annotation_runs.run_id)))
+
+            return annotation_runs.iloc[0]
+
+        logger.warning("Experiment %s does not exist.", cls.EXPERIMENT_NAME)
+        return None
+
     def from_github(self):
         """reads the annotation file from github and validates
 
@@ -179,27 +219,21 @@ class Annotation:
     def log(self):
         """Logs the annotations as an artifact to mlflow
         """
-        # skip if the run exists
-        experiment = mlflow.get_experiment_by_name(self.EXPERIMENT_NAME)
-        if experiment is not None:
-            annotation_runs = mlflow.search_runs(
-                experiment_ids=experiment.experiment_id,
-                filter_string=f"tags.mlflow.runName = '{self.RUN_NAME}'")
-            if not annotation_runs.empty:
-                logger.warning(
-                    "There is already a run for %s:%s. Overwriting is not "
-                    "permitted. Please delete the run manually if you want "
-                    "to log the annotations again.", self.RUN_NAME,
-                    ', '.join(annotation_runs.run_id))
-                return
+        mlflow_run = self.get_mlflow_run()
+        if mlflow_run is not None:
+            raise ValueError(
+                "There is already a run for %s:%s. Overwriting is not "
+                "permitted. Please delete the run manually if you want "
+                "to log the annotations again."
+                % (self.RUN_NAME, mlflow_run.run_id))
 
-        # else log self.data as JSON-lines
         mlflow.set_experiment(self.EXPERIMENT_NAME)
         with mlflow.start_run(run_name=self.RUN_NAME):
             dataset_tags = {"dataset_" + key: val
                             for key, val in dict(cfg["dataset"]).items()}
             mlflow.set_tags(dataset_tags)
 
+            # log self.data as JSON-lines
             with tempfile.TemporaryDirectory() as tmp_dir:
                 annotations_tmp_file = os.path.join(
                     tmp_dir, self.ANNOTATION_ARTIFACT_NAME)
