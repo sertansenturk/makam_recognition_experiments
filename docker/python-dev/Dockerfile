@@ -1,6 +1,10 @@
 FROM python:3.7-slim
 
-# install git; needed for pip if the repo git dependencies
+ARG UNAME=devuser
+ARG UID=1000
+ARG GID=1000
+
+# install git; needed for pip if the repo has git dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git && \
     apt-get purge -y --auto-remove && \
@@ -10,6 +14,9 @@ COPY docker/python-dev/requirements.txt /install/
 RUN pip install -r /install/requirements.txt && \
     rm -rf /install
 
-COPY ./ /repo/
-WORKDIR /repo/
+RUN groupadd -g $GID -o $UNAME
+RUN useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME
+USER $UNAME
+
+WORKDIR /makam_recognition_experiments/
 CMD ["tox"]

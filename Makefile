@@ -3,12 +3,13 @@ SHELL := /bin/bash
 .PHONY: \
 	help default lab notebook \
 	scipy tensorflow pyspark \
-	test chk-store-permissions all \
+	test test-store-permissions all \
 	purge clean clean-all clean-stores clean-python \
 	prune build \
 	up run down down-all \
-	python-dev-build tox \
-	find-port-usage debug-travis
+	python-dev-build python-dev-run tox pytest \
+	sphinx-build sphinx-clean sphinx-apidoc sphinx-html sphinx-html-test \
+	free-port debug-travis
 
 HELP_PADDING = 28
 bold := $(shell tput bold)
@@ -33,19 +34,19 @@ RUN_OPTS =
 
 PYTHON_DEV_CMD =
 
-CHK_PORT = ${MLFLOW_TRACKING_SERVER_PORT}
+DOCS_FOLDER = docs
+SPHINX_OPTS := -nWT -b linkcheck --keep-going
+
+PORT = ${POSTGRES_PORT}
 
 HOST_USERNAME := $(shell id -u -n)
+HOST_UID := $(shell id -u)
+HOST_GID := $(shell id -g)
 
 JUPYTER_BASE_IMAGE := ${JUPYTER_SCIPY_IMAGE}
 JUPYTER_BASE_VERSION := ${JUPYTER_SCIPY_VERSION}
 
 JUPYTER_CHOWN_EXTRA := "/${DATA_DIR}"
-JUPYTER_UID := $(shell id -u)
-JUPYTER_USERNAME := $(shell id -u -n)
-
-POSTGRES_UID := $(shell id -u)
-POSTGRES_GID := $(shell id -g)
 
 TRAVIS_JOB =
 TRAVIS_TOKEN =
@@ -63,7 +64,7 @@ help:
 	@printf "\n"
 	@printf "======= Cleanup ======\n"
 	@printf "$(pretty_command): run \"down\" and \"prune\"\n" clean
-	@printf "$(pretty_command): run \"down-all\", \"prune\" and \"clean-stores\"\n" clean-all
+	@printf "$(pretty_command): run \"down-all\", \"prune\", \"clean-python\" and \"clean-stores\"\n" clean-all
 	@printf "$(pretty_command): remove local folders mounted as volumes in docker-compose\n" clean-stores
 	@printf "$(pretty_command): clean python-related artifacts\n" clean-python
 	@printf "$(pretty_command): alias of \"clean-all\"\n" purge
@@ -82,10 +83,21 @@ help:
 	@printf "$(pretty_command): docker-compose down with \"${DOWN_ALL_OPTS}\"\n" down-all
 	@printf "$(pretty_command): build \"python-dev\" image\n" python-dev-build
 	@printf "$(pretty_command): run automated checks inside \"python-dev\" using tox\n" tox
+	@printf "$(pretty_command): run pytest inside \"python-dev\" using tox\n" pytest
+	@printf "\n"
+	@printf "======= Documentation ======\n"
+	@printf "$(pretty_command): builds sphinx docker image\n" sphinx-build
+	@printf "$(pretty_command): cleans documentation at \"./docs/_build/\"\n" sphinx-clean
+	@printf "$(pretty_command): creates rst documentation from python docstring\n" sphinx-apidoc
+	@printf "$(pretty_command): builds sphinx html docs at \"./docs/_build/html\"\n" sphinx-html
+	@printf "$(padded_str)SPHINX_OPTS, options to pass to sphinx (default: $(SPHINX_OPTS))\n"
+	@printf "$(pretty_command): tests sphinx html build\n" sphinx-html-test
 	@printf "\n"
 	@printf "========= Misc =======\n"
-	@printf "$(pretty_command): identify applications, which are bound to the given port. Useful for freeing ports from phantom tasks\n" find-port-usage
-	@printf "$(padded_str)CHK_PORT, Port to check (default: $(CHK_PORT))\n"
+	@printf "$(pretty_command): create the local mlflow artifact store\n" ${MLFLOW_ARTIFACT_STORE}
+	@printf "$(pretty_command): create the local posgres store\n" ${POSTGRES_STORE}
+	@printf "$(pretty_command): kill applications, which are bound to the given port. Useful for freeing ports from phantom tasks\n" free-port
+	@printf "$(padded_str)PORT, Port to check (default: $(PORT))\n"
 	@printf "$(pretty_command): send a job debug request to travis\n" debug-travis
 	@printf "$(padded_str)TRAVIS_TOKEN, travis api token (default: $(TRAVIS_TOKEN))\n"
 	@printf "$(padded_str)TRAVIS_JOB, travis job id (default: $(TRAVIS_JOB))\n"
@@ -109,11 +121,14 @@ pyspark: JUPYTER_BASE_VERSION=${JUPYTER_PYSPARK_VERSION}
 pyspark: default
 
 test: JUPYTER_TARGET:=${JUPYTER_TEST_TARGET}
-test: RUN_OPTS:=jupyter start.sh ./run_pytest.sh
+test: RUN_OPTS:=jupyter start.sh ./run_docker_tests.sh ${MLFLOW_IMAGE_NAME} ${MLFLOW_TRACKING_SERVER_PORT} ${WAIT_FOR_IT_TIMEOUT}
 test: JUPYTER_CHOWN_EXTRA:="/${DATA_DIR},/tests"
-test: clean build run chk-store-permissions down
+test: clean build run test-store-permissions
+	$(MAKE) down
+# NOTE: above, `clean` had already called `down` so we had to make
+# an explicit recursive call by `$(MAKE) down` 
 
-chk-store-permissions:
+test-store-permissions:
 	@if [ $(shell find data ! -user ${HOST_USERNAME} | wc -l) -gt 0 ]; then \
 		echo "Found files and/or folders with wrong permission: " ; \
 		echo "=> $(shell find data ! -user ${HOST_USERNAME} -printf '%p (%u) ')" ; \
@@ -135,6 +150,7 @@ clean-python:
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 	find . -name '__pycache__' -exec rm -fr {} +
+	find . -name '.ipynb_checkpoints' -exec rm -fr {} +
 	rm -rf build/
 	rm -rf dist/
 	rm -rf .eggs/
@@ -153,30 +169,33 @@ build:
 	DOCKER_BUILDKIT=${BUILDKIT} COMPOSE_DOCKER_CLI_BUILD=${BUILDKIT} \
 	JUPYTER_BASE_IMAGE=${JUPYTER_BASE_IMAGE} JUPYTER_BASE_VERSION=${JUPYTER_BASE_VERSION} \
 	JUPYTER_TARGET=${JUPYTER_TARGET} \
-	POSTGRES_UID=${POSTGRES_UID} POSTGRES_GID=${POSTGRES_GID} \
+	MLFLOW_VERSION=${MLFLOW_VERSION} \
+	HOST_USERNAME=${HOST_USERNAME} HOST_UID=${HOST_UID} HOST_GID=${HOST_GID} \
 	docker-compose build ${BUILD_OPTS}
 
-up: 
-	mkdir -p ${MLFLOW_ARTIFACT_STORE} ${POSTGRES_STORE}
+${MLFLOW_ARTIFACT_STORE}:
+	mkdir -p ${MLFLOW_ARTIFACT_STORE}
+
+${POSTGRES_STORE}:
+	mkdir -p ${POSTGRES_STORE}
+
+up: ${MLFLOW_ARTIFACT_STORE} ${POSTGRES_STORE}
 	JUPYTER_BASE_IMAGE=${JUPYTER_BASE_IMAGE} JUPYTER_BASE_VERSION=${JUPYTER_BASE_VERSION} \
 	JUPYTER_TARGET=${JUPYTER_TARGET} \
 	JUPYTER_CHOWN_EXTRA=${JUPYTER_CHOWN_EXTRA} \
-	JUPYTER_UID=${JUPYTER_UID} JUPYTER_USERNAME=${JUPYTER_USERNAME} \
 	JUPYTER_ENABLE_LAB=${JUPYTER_ENABLE_LAB} \
-	POSTGRES_UID=${POSTGRES_UID} POSTGRES_GID=${POSTGRES_GID} \
+	HOST_USERNAME=${HOST_USERNAME} HOST_UID=${HOST_UID} HOST_GID=${HOST_GID} \
 	docker-compose up ${UP_OPTS}
-run:
-	mkdir -p ${MLFLOW_ARTIFACT_STORE} ${POSTGRES_STORE}
+
+run: ${MLFLOW_ARTIFACT_STORE} ${POSTGRES_STORE}
 	JUPYTER_BASE_IMAGE=${JUPYTER_BASE_IMAGE} JUPYTER_BASE_VERSION=${JUPYTER_BASE_VERSION} \
 	JUPYTER_TARGET=${JUPYTER_TARGET} \
 	JUPYTER_CHOWN_EXTRA=${JUPYTER_CHOWN_EXTRA} \
-	JUPYTER_UID=${JUPYTER_UID} JUPYTER_USERNAME=${JUPYTER_USERNAME} \
 	JUPYTER_ENABLE_LAB=${JUPYTER_ENABLE_LAB} \
-	POSTGRES_UID=${POSTGRES_UID} POSTGRES_GID=${POSTGRES_GID} \
+	HOST_USERNAME=${HOST_USERNAME} HOST_UID=${HOST_UID} HOST_GID=${HOST_GID} \
 	docker-compose run ${RUN_OPTS}
 
 down:
-	POSTGRES_UID=${POSTGRES_UID} POSTGRES_GID=${POSTGRES_GID} \
 	docker-compose down ${DOWN_OPTS}
 down-all: DOWN_OPTS:=${DOWN_ALL_OPTS}
 down-all: down
@@ -185,15 +204,53 @@ python-dev-build:
 	DOCKER_BUILDKIT=${BUILDKIT} \
 	docker build . \
 		-f ./docker/python-dev/Dockerfile \
+		--build-arg UID=${HOST_UID} --build-arg GID=${HOST_GID} \
 		-t ${IMAGE_OWNER}/${PYTHON_DEV_IMAGE_NAME}:${VERSION} \
 		${BUILD_OPTS}
 
-tox: PYTHON_DEV_CMD := tox
-tox: python-dev-build
-	docker run -it ${IMAGE_OWNER}/${PYTHON_DEV_IMAGE_NAME}:${VERSION} ${PYTHON_DEV_CMD}
+python-dev-run: python-dev-build
+	docker run -it --rm \
+		-v ${MAKEFILE_DIR}:/makam_recognition_experiments/ \
+		${IMAGE_OWNER}/${PYTHON_DEV_IMAGE_NAME}:${VERSION} \
+		${PYTHON_DEV_CMD}
 
-find-port-usage:
-	sudo lsof -i -P -n | grep ${CHK_PORT}
+tox: PYTHON_DEV_CMD := tox
+tox: python-dev-run
+
+pytest: PYTHON_DEV_CMD := tox -e py37
+pytest: python-dev-run
+
+sphinx-build:
+	DOCKER_BUILDKIT=${BUILDKIT} \
+	docker build \
+		--build-arg SPHINX_VERSION=${SPHINX_VERSION} \
+		. \
+		-f ./docker/sphinx/Dockerfile \
+		-t ${IMAGE_OWNER}/${SPHINX_IMAGE_NAME}:${SPHINX_VERSION}
+
+sphinx-clean: sphinx-build
+	docker run -it --rm \
+		-v ${MAKEFILE_DIR}:/makam_recognition_experiments/ \
+		${IMAGE_OWNER}/${SPHINX_IMAGE_NAME}:${SPHINX_VERSION} \
+		make clean
+
+sphinx-apidoc: sphinx-build
+	docker run -it --rm \
+		-v ${MAKEFILE_DIR}:/makam_recognition_experiments/ \
+		${IMAGE_OWNER}/${SPHINX_IMAGE_NAME}:${SPHINX_VERSION} \
+		sphinx-apidoc -f -o ./ ../src/mre
+
+sphinx-html: sphinx-clean sphinx-apidoc
+	docker run -it --rm \
+		-v ${MAKEFILE_DIR}:/makam_recognition_experiments/ \
+		-e SPHINX_OPTS="${SPHINX_OPTS}" \
+		${IMAGE_OWNER}/${SPHINX_IMAGE_NAME}:${SPHINX_VERSION}
+
+sphinx-html-test: SPHINX_OPTS:=${SPHINX_OPTS} -b dummy
+sphinx-html-test: sphinx-html
+
+free-port:
+	sudo lsof -i -P -n | grep ${PORT} | awk '{ print $$2 }' | xargs sudo kill
 
 debug-travis:
 	curl -s -X POST \

@@ -8,9 +8,11 @@ services:
       target: ${JUPYTER_TARGET}
       args: 
         - MLFLOW_ARTIFACT_STORE=/${MLFLOW_ARTIFACT_STORE}
+        - MLFLOW_VERSION=${MLFLOW_VERSION}
         - JUPYTER_BASE_IMAGE=${JUPYTER_BASE_IMAGE}
         - JUPYTER_BASE_VERSION=${JUPYTER_BASE_VERSION}
-    image: ${IMAGE_OWNER}/${REPO_NAME}/${JUPYTER_BASE_IMAGE}-${JUPYTER_TARGET}:${VERSION}
+        - JUPYTER_USERNAME=${HOST_USERNAME}
+    image: ${IMAGE_OWNER}/${REPO_SLUG}/${JUPYTER_TARGET}:${VERSION}
     ports:
       - "${JUPYTER_PORT}:${JUPYTER_PORT}"
     depends_on: 
@@ -18,19 +20,21 @@ services:
     environment: 
       MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
       JUPYTER_ENABLE_LAB: ${JUPYTER_ENABLE_LAB}
-      NB_USER: ${JUPYTER_USERNAME}
-      NB_UID: ${JUPYTER_UID}
+      NB_USER: ${HOST_USERNAME}
+      NB_UID: ${HOST_UID}
       CHOWN_HOME: "yes"
       CHOWN_HOME_OPTS: '-R'
       CHOWN_EXTRA: ${JUPYTER_CHOWN_EXTRA}
       CHOWN_EXTRA_OPTS: '-R'
     volumes:
-      - ./:/home/${JUPYTER_USERNAME}/work
+      - ./:/home/${HOST_USERNAME}/work
       - ./${MLFLOW_ARTIFACT_STORE}:/${MLFLOW_ARTIFACT_STORE}
   mlflow:
     build:
       context: ./docker/mlflow
-    image: ${IMAGE_OWNER}/${REPO_NAME}/${MLFLOW_IMAGE_NAME}:${VERSION}
+      args:
+        - MLFLOW_VERSION=${MLFLOW_VERSION}
+    image: ${IMAGE_OWNER}/${REPO_SLUG}/${MLFLOW_IMAGE_NAME}:${VERSION}
     expose: 
       - "${MLFLOW_TRACKING_SERVER_PORT}"
     ports:
@@ -46,13 +50,14 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DATABASE: ${POSTGRES_DATABASE}
       POSTGRES_PORT: ${POSTGRES_PORT}
+      WAIT_FOR_IT_TIMEOUT: ${WAIT_FOR_IT_TIMEOUT}
     volumes:
       - ./${MLFLOW_ARTIFACT_STORE}:/${MLFLOW_ARTIFACT_STORE}
   postgres:
-    user: "${POSTGRES_UID}:${POSTGRES_GID}"
+    user: "${HOST_UID}:${HOST_GID}"
     build:
       context: ./docker/postgres
-    image: ${IMAGE_OWNER}/${REPO_NAME}/${POSTGRES_IMAGE_NAME}:${VERSION}
+    image: ${IMAGE_OWNER}/${REPO_SLUG}/${POSTGRES_IMAGE_NAME}:${VERSION}
     restart: always
     environment: 
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -61,4 +66,3 @@ services:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
       - ./${POSTGRES_STORE}:/var/lib/postgresql/data
-      - /etc/passwd:/etc/passwd:ro  # needed for keeping POSTGRES_STORE owned by the correct user. see: https://github.com/docker-library/docs/tree/master/postgres#arbitrary---user-notes
