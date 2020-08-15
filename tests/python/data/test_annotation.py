@@ -30,7 +30,7 @@ class TestAnnotation:
     def test_from_mlflow(self):
         # GIVEN
         annotation = Annotation()
-        mock_run = pd.Series({"run_id": "rid1", "artifact_uri": "uri1"})
+        mock_run = pd.Series({"run_id": "rid1"})
         annotation_filepath = "annotation_path.json"
 
         # WHEN; THEN

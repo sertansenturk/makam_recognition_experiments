@@ -51,11 +51,9 @@ class Annotation:
         if mlflow_run is None:
             raise ValueError("Annotations are not logged in mlflow")
 
-        annotation_file = (
-            mlflow.tracking.MlflowClient()
-            .download_artifacts(
-                mlflow_run.artifact_uri,
-                self.ANNOTATION_ARTIFACT_NAME))
+        client = mlflow.tracking.MlflowClient()
+        annotation_file = client.download_artifacts(
+            mlflow_run.run_id, self.ANNOTATION_ARTIFACT_NAME)
 
         self.data = pd.read_json(annotation_file, orient="records")
 
