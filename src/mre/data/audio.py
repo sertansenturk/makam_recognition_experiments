@@ -3,6 +3,7 @@ import os
 import tempfile
 from pathlib import Path
 
+import mlflow
 import pandas as pd
 from compmusic import dunya
 from tqdm import tqdm
@@ -75,6 +76,18 @@ class Audio():
         logger.warning("Failed to download %d recordings", len(failed_mbids))
 
         return failed_mbids
+
+    def log(self):
+        """Logs the audio recordings as artifacts to an mlflow run
+        """
+        # stop if mre.mlflow_common.get_mlflow_run is not empty
+
+        mlflow.set_experiment(self.EXPERIMENT_NAME)
+        with mlflow.start_run(run_name=self.RUN_NAME):
+            mlflow.set_tags({"audio_source": self.AUDIO_SOURCE})
+            mlflow.log_artifacts(self._tmp_dir_path())
+
+        self._cleanup()
 
     def _tmp_dir_path(self) -> Path:
         """returns the path of the temporary directory, where the audio files
