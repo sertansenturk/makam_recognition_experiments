@@ -273,24 +273,23 @@ class TestAnnotation:
         assert_frame_equal(annotation.data, expected, check_like=True)
 
     @mock.patch("mlflow.start_run")
+    @mock.patch("mlflow.set_experiment")
     def test_log_existing_run(self,
-                              mock_mlflow_start_run,
-                              mock_experiment):
+                              mock_mlflow_set_experiment,
+                              mock_mlflow_start_run):
         # GIVEN
         annotation = Annotation()
         annotation.data = "dummy_data"
         mock_run = pd.DataFrame([{"run_id": "rid"}])
 
         # WHEN; THEN
-        with mock.patch('mlflow.get_experiment_by_name',
-                        autospec=True,
-                        return_value=mock_experiment):
-            with mock.patch('mlflow.search_runs',
-                            autospec=True,
-                            return_value=mock_run):
-                with pytest.raises(ValueError):
-                    annotation.log()
-                mock_mlflow_start_run.assert_not_called()
+        with mock.patch("mre.data.annotation.get_run_by_name",
+                        return_value=mock_run):
+            with pytest.raises(ValueError):
+                annotation.log()
+
+            mock_mlflow_set_experiment.assert_not_called()
+            mock_mlflow_start_run.assert_not_called()
 
     @mock.patch("mlflow.log_artifacts")
     @mock.patch("mlflow.set_tags")

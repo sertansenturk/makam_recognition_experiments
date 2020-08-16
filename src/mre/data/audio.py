@@ -9,6 +9,7 @@ from compmusic import dunya
 from tqdm import tqdm
 
 from ..config import config
+from ..mlflow_common import get_run_by_name
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -80,7 +81,13 @@ class Audio():
     def log(self):
         """Logs the audio recordings as artifacts to an mlflow run
         """
-        # stop if mre.mlflow_common.get_mlflow_run is not empty
+        mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
+        if mlflow_run is not None:
+            raise ValueError(
+                "There is already a run for %s:%s. Overwriting is not "
+                "permitted. Please delete the run manually if you want "
+                "to log the annotations again."
+                % (self.RUN_NAME, mlflow_run.run_id))
 
         mlflow.set_experiment(self.EXPERIMENT_NAME)
         with mlflow.start_run(run_name=self.RUN_NAME):

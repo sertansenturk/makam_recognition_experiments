@@ -106,6 +106,24 @@ class TestAudio:
                 with pytest.raises(dunya.conn.HTTPError):
                     _ = audio.from_dunya(annotation_df)
 
+    @mock.patch("mlflow.start_run")
+    @mock.patch("mlflow.set_experiment")
+    def test_log_existing_run(self,
+                              mock_mlflow_set_experiment,
+                              mock_mlflow_start_run):
+        # GIVEN
+        audio = Audio()
+        mock_run = pd.DataFrame([{"run_id": "rid"}])
+
+        # WHEN; THEN
+        with mock.patch("mre.data.audio.get_run_by_name",
+                        return_value=mock_run):
+            with pytest.raises(ValueError):
+                audio.log()
+
+            mock_mlflow_set_experiment.assert_not_called()
+            mock_mlflow_start_run.assert_not_called()
+
     @mock.patch("mlflow.log_artifacts")
     @mock.patch("mlflow.set_tags")
     @mock.patch("mlflow.start_run")
@@ -143,3 +161,36 @@ class TestAudio:
                         mock_mlflow_log_artifacts.assert_called_once_with(
                             audio._tmp_dir_path())
                         mock_cleanup.assert_called_once_with()
+
+    @mock.patch("mlflow.log_artifacts")
+    @mock.patch("mlflow.set_tags")
+    @mock.patch("mlflow.start_run")
+    @mock.patch("mlflow.set_experiment")
+    def test_log_no_experiment(self,
+                               mock_mlflow_set_experiment,
+                               mock_mlflow_start_run,
+                               mock_mlflow_set_tags,
+                               mock_mlflow_log_artifacts,
+                               mock_tmp_dir):
+        # GIVEN
+        audio = Audio()
+
+        # WHEN; THEN
+        with mock.patch('mlflow.get_experiment_by_name',
+                        autospec=True,
+                        return_value=None):
+            with mock.patch.object(audio,
+                                   "tmp_dir",
+                                   mock_tmp_dir):
+                with mock.patch.object(audio,
+                                       "_cleanup"
+                                       ) as mock_cleanup:
+                    audio.log()
+
+                    mock_mlflow_set_experiment.assert_called_once()
+                    mock_mlflow_start_run.assert_called_once()
+
+                    mock_mlflow_set_tags.assert_called_once()
+                    mock_mlflow_log_artifacts.assert_called_once_with(
+                        audio._tmp_dir_path())
+                    mock_cleanup.assert_called_once_with()
