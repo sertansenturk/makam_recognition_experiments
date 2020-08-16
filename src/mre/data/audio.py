@@ -15,7 +15,6 @@ logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
 
 cfg = config.read()
-dunya.set_token(config.read_secrets().get("tokens", "dunya"))
 
 
 class Audio():
@@ -47,6 +46,7 @@ class Audio():
         dunya.conn.HTTPError
             if an HTTP error other than "404 - Not Found" is encountered
         """
+        dunya.set_token(config.read_secrets().get("tokens", "dunya"))
         self.tmp_dir = tempfile.TemporaryDirectory()
 
         failed_mbids = dict()
@@ -73,8 +73,11 @@ class Audio():
                     self._cleanup()
                     raise err
         logger.info("Downloaded %d recordings to %s",
-                    num_recordings - len(failed_mbids), self._tmp_dir_path())
-        logger.warning("Failed to download %d recordings", len(failed_mbids))
+                    num_recordings - len(failed_mbids),
+                    self._tmp_dir_path())
+        if failed_mbids:
+            logger.warning(
+                "Failed to download %d recordings", len(failed_mbids))
 
         return failed_mbids
 

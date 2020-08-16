@@ -46,14 +46,16 @@ class TestAudio:
         audio = Audio()
 
         # WHEN
-        with mock.patch("tempfile.TemporaryDirectory",
-                        autospec=True,
-                        return_value=mock_tmp_dir):
-            with mock.patch("compmusic.dunya.docserver.get_mp3"
-                            ) as mock_get_mp3:
-                with mock.patch('builtins.open', mock.mock_open()
-                                ) as mock_open:
-                    audio.from_dunya(annotation_df)
+        with mock.patch("mre.data.audio.config",
+                        autospec=True):
+            with mock.patch("tempfile.TemporaryDirectory",
+                            autospec=True,
+                            return_value=mock_tmp_dir):
+                with mock.patch("compmusic.dunya.docserver.get_mp3"
+                                ) as mock_get_mp3:
+                    with mock.patch('builtins.open', mock.mock_open()
+                                    ) as mock_open:
+                        audio.from_dunya(annotation_df)
 
         # THEN
         expected_get_mp3_calls = [mock.call(val)
@@ -72,16 +74,18 @@ class TestAudio:
             [{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}])
 
         # WHEN
-        with mock.patch("tempfile.TemporaryDirectory",
-                        autospec=True,
-                        return_value=mock_tmp_dir):
-            with mock.patch("compmusic.dunya.docserver.get_mp3"
-                            ) as mock_get_mp3:
-                mock_get_mp3.side_effect = dunya.conn.HTTPError(
-                    mock.Mock(status=404),
-                    '404 Client Error: Not Found for url:')
+        with mock.patch("mre.data.audio.config",
+                        autospec=True):
+            with mock.patch("tempfile.TemporaryDirectory",
+                            autospec=True,
+                            return_value=mock_tmp_dir):
+                with mock.patch("compmusic.dunya.docserver.get_mp3"
+                                ) as mock_get_mp3:
+                    mock_get_mp3.side_effect = dunya.conn.HTTPError(
+                        mock.Mock(status=404),
+                        '404 Client Error: Not Found for url:')
 
-                result = audio.from_dunya(annotation_df)
+                    result = audio.from_dunya(annotation_df)
 
         # THEN
         result_mbids = list(result.keys())
@@ -96,15 +100,17 @@ class TestAudio:
             [{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}])
 
         # WHEN
-        with mock.patch("tempfile.TemporaryDirectory",
-                        autospec=True,
-                        return_value=mock_tmp_dir):
-            with mock.patch("compmusic.dunya.docserver.get_mp3"
-                            ) as mock_get_mp3:
-                mock_get_mp3.side_effect = dunya.conn.HTTPError(
-                    mock.Mock(status=401), 'Unauthorized')
-                with pytest.raises(dunya.conn.HTTPError):
-                    _ = audio.from_dunya(annotation_df)
+        with mock.patch("mre.data.audio.config",
+                        autospec=True):
+            with mock.patch("tempfile.TemporaryDirectory",
+                            autospec=True,
+                            return_value=mock_tmp_dir):
+                with mock.patch("compmusic.dunya.docserver.get_mp3"
+                                ) as mock_get_mp3:
+                    mock_get_mp3.side_effect = dunya.conn.HTTPError(
+                        mock.Mock(status=401), 'Unauthorized')
+                    with pytest.raises(dunya.conn.HTTPError):
+                        _ = audio.from_dunya(annotation_df)
 
     @mock.patch("mlflow.start_run")
     @mock.patch("mlflow.set_experiment")

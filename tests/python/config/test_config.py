@@ -28,11 +28,3 @@ def test_get_config_filepath():
 
     # THEN
     assert os.path.exists(path)
-
-
-def test_get_secrets_filepath():
-    # WHEN
-    path = config._get_secrets_filepath()
-
-    # THEN
-    assert os.path.exists(path)
