@@ -62,6 +62,8 @@ class Annotation:
         """Returns the mlflow run metadata, which stores the annotation
         artifact, if it exists
 
+        TODO: Move it to mre.mlflow
+
         Returns
         -------
         pd.Series
@@ -99,11 +101,6 @@ class Annotation:
 
     def from_github(self):
         """reads the annotation file from github and validates
-
-        Returns
-        -------
-        pd.DataFrame
-            annotations
         """
         self.data = pd.read_json(self.URL)
         self._validate()
