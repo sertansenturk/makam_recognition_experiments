@@ -28,7 +28,7 @@ class Audio():
         self.tmp_dir = None
 
     def from_mlflow(self):
-        # mre.mlflow.get_mlflow_run
+        # mre.mlflow_common.get_mlflow_run
         pass
 
     def from_dunya(self, annotation_df: pd.DataFrame):

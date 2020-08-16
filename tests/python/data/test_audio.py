@@ -17,7 +17,7 @@ def mock_tmp_dir(scope="session") -> mock.MagicMock:
     return tmp_dir
 
 
-class TestAnnotation:
+class TestAudio:
     def test_cleanup(self):
         # GIVEN
         audio = Audio()

@@ -6,7 +6,7 @@ import mlflow
 import numpy as np
 import pandas as pd
 from mre.data import Annotation
-from pandas.testing import assert_frame_equal, assert_series_equal
+from pandas.testing import assert_frame_equal
 
 
 @pytest.fixture
@@ -17,15 +17,15 @@ def mock_experiment(scope="session") -> mock.MagicMock:
 
 
 class TestAnnotation:
-    def test_from_mlflow_no_run(self):
+    @mock.patch("mre.data.annotation.get_run_by_name", return_value=None)
+    def test_from_mlflow_no_run(self, mock_run):
         # GIVEN
         annotation = Annotation()
 
         # WHEN; THEN
-        with mock.patch("mre.data.annotation.Annotation.get_mlflow_run",
-                        return_value=None):
-            with pytest.raises(ValueError):
-                annotation.from_mlflow()
+        with pytest.raises(ValueError):
+            annotation.from_mlflow()
+        mock_run.assert_called_once()
 
     def test_from_mlflow(self):
         # GIVEN
@@ -34,7 +34,7 @@ class TestAnnotation:
         annotation_filepath = "annotation_path.json"
 
         # WHEN; THEN
-        with mock.patch("mre.data.annotation.Annotation.get_mlflow_run",
+        with mock.patch("mre.data.annotation.get_run_by_name",
                         return_value=mock_run):
             with mock.patch('mlflow.tracking.MlflowClient.__init__',
                             autospec=True,
@@ -52,69 +52,6 @@ class TestAnnotation:
                         mock_download_artifacts.assert_called_once()
                         mock_read_json.assert_called_once_with(
                             annotation_filepath, orient="records")
-
-    @mock.patch("mre.data.annotation.logger.warning")
-    def test_get_mlflow_run_no_experiment(self, mock_warning):
-        # WHEN
-        with mock.patch('mlflow.get_experiment_by_name',
-                        autospec=True,
-                        return_value=None):
-            result = Annotation.get_mlflow_run()
-
-        # THEN
-        mock_warning.assert_called_once()
-        assert result is None
-
-    @mock.patch("mre.data.annotation.logger.warning")
-    def test_get_mlflow_run_no_run(self, mock_warning, mock_experiment):
-        # GIVEN
-        mock_runs = pd.DataFrame(columns=["run_id"])  # empty
-
-        # WHEN
-        with mock.patch('mlflow.get_experiment_by_name',
-                        autospec=True,
-                        return_value=mock_experiment):
-            with mock.patch('mlflow.search_runs',
-                            autospec=True,
-                            return_value=mock_runs):
-                result = Annotation.get_mlflow_run()
-
-        # THEN
-        mock_warning.assert_called_once()
-        assert result is None
-
-    @mock.patch("mre.data.annotation.logger.warning")
-    def test_get_mlflow_run_multi_runs(self, mock_warning, mock_experiment):
-        # GIVEN
-        mock_runs = pd.DataFrame([{"run_id": "rid1"}, {"run_id": "rid2"}])
-
-        # WHEN; THEN
-        with mock.patch('mlflow.get_experiment_by_name',
-                        autospec=True,
-                        return_value=mock_experiment):
-            with mock.patch('mlflow.search_runs',
-                            autospec=True,
-                            return_value=mock_runs):
-                with pytest.raises(ValueError):
-                    Annotation.get_mlflow_run()
-
-    def test_get_mlflow_run_single_run(self, mock_experiment):
-        # GIVEN
-        mock_run_dict = {"run_id": "rid1"}
-        mock_runs = pd.DataFrame([mock_run_dict])
-
-        # WHEN
-        with mock.patch('mlflow.get_experiment_by_name',
-                        autospec=True,
-                        return_value=mock_experiment):
-            with mock.patch('mlflow.search_runs',
-                            autospec=True,
-                            return_value=mock_runs):
-                result = Annotation.get_mlflow_run()
-
-        # THEN
-        expected = pd.Series(mock_run_dict)
-        assert_series_equal(result, expected, check_names=False)
 
     @mock.patch('mre.data.Annotation._validate')
     @mock.patch('pandas.read_json', autospec=True)
