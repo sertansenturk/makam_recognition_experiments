@@ -1,15 +1,17 @@
 import logging
-import tempfile
 import os
+import tempfile
 
 import mlflow
 import numpy as np
 import pandas as pd
 
 from ..config import config
+from ..mlflow_common import get_run_by_name
 
-logger = logging.Logger(  # pylint: disable-msg=C0103
-    __name__, level=logging.INFO)
+logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
+logger.setLevel(logging.INFO)
+
 cfg = config.read()
 
 
@@ -24,16 +26,14 @@ class Annotation:
 
     EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = cfg.get("mlflow", "annotation_run_name")
+    ANNOTATION_ARTIFACT_NAME = cfg.get("mlflow", "annotation_artifact_name")
 
     URL = cfg["dataset"]["annotation_file"]
 
     def __init__(self):
         """instantiates an Annotation object
         """
-        logger.info("Reading annotations from: %s", self.URL)
-
-        self.data = self._read_from_github()
-        self._validate()
+        self.data = None
 
     def head(self) -> pd.DataFrame:
         """returns the first five annotations
@@ -45,15 +45,24 @@ class Annotation:
         """
         return self.data.head()
 
-    def _read_from_github(self) -> pd.DataFrame:
-        """reads the annotation file from github and validates
-
-        Returns
-        -------
-        pd.DataFrame
-            annotations
+    def from_mlflow(self):
+        """Read annotations from the relevant mlflow run or github
         """
-        return pd.read_json(self.URL)
+        mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
+        if mlflow_run is None:
+            raise ValueError("Annotations are not logged in mlflow")
+
+        client = mlflow.tracking.MlflowClient()
+        annotation_file = client.download_artifacts(
+            mlflow_run.run_id, self.ANNOTATION_ARTIFACT_NAME)
+
+        self.data = pd.read_json(annotation_file, orient="records")
+
+    def from_github(self):
+        """reads the annotation file from github and validates
+        """
+        self.data = pd.read_json(self.URL)
+        self._validate()
 
     def _validate(self):
         """runs all validations
@@ -178,32 +187,32 @@ class Annotation:
 
     def log(self):
         """Logs the annotations as an artifact to mlflow
-        """
-        # skip if the run exists
-        experiment = mlflow.get_experiment_by_name(self.EXPERIMENT_NAME)
-        if experiment is not None:
-            annotation_runs = mlflow.search_runs(
-                experiment_ids=experiment.experiment_id,
-                filter_string=f"tags.mlflow.runName = '{self.RUN_NAME}'")
-            if not annotation_runs.empty:
-                logger.warning(
-                    "There is already a run for %s:%s. Overwriting is not "
-                    "permitted. Please delete the run manually if you want "
-                    "to log the annotations again.", self.RUN_NAME,
-                    ', '.join(annotation_runs.run_id))
-                return
 
-        # else log self.data as JSON-lines
+        Raises
+        ------
+        ValueError
+            If a run with the same experiment and run name is already logged
+            in mlflow
+        """
+        mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
+        if mlflow_run is not None:
+            raise ValueError(
+                "There is already a run for %s:%s. Overwriting is not "
+                "permitted. Please delete the run manually if you want "
+                "to log the annotations again."
+                % (self.RUN_NAME, mlflow_run.run_id))
+
         mlflow.set_experiment(self.EXPERIMENT_NAME)
         with mlflow.start_run(run_name=self.RUN_NAME):
             dataset_tags = {"dataset_" + key: val
                             for key, val in dict(cfg["dataset"]).items()}
             mlflow.set_tags(dataset_tags)
 
+            # log self.data as JSON-lines
             with tempfile.TemporaryDirectory() as tmp_dir:
                 annotations_tmp_file = os.path.join(
-                    tmp_dir, "annotations.json")
+                    tmp_dir, self.ANNOTATION_ARTIFACT_NAME)
                 self.data.to_json(annotations_tmp_file, orient="records")
                 mlflow.log_artifacts(tmp_dir)
-                logger.info("Logged artifacts to mlflow under experiment %s - "
+                logger.info("Logged artifact to mlflow under experiment %s, "
                             "run %s", self.EXPERIMENT_NAME, self.RUN_NAME)
