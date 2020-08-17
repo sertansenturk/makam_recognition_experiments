@@ -83,6 +83,12 @@ class Audio():
 
     def log(self):
         """Logs the audio recordings as artifacts to an mlflow run
+
+        Raises
+        ------
+        ValueError
+            If a run with the same experiment and run name is already logged
+            in mlflow
         """
         mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
         if mlflow_run is not None:

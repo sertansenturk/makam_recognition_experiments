@@ -187,6 +187,12 @@ class Annotation:
 
     def log(self):
         """Logs the annotations as an artifact to mlflow
+
+        Raises
+        ------
+        ValueError
+            If a run with the same experiment and run name is already logged
+            in mlflow
         """
         mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
         if mlflow_run is not None:

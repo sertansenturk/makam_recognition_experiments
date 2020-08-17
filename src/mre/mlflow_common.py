@@ -7,8 +7,15 @@ logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
 
 
-def get_run_by_name(experiment_name, run_name) -> pd.Series:
+def get_run_by_name(experiment_name: str, run_name: str) -> pd.Series:
     """Returns the mlflow run metadata from the experiment and run name
+
+    Parameters
+    ----------
+    experiment_name : str
+        mlflow experiment name
+    run_name : str
+        mlflow run name (stored as a mlflow.runName tag)
 
     Returns
     -------
