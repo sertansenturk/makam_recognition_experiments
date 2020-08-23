@@ -2,6 +2,7 @@ import logging
 import os
 import tempfile
 from pathlib import Path
+from typing import List
 
 import mlflow
 import pandas as pd
@@ -28,9 +29,34 @@ class Audio():
         """
         self.tmp_dir = None
 
-    def from_mlflow(self):
-        # mre.mlflow_common.get_mlflow_run
-        pass
+    @classmethod
+    def from_mlflow(cls) -> List[str]:
+        """return audio file paths from the relevant mlflow run
+        Returns
+        -------
+        List[Path]
+            path of the audio files logged in mlflow as artifacts
+        Raises
+        ------
+        ValueError
+            if the audio recordings have not been logged in mlflow
+        """
+        mlflow_run = get_run_by_name(cls.EXPERIMENT_NAME, cls.RUN_NAME)
+        if mlflow_run is None:
+            raise ValueError("Audio recordings are not logged in mlflow")
+
+        client = mlflow.tracking.MlflowClient()
+        artifacts = client.list_artifacts(mlflow_run.run_id)
+        artifact_names = [ff.path for ff in artifacts
+                          if ff.path.endswith(".mp3")]
+
+        artifact_paths = [client.download_artifacts(mlflow_run.run_id, an)
+                          for an in artifact_names]
+
+        logger.info("Returning the paths of %d audio recordings.",
+                    len(artifact_paths))
+
+        return artifact_paths
 
     def from_dunya(self, annotation_df: pd.DataFrame):
         """Downloads the audio recordings specified in the annotations from
