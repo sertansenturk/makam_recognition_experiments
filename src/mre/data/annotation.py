@@ -46,7 +46,7 @@ class Annotation:
         return self.data.head()
 
     def from_mlflow(self):
-        """Read annotations from the relevant mlflow run or github
+        """reads annotations from the relevant mlflow run
         """
         mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
         if mlflow_run is None:

@@ -96,7 +96,7 @@ help:
 	@printf "========= Misc =======\n"
 	@printf "$(pretty_command): create the local mlflow artifact store\n" ${MLFLOW_ARTIFACT_STORE}
 	@printf "$(pretty_command): create the local posgres store\n" ${POSTGRES_STORE}
-	@printf "$(pretty_command): kill applications, which are bound to the given port. Useful for freeing ports from phantom tasks\n" free-port
+	@printf "$(pretty_command): kill applications, which are bound to the given port. useful for freeing ports from phantom tasks\n" free-port
 	@printf "$(padded_str)PORT, Port to check (default: $(PORT))\n"
 	@printf "$(pretty_command): send a job debug request to travis\n" debug-travis
 	@printf "$(padded_str)TRAVIS_TOKEN, travis api token (default: $(TRAVIS_TOKEN))\n"
