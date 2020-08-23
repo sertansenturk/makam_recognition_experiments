@@ -102,11 +102,11 @@ class TestAudio:
         expected_get_mp3_calls = [mock.call(val)
                                   for val in annotation_df.dunya_uid]
         expected_write_call = mock_get_mp3()
-        num_writes = len(annotation_df)
+        expected_num_writes = len(annotation_df)
 
         mock_get_mp3.assert_has_calls(expected_get_mp3_calls)
         mock_open().write.assert_has_calls(expected_write_call)
-        assert mock_open().write.call_count == num_writes
+        assert mock_open().write.call_count == expected_num_writes
 
     def test_from_dunya_exception_404(self, mock_tmp_dir):
         # GIVEN

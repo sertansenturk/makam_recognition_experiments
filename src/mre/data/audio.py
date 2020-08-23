@@ -144,6 +144,7 @@ class Audio():
         return Path(self.tmp_dir.name)
 
     def _cleanup(self):
-        """deletes temporary directory, where the audio files are downloaded
+        """deletes the temporary directory, where the audio files are
+        downloaded
         """
         self.tmp_dir.cleanup()
