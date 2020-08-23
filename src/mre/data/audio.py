@@ -23,6 +23,7 @@ class Audio():
     EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = cfg.get("mlflow", "audio_run_name")
     AUDIO_SOURCE = "https://dunya.compmusic.upf.edu"
+    AUDIO_EXT = ".mp3"
 
     def __init__(self):
         """instantiates an Audio object
@@ -48,7 +49,7 @@ class Audio():
         client = mlflow.tracking.MlflowClient()
         artifacts = client.list_artifacts(mlflow_run.run_id)
         artifact_names = [ff.path for ff in artifacts
-                          if ff.path.endswith(".mp3")]
+                          if ff.path.endswith(cls.AUDIO_EXT)]
 
         artifact_paths = [client.download_artifacts(mlflow_run.run_id, an)
                           for an in artifact_names]
