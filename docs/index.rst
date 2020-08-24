@@ -6,9 +6,10 @@ A short description of the project
 .. image:: https://img.shields.io/github/v/release/sertansenturk/makam_recognition_experiments
     :target: https://github.com/sertansenturk/makam_recognition_experiments/releases/latest
     :alt: GitHub release (latest SemVer)
-.. image:: https://readthedocs.org/projects/makam_recognition_experiments/badge/?version=latest
-    :target: https://makam_recognition_experiments.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
+.. 
+    .. image:: https://readthedocs.org/projects/makam_recognition_experiments/badge/?version=latest
+        :target: https://makam_recognition_experiments.readthedocs.io/en/latest/?badge=latest
+        :alt: Documentation Status
 .. image:: https://travis-ci.com/sertansenturk/makam_recognition_experiments.svg?branch=master
     :target: https://travis-ci.com/sertansenturk/makam_recognition_experimentsr
     :alt: Build Status

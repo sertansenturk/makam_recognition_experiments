@@ -147,11 +147,13 @@ class Annotation:
         logger.info("%d makams.", num_makams)
 
     def parse(self):
+        """parses the annotations
+        """
         self._parse_mbid_urls()
         self._patch_dunya_uids()
 
     def _parse_mbid_urls(self):
-        """Parses the urls in the MBID field
+        """parses the urls in the MBID field
 
         The MBIDs in the "otmm_makam_recognition_dataset" are stored as
         URLs pointing to the MusicBrainz website.
@@ -186,7 +188,7 @@ class Annotation:
             self.data.loc[self.data["dunya_uid"].isna(), "mbid"])
 
     def log(self):
-        """Logs the annotations as an artifact to mlflow
+        """logs the annotations as an artifact to mlflow
 
         Raises
         ------
