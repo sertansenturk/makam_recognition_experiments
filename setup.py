@@ -80,7 +80,9 @@ setup(
         "@88d98a0bc37b2c3ca040dbe6141a53bf9bcff9e4#egg=compmusic",  # corpus
         "mlflow==1.8.*",
         "pandas>=1.0.*",
-        "tqdm>=4.48.*"
+        "tqdm>=4.48.*",
+        "tomato @ git+https://github.com/sertansenturk/tomato.git"
+        "@v0.14.0#egg=tomato"  # makam music analysis
     ],
     extras_require={
         "development": [

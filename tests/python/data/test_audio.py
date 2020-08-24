@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-# import mlflow
+import mlflow
 import pandas as pd
 
 from compmusic import dunya
@@ -37,6 +37,47 @@ class TestAudio:
                 audio._cleanup()
         mock_cleanup.assert_called_once_with()
 
+    @mock.patch("mre.data.audio.get_run_by_name", return_value=None)
+    def test_from_mlflow_no_run(self, mock_run):
+        # GIVEN
+        audio = Audio()
+
+        # WHEN; THEN
+        with pytest.raises(ValueError):
+            audio.from_mlflow()
+        mock_run.assert_called_once()
+
+    def test_from_mlflow(self):
+        # GIVEN
+        audio = Audio()
+        mock_run = pd.Series({"run_id": "rid1"})
+        artifact_names = ["audio1.mp3",
+                          "audio2.mp3"]
+
+        # WHEN; THEN
+        mock_list = []
+        mock_calls = []
+        for an in artifact_names:
+            tmp_call = mock.MagicMock()
+            tmp_call.path = an
+            mock_list.append(tmp_call)
+            mock_calls.append(mock.call(mock_run.run_id, an))
+
+        with mock.patch("mre.data.audio.get_run_by_name",
+                        return_value=mock_run):
+            with mock.patch('mlflow.tracking.MlflowClient.__init__',
+                            autospec=True,
+                            return_value=None):
+                with mock.patch.object(mlflow.tracking.MlflowClient,
+                                       "list_artifacts",
+                                       autospec=True,
+                                       return_value=mock_list):
+                    with mock.patch.object(mlflow.tracking.MlflowClient,
+                                           "download_artifacts"
+                                           ) as mock_download_artifacts:
+                        _ = audio.from_mlflow()
+                        mock_download_artifacts.assert_has_calls(mock_calls)
+
     @pytest.mark.parametrize("annotation_df", [
         pd.DataFrame([{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}]),
         pd.DataFrame([{"mbid": "mbid1", "dunya_uid": "dunya_uid1"},
@@ -61,11 +102,11 @@ class TestAudio:
         expected_get_mp3_calls = [mock.call(val)
                                   for val in annotation_df.dunya_uid]
         expected_write_call = mock_get_mp3()
-        num_writes = len(annotation_df)
+        expected_num_writes = len(annotation_df)
 
         mock_get_mp3.assert_has_calls(expected_get_mp3_calls)
         mock_open().write.assert_has_calls(expected_write_call)
-        assert mock_open().write.call_count == num_writes
+        assert mock_open().write.call_count == expected_num_writes
 
     def test_from_dunya_exception_404(self, mock_tmp_dir):
         # GIVEN
