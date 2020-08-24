@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 from ..config import config
 from ..mlflow_common import get_run_by_name
+from .audio import Audio
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -90,9 +91,13 @@ class PredominantMelodyMakam():
                 "to log the annotations again."
                 % (self.RUN_NAME, mlflow_run.run_id))
 
+        tags = self.extractor.get_settings()
+        tags["source_run_id"] = get_run_by_name(Audio.EXPERIMENT_NAME,
+                                                Audio.RUN_NAME)
+
         mlflow.set_experiment(self.EXPERIMENT_NAME)
         with mlflow.start_run(run_name=self.RUN_NAME):
-            mlflow.set_tags(self.extractor.get_settings())
+            mlflow.set_tags(tags)
             mlflow.log_artifacts(self._tmp_dir_path())
 
         self._cleanup()
