@@ -5,7 +5,7 @@
 # python3.7:slim instead
 FROM python:3.7-slim
 LABEL maintainer="Sphinx Team <https://www.sphinx-doc.org/>"
-# SPHINX_VERSION our own addition
+# SPHINX_VERSION is our own addition
 ARG SPHINX_VERSION
 
 WORKDIR /docs
