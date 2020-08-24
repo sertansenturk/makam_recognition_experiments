@@ -71,20 +71,21 @@ Travis CI
 
    Please refer to the `official guide <https://docs.codecov.io/docs>`__ to how to use *codecov*.
 
-Online Documentation
-=========================================
+..
+   Online Documentation
+   =========================================
 
-You can reach the up-to-date documentation online at https://makam_recognition_experiments.readthedocs.io.
+   You can reach the up-to-date documentation online at https://makam_recognition_experiments.readthedocs.io.
 
-.. attention::
+   .. attention::
 
-   **Setup Instructions**
+      **Setup Instructions**
 
-   .. important::
-      Once the service is enabled, remove this block.
+      .. important::
+         Once the service is enabled, remove this block.
 
-   You may want to host the `Sphinx documentation <04_documentation.html>`__ online, e.g., at `Read the Docs <https://readthedocs.io>`__ or `Github Pages <https://pages.github.com/>`__. Typically, these services offer effortless integration with *Github*. Please refer to these services to learn how.
+      You may want to host the `Sphinx documentation <04_documentation.html>`__ online, e.g., at `Read the Docs <https://readthedocs.io>`__ or `Github Pages <https://pages.github.com/>`__. Typically, these services offer effortless integration with *Github*. Please refer to these services to learn how.
 
-   .. note::
+      .. note::
 
-      We assume that you will host the documentation at ``https://makam_recognition_experiments.readthedocs.io``. Please modify the URLs in the project ``README`` and documentation if you would like to host it elsewhere.
+         We assume that you will host the documentation at ``https://makam_recognition_experiments.readthedocs.io``. Please modify the URLs in the project ``README`` and documentation if you would like to host it elsewhere.
