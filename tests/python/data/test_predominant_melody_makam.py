@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 
-import pandas as pd
 from mre.data import PredominantMelodyMakam
 
 
@@ -58,46 +57,16 @@ class TestPredominantMelodyMakam():
         mock_extract.assert_has_calls(expected_extract_calls)
         assert mock_open().write.call_count == expected_num_writes
 
-    @mock.patch("mlflow.start_run")
-    @mock.patch("mlflow.set_experiment")
-    def test_log_existing_run(self,
-                              mock_mlflow_set_experiment,
-                              mock_mlflow_start_run):
+    def test_log(self,
+                 mock_tmp_dir):
         # GIVEN
         pmm = PredominantMelodyMakam()
-        mock_run = pd.DataFrame([{"run_id": "rid"}])
 
         # WHEN; THEN
         with mock.patch("mre.data.predominant_melody_makam.get_run_by_name",
-                        return_value=mock_run):
-            with pytest.raises(ValueError):
-                pmm.log()
-
-            mock_mlflow_set_experiment.assert_not_called()
-            mock_mlflow_start_run.assert_not_called()
-
-    @mock.patch("mlflow.log_artifacts")
-    @mock.patch("mlflow.set_tags")
-    @mock.patch("mlflow.start_run")
-    @mock.patch("mlflow.set_experiment")
-    def test_log_no_run(self,
-                        mock_mlflow_set_experiment,
-                        mock_mlflow_start_run,
-                        mock_mlflow_set_tags,
-                        mock_mlflow_log_artifacts,
-                        mock_tmp_dir,
-                        mock_experiment):
-        # GIVEN
-        pmm = PredominantMelodyMakam()
-        mock_run = pd.DataFrame(columns=["run_id"])  # empty
-
-        # WHEN; THEN
-        with mock.patch('mlflow.get_experiment_by_name',
-                        autospec=True,
-                        return_value=mock_experiment):
-            with mock.patch('mlflow.search_runs',
-                            autospec=True,
-                            return_value=mock_run):
+                        return_value="mock_audio_run_id"):
+            with mock.patch("mre.data.predominant_melody_makam.log"
+                            ) as mock_log:
                 with mock.patch.object(pmm,
                                        "tmp_dir",
                                        mock_tmp_dir):
@@ -106,43 +75,30 @@ class TestPredominantMelodyMakam():
                                            ) as mock_cleanup:
                         pmm.log()
 
-                        mock_mlflow_set_experiment.assert_called_once()
-                        mock_mlflow_start_run.assert_called_once()
-
-                        mock_mlflow_set_tags.assert_called_once()
-                        mock_mlflow_log_artifacts.assert_called_once_with(
-                            pmm._tmp_dir_path())
+                        mock_log.assert_called_once_with(
+                            experiment_name=pmm.EXPERIMENT_NAME,
+                            run_name=pmm.RUN_NAME,
+                            artifact_dir=pmm._tmp_dir_path(),
+                            tags=pmm._mlflow_tags()
+                        )
                         mock_cleanup.assert_called_once_with()
 
-    @mock.patch("mlflow.log_artifacts")
-    @mock.patch("mlflow.set_tags")
-    @mock.patch("mlflow.start_run")
-    @mock.patch("mlflow.set_experiment")
-    def test_log_no_experiment(self,
-                               mock_mlflow_set_experiment,
-                               mock_mlflow_start_run,
-                               mock_mlflow_set_tags,
-                               mock_mlflow_log_artifacts,
-                               mock_tmp_dir):
+    def test_mlflow_tags(self):
         # GIVEN
         pmm = PredominantMelodyMakam()
+        mock_extractor_settings = {"setting1": "value1"}
+        mock_audio_run_id = "mock_audio_run_id"
 
-        # WHEN; THEN
-        with mock.patch('mlflow.get_experiment_by_name',
-                        autospec=True,
-                        return_value=None):
-            with mock.patch.object(pmm,
-                                   "tmp_dir",
-                                   mock_tmp_dir):
-                with mock.patch.object(pmm,
-                                       "_cleanup"
-                                       ) as mock_cleanup:
-                    pmm.log()
+        # WHEN
+        with mock.patch("mre.data.predominant_melody_makam.get_run_by_name",
+                        return_value=mock_audio_run_id):
+            with mock.patch.object(pmm.extractor,
+                                   "get_settings",
+                                   return_value=mock_extractor_settings):
+                result = pmm._mlflow_tags()
 
-                    mock_mlflow_set_experiment.assert_called_once()
-                    mock_mlflow_start_run.assert_called_once()
+        # THEN
+        expected = {**mock_extractor_settings,
+                    "source_run_id": mock_audio_run_id}
 
-                    mock_mlflow_set_tags.assert_called_once()
-                    mock_mlflow_log_artifacts.assert_called_once_with(
-                        pmm._tmp_dir_path())
-                    mock_cleanup.assert_called_once_with()
+        assert result == expected

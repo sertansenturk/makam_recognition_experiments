@@ -3,15 +3,14 @@ import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
-import mlflow
 from tomato import __version__ as tomato_version
 from tomato.audio.predominantmelody import PredominantMelody
 from tqdm import tqdm
 
 from ..config import config
-from ..mlflow_common import get_run_by_name
+from ..mlflow_common import get_run_by_name, log
 from .audio import Audio
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
@@ -83,24 +82,27 @@ class PredominantMelodyMakam():
             If a run with the same experiment and run name is already logged
             in mlflow
         """
-        mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
-        if mlflow_run is not None:
-            raise ValueError(
-                "There is already a run for %s:%s. Overwriting is not "
-                "permitted. Please delete the run manually if you want "
-                "to log the annotations again."
-                % (self.RUN_NAME, mlflow_run.run_id))
+        log(experiment_name=self.EXPERIMENT_NAME,
+            run_name=self.RUN_NAME,
+            artifact_dir=self._tmp_dir_path(),
+            tags=self._mlflow_tags())
 
+        self._cleanup()
+
+    def _mlflow_tags(self) -> Dict:
+        """returns tags to log onto a mlflow run
+
+        Returns
+        -------
+        Dict
+            tags to log, namely, PredominantMelodyMakam settings and
+            mlflow run id where audio recordings are stored
+        """
         tags = self.extractor.get_settings()
         tags["source_run_id"] = get_run_by_name(Audio.EXPERIMENT_NAME,
                                                 Audio.RUN_NAME)
 
-        mlflow.set_experiment(self.EXPERIMENT_NAME)
-        with mlflow.start_run(run_name=self.RUN_NAME):
-            mlflow.set_tags(tags)
-            mlflow.log_artifacts(self._tmp_dir_path())
-
-        self._cleanup()
+        return tags
 
     def _tmp_dir_path(self) -> Path:
         """returns the path of the temporary directory, where the feature
