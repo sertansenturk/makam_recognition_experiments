@@ -125,9 +125,11 @@ class Audio():
                 "to log the annotations again."
                 % (self.RUN_NAME, mlflow_run.run_id))
 
+        tags = {"audio_source": self.AUDIO_SOURCE}
+
         mlflow.set_experiment(self.EXPERIMENT_NAME)
         with mlflow.start_run(run_name=self.RUN_NAME):
-            mlflow.set_tags({"audio_source": self.AUDIO_SOURCE})
+            mlflow.set_tags(tags)
             mlflow.log_artifacts(self._tmp_dir_path())
 
         self._cleanup()
