@@ -17,13 +17,6 @@ def mock_tmp_dir(scope="session") -> mock.MagicMock:
     return tmp_dir
 
 
-@pytest.fixture
-def mock_experiment(scope="session") -> mock.MagicMock:
-    experiment = mock.MagicMock()
-    experiment.experiment_id = "mock_id"
-    return experiment
-
-
 class TestAudio:
     def test_cleanup(self):
         # GIVEN
@@ -153,79 +146,14 @@ class TestAudio:
                     with pytest.raises(dunya.conn.HTTPError):
                         _ = audio.from_dunya(annotation_df)
 
-    @mock.patch("mlflow.start_run")
-    @mock.patch("mlflow.set_experiment")
-    def test_log_existing_run(self,
-                              mock_mlflow_set_experiment,
-                              mock_mlflow_start_run):
-        # GIVEN
-        audio = Audio()
-        mock_run = pd.DataFrame([{"run_id": "rid"}])
-
-        # WHEN; THEN
-        with mock.patch("mre.data.audio.get_run_by_name",
-                        return_value=mock_run):
-            with pytest.raises(ValueError):
-                audio.log()
-
-            mock_mlflow_set_experiment.assert_not_called()
-            mock_mlflow_start_run.assert_not_called()
-
-    @mock.patch("mlflow.log_artifacts")
-    @mock.patch("mlflow.set_tags")
-    @mock.patch("mlflow.start_run")
-    @mock.patch("mlflow.set_experiment")
-    def test_log_no_run(self,
-                        mock_mlflow_set_experiment,
-                        mock_mlflow_start_run,
-                        mock_mlflow_set_tags,
-                        mock_mlflow_log_artifacts,
-                        mock_tmp_dir,
-                        mock_experiment):
-        # GIVEN
-        audio = Audio()
-        mock_run = pd.DataFrame(columns=["run_id"])  # empty
-
-        # WHEN; THEN
-        with mock.patch('mlflow.get_experiment_by_name',
-                        autospec=True,
-                        return_value=mock_experiment):
-            with mock.patch('mlflow.search_runs',
-                            autospec=True,
-                            return_value=mock_run):
-                with mock.patch.object(audio,
-                                       "tmp_dir",
-                                       mock_tmp_dir):
-                    with mock.patch.object(audio,
-                                           "_cleanup"
-                                           ) as mock_cleanup:
-                        audio.log()
-
-                        mock_mlflow_set_experiment.assert_called_once()
-                        mock_mlflow_start_run.assert_called_once()
-
-                        mock_mlflow_set_tags.assert_called_once()
-                        mock_mlflow_log_artifacts.assert_called_once_with(
-                            audio._tmp_dir_path())
-                        mock_cleanup.assert_called_once_with()
-
-    @mock.patch("mlflow.log_artifacts")
-    @mock.patch("mlflow.set_tags")
-    @mock.patch("mlflow.start_run")
-    @mock.patch("mlflow.set_experiment")
-    def test_log_no_experiment(self,
-                               mock_mlflow_set_experiment,
-                               mock_mlflow_start_run,
-                               mock_mlflow_set_tags,
-                               mock_mlflow_log_artifacts,
-                               mock_tmp_dir):
+    def test_log(self,
+                 mock_tmp_dir):
         # GIVEN
         audio = Audio()
 
         # WHEN; THEN
-        with mock.patch('mlflow.get_experiment_by_name',
-                        autospec=True,
-                        return_value=None):
+        with mock.patch("mre.data.audio.log"
+                        ) as mock_log:
             with mock.patch.object(audio,
                                    "tmp_dir",
                                    mock_tmp_dir):
@@ -234,10 +162,22 @@ class TestAudio:
                                        ) as mock_cleanup:
                     audio.log()
 
-                    mock_mlflow_set_experiment.assert_called_once()
-                    mock_mlflow_start_run.assert_called_once()
-
-                    mock_mlflow_set_tags.assert_called_once()
-                    mock_mlflow_log_artifacts.assert_called_once_with(
-                        audio._tmp_dir_path())
+                    mock_log.assert_called_once_with(
+                        experiment_name=audio.EXPERIMENT_NAME,
+                        run_name=audio.RUN_NAME,
+                        artifact_dir=audio._tmp_dir_path(),
+                        tags=audio._mlflow_tags()
+                    )
                     mock_cleanup.assert_called_once_with()
+
+    def test_mlflow_tags(self):
+        # GIVEN
+        audio = Audio()
+
+        # WHEN
+        result = audio._mlflow_tags()
+
+        # THEN
+        expected = {"audio_source": audio.AUDIO_SOURCE}
+
+        assert result == expected
