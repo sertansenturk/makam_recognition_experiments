@@ -25,11 +25,6 @@ class Audio(Data):
     AUDIO_SOURCE = "https://dunya.compmusic.upf.edu"
     AUDIO_EXT = ".mp3"
 
-    def __init__(self):
-        """instantiates an Audio object
-        """
-        super(Audio, self).__init__()
-
     @classmethod
     def from_mlflow(cls) -> List[str]:
         """return audio file paths from the relevant mlflow run

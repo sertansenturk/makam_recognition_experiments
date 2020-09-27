@@ -30,12 +30,6 @@ class Data(abc.ABC):
         """
         return Path(self.tmp_dir.name)
 
-    def _cleanup(self):
-        """deletes the temporary directory, where the audio files are
-        downloaded
-        """
-        self.tmp_dir.cleanup()
-
     def log(self):
         """Logs the artifacts to an mlflow run with appropriate tags
 
@@ -49,7 +43,7 @@ class Data(abc.ABC):
             run_name=self.RUN_NAME,
             artifact_dir=self._tmp_dir_path(),
             tags=self._mlflow_tags())
-        logger.info("Logged artifacts to mlflow under experiment %s, "
+        logger.info("Logged artifacts & tags to mlflow under experiment %s, "
                     "run %s", self.EXPERIMENT_NAME, self.RUN_NAME)
 
         self._cleanup()
@@ -57,3 +51,9 @@ class Data(abc.ABC):
     @abc.abstractmethod
     def _mlflow_tags(self):
         pass
+
+    def _cleanup(self):
+        """deletes the temporary directory, where the audio files are
+        downloaded
+        """
+        self.tmp_dir.cleanup()

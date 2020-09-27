@@ -10,8 +10,9 @@ from tomato.audio.predominantmelody import PredominantMelody
 from tqdm import tqdm
 
 from ..config import config
-from ..mlflow_common import get_run_by_name, log
+from ..mlflow_common import get_run_by_name
 from .audio import Audio
+from .data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -19,7 +20,7 @@ logger.setLevel(logging.INFO)
 cfg = config.read()
 
 
-class PredominantMelodyMakam():
+class PredominantMelodyMakam(Data):
     """class to extract predominant melody from audio recordings using the
     method explained in:
 
@@ -36,7 +37,7 @@ class PredominantMelodyMakam():
     def __init__(self):
         """instantiates an Audio object
         """
-        self.tmp_dir = None
+        super().__init__()
         self.extractor = PredominantMelody()
 
     # def from_mlflow():
@@ -73,25 +74,6 @@ class PredominantMelodyMakam():
 
             logger.debug("Saved to %s.", tmp_file)
 
-    def log(self):
-        """Logs the predominant melody as artifacts to an mlflow run
-
-        Raises
-        ------
-        ValueError
-            If a run with the same experiment and run name is already logged
-            in mlflow
-        """
-        log(experiment_name=self.EXPERIMENT_NAME,
-            run_name=self.RUN_NAME,
-            artifact_dir=self._tmp_dir_path(),
-            tags=self._mlflow_tags())
-        logger.info("Logged predominant melody features to mlflow under "
-                    "experiment %s, run %s", self.EXPERIMENT_NAME,
-                    self.RUN_NAME)
-
-        self._cleanup()
-
     def _mlflow_tags(self) -> Dict:
         """returns tags to log onto a mlflow run
 
@@ -106,19 +88,3 @@ class PredominantMelodyMakam():
                                                 Audio.RUN_NAME)
 
         return tags
-
-    def _tmp_dir_path(self) -> Path:
-        """returns the path of the temporary directory, where the feature
-        files are saved
-
-        Returns
-        -------
-        Path
-            path of the temporary directory
-        """
-        return Path(self.tmp_dir.name)
-
-    def _cleanup(self):
-        """deletes the temporary directory, where the feature files are saved
-        """
-        self.tmp_dir.cleanup()

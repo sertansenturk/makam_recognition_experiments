@@ -57,32 +57,6 @@ class TestPredominantMelodyMakam():
         mock_extract.assert_has_calls(expected_extract_calls)
         assert mock_open().write.call_count == expected_num_writes
 
-    def test_log(self,
-                 mock_tmp_dir):
-        # GIVEN
-        pmm = PredominantMelodyMakam()
-
-        # WHEN; THEN
-        with mock.patch("mre.data.predominant_melody_makam.get_run_by_name",
-                        return_value="mock_audio_run_id"):
-            with mock.patch("mre.data.predominant_melody_makam.log"
-                            ) as mock_log:
-                with mock.patch.object(pmm,
-                                       "tmp_dir",
-                                       mock_tmp_dir):
-                    with mock.patch.object(pmm,
-                                           "_cleanup"
-                                           ) as mock_cleanup:
-                        pmm.log()
-
-                        mock_log.assert_called_once_with(
-                            experiment_name=pmm.EXPERIMENT_NAME,
-                            run_name=pmm.RUN_NAME,
-                            artifact_dir=pmm._tmp_dir_path(),
-                            tags=pmm._mlflow_tags()
-                        )
-                        mock_cleanup.assert_called_once_with()
-
     def test_mlflow_tags(self):
         # GIVEN
         pmm = PredominantMelodyMakam()
