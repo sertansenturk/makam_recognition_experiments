@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 
 from ..config import config
-from ..mlflow_common import get_run_by_name, log
+from ..mlflow_common import get_run_by_name
+from .data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -16,7 +17,7 @@ logger.setLevel(logging.INFO)
 cfg = config.read()
 
 
-class Annotation:
+class Annotation(Data):
     """class to read and process makam recognition annotations"""
     MUSICBRAINZ_RECORDING_URL = "http://musicbrainz.org/recording/"
     EXPECTED_NUM_RECORDINGS = cfg.getint("dataset", "num_recordings")
@@ -34,6 +35,7 @@ class Annotation:
     def __init__(self):
         """instantiates an Annotation object
         """
+        super().__init__()
         self.data = None
 
     def head(self) -> pd.DataFrame:
@@ -153,6 +155,11 @@ class Annotation:
         self._parse_mbid_urls()
         self._patch_dunya_uids()
 
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        annotations_tmp_file = os.path.join(
+            self._tmp_dir_path(), self.ANNOTATION_ARTIFACT_NAME)
+        self.data.to_json(annotations_tmp_file, orient="records")
+
     def _parse_mbid_urls(self):
         """parses the urls in the MBID field
 
@@ -187,29 +194,6 @@ class Annotation:
         """
         self.data.loc[self.data["dunya_uid"].isna(), "dunya_uid"] = (
             self.data.loc[self.data["dunya_uid"].isna(), "mbid"])
-
-    def log(self):
-        """logs the annotations as an artifact to mlflow
-
-        Raises
-        ------
-        ValueError
-            If a run with the same experiment and run name is already logged
-            in mlflow
-        """
-        tags = self._mlflow_tags()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            annotations_tmp_file = os.path.join(
-                tmp_dir, self.ANNOTATION_ARTIFACT_NAME)
-            self.data.to_json(annotations_tmp_file, orient="records")
-
-            log(experiment_name=self.EXPERIMENT_NAME,
-                run_name=self.RUN_NAME,
-                artifact_dir=tmp_dir,
-                tags=tags)
-
-        logger.info("Logged annotations to mlflow under experiment %s, "
-                    "run %s", self.EXPERIMENT_NAME, self.RUN_NAME)
 
     @staticmethod
     def _mlflow_tags() -> Dict:
