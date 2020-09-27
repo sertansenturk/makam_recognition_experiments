@@ -1,8 +1,7 @@
 import logging
 import os
 import tempfile
-from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 import mlflow
 import pandas as pd
@@ -10,7 +9,8 @@ from compmusic import dunya
 from tqdm import tqdm
 
 from ..config import config
-from ..mlflow_common import get_run_by_name, log
+from ..mlflow_common import get_run_by_name
+from .data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -18,7 +18,7 @@ logger.setLevel(logging.INFO)
 cfg = config.read()
 
 
-class Audio():
+class Audio(Data):
     """class to download recordings"""
     EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = cfg.get("mlflow", "audio_run_name")
@@ -28,7 +28,7 @@ class Audio():
     def __init__(self):
         """instantiates an Audio object
         """
-        self.tmp_dir = None
+        super(Audio, self).__init__()
 
     @classmethod
     def from_mlflow(cls) -> List[str]:
@@ -108,24 +108,6 @@ class Audio():
 
         return failed_mbids
 
-    def log(self):
-        """Logs the audio recordings as artifacts to an mlflow run
-
-        Raises
-        ------
-        ValueError
-            If a run with the same experiment and run name is already logged
-            in mlflow
-        """
-        log(experiment_name=self.EXPERIMENT_NAME,
-            run_name=self.RUN_NAME,
-            artifact_dir=self._tmp_dir_path(),
-            tags=self._mlflow_tags())
-        logger.info("Logged audio recordings to mlflow under experiment %s, "
-                    "run %s", self.EXPERIMENT_NAME, self.RUN_NAME)
-
-        self._cleanup()
-
     def _mlflow_tags(self) -> Dict:
         """returns tags to log onto a mlflow run
 
@@ -137,20 +119,3 @@ class Audio():
         tags = {"audio_source": self.AUDIO_SOURCE}
 
         return tags
-
-    def _tmp_dir_path(self) -> Path:
-        """returns the path of the temporary directory, where the audio files
-        are downloaded
-
-        Returns
-        -------
-        Path
-            path of the temporary directory
-        """
-        return Path(self.tmp_dir.name)
-
-    def _cleanup(self):
-        """deletes the temporary directory, where the audio files are
-        downloaded
-        """
-        self.tmp_dir.cleanup()

@@ -146,30 +146,6 @@ class TestAudio:
                     with pytest.raises(dunya.conn.HTTPError):
                         _ = audio.from_dunya(annotation_df)
 
-    def test_log(self,
-                 mock_tmp_dir):
-        # GIVEN
-        audio = Audio()
-
-        # WHEN; THEN
-        with mock.patch("mre.data.audio.log"
-                        ) as mock_log:
-            with mock.patch.object(audio,
-                                   "tmp_dir",
-                                   mock_tmp_dir):
-                with mock.patch.object(audio,
-                                       "_cleanup"
-                                       ) as mock_cleanup:
-                    audio.log()
-
-                    mock_log.assert_called_once_with(
-                        experiment_name=audio.EXPERIMENT_NAME,
-                        run_name=audio.RUN_NAME,
-                        artifact_dir=audio._tmp_dir_path(),
-                        tags=audio._mlflow_tags())
-
-                    mock_cleanup.assert_called_once_with()
-
     def test_mlflow_tags(self):
         # GIVEN
         audio = Audio()
