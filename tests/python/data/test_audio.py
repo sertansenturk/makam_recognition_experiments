@@ -166,8 +166,8 @@ class TestAudio:
                         experiment_name=audio.EXPERIMENT_NAME,
                         run_name=audio.RUN_NAME,
                         artifact_dir=audio._tmp_dir_path(),
-                        tags=audio._mlflow_tags()
-                    )
+                        tags=audio._mlflow_tags())
+
                     mock_cleanup.assert_called_once_with()
 
     def test_mlflow_tags(self):

@@ -117,11 +117,12 @@ class Audio():
             If a run with the same experiment and run name is already logged
             in mlflow
         """
-        tags = {"audio_source": self.AUDIO_SOURCE}
         log(experiment_name=self.EXPERIMENT_NAME,
             run_name=self.RUN_NAME,
             artifact_dir=self._tmp_dir_path(),
-            tags=tags)
+            tags=self._mlflow_tags())
+        logger.info("Logged audio recordings to mlflow under experiment %s, "
+                    "run %s", self.EXPERIMENT_NAME, self.RUN_NAME)
 
         self._cleanup()
 
@@ -131,8 +132,7 @@ class Audio():
         Returns
         -------
         Dict
-            tags to log, namely, PredominantMelodyMakam settings and
-            mlflow run id where audio recordings are stored
+            tags to log, namely, source of audio files (Dunya website url)
         """
         tags = {"audio_source": self.AUDIO_SOURCE}
 

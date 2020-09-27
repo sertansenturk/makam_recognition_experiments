@@ -1,13 +1,14 @@
 import logging
 import os
 import tempfile
+from typing import Dict
 
 import mlflow
 import numpy as np
 import pandas as pd
 
 from ..config import config
-from ..mlflow_common import get_run_by_name
+from ..mlflow_common import get_run_by_name, log
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -196,25 +197,30 @@ class Annotation:
             If a run with the same experiment and run name is already logged
             in mlflow
         """
-        mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
-        if mlflow_run is not None:
-            raise ValueError(
-                "There is already a run for %s:%s. Overwriting is not "
-                "permitted. Please delete the run manually if you want "
-                "to log the annotations again."
-                % (self.RUN_NAME, mlflow_run.run_id))
+        tags = self._mlflow_tags()
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            annotations_tmp_file = os.path.join(
+                tmp_dir, self.ANNOTATION_ARTIFACT_NAME)
+            self.data.to_json(annotations_tmp_file, orient="records")
 
-        mlflow.set_experiment(self.EXPERIMENT_NAME)
-        with mlflow.start_run(run_name=self.RUN_NAME):
-            dataset_tags = {"dataset_" + key: val
-                            for key, val in dict(cfg["dataset"]).items()}
-            mlflow.set_tags(dataset_tags)
+            log(experiment_name=self.EXPERIMENT_NAME,
+                run_name=self.RUN_NAME,
+                artifact_dir=tmp_dir,
+                tags=tags)
 
-            # log self.data as JSON-lines
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                annotations_tmp_file = os.path.join(
-                    tmp_dir, self.ANNOTATION_ARTIFACT_NAME)
-                self.data.to_json(annotations_tmp_file, orient="records")
-                mlflow.log_artifacts(tmp_dir)
-                logger.info("Logged artifact to mlflow under experiment %s, "
-                            "run %s", self.EXPERIMENT_NAME, self.RUN_NAME)
+        logger.info("Logged annotations to mlflow under experiment %s, "
+                    "run %s", self.EXPERIMENT_NAME, self.RUN_NAME)
+
+    @staticmethod
+    def _mlflow_tags() -> Dict:
+        """returns tags to log onto a mlflow run
+
+        Returns
+        -------
+        Dict
+            tags to log, namely, makam recognition dataset settings
+        """
+        tags = {"dataset_" + key: val
+                for key, val in dict(cfg["dataset"]).items()}
+
+        return tags
