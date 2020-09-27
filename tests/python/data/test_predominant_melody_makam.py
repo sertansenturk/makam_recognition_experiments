@@ -57,6 +57,38 @@ class TestPredominantMelodyMakam():
         mock_extract.assert_has_calls(expected_extract_calls)
         assert mock_open().write.call_count == expected_num_writes
 
+    def test_extract_existing_tmp_dir(self, mock_tmp_dir):
+        # GIVEN
+        audio_paths = ["./path/audio1.mp3", "./path/audio2.mp3"]
+        mock_pitch = [[0, 1], [2, 0], [1, 2]]
+        pmm = PredominantMelodyMakam()
+        pmm.tmp_dir = mock_tmp_dir  # extract called before
+
+        # WHEN
+        with mock.patch.object(pmm,
+                               '_cleanup',
+                               autospec=True) as mock_cleanup:
+            with mock.patch("tempfile.TemporaryDirectory",
+                            autospec=True,
+                            return_value=mock_tmp_dir):
+                with mock.patch.object(pmm.extractor,
+                                       'extract',
+                                       autospec=True,
+                                       return_value={"pitch": mock_pitch}
+                                       ) as mock_extract:
+                    with mock.patch('builtins.open',
+                                    mock.mock_open()
+                                    ) as mock_open:
+                        pmm.extract(audio_paths)
+
+        # THEN
+        expected_num_writes = len(audio_paths) * len(mock_pitch)
+        expected_extract_calls = [mock.call(ap) for ap in audio_paths]
+
+        mock_cleanup.assert_called_once_with()
+        mock_extract.assert_has_calls(expected_extract_calls)
+        assert mock_open().write.call_count == expected_num_writes
+
     def test_mlflow_tags(self):
         # GIVEN
         pmm = PredominantMelodyMakam()

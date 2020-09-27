@@ -245,6 +245,36 @@ class TestAnnotation:
         mock_parse_mbid_urls.assert_called_once_with()
         mock_to_json.assert_called_once()
 
+    @mock.patch('mre.data.Annotation._parse_mbid_urls')
+    @mock.patch('mre.data.Annotation._patch_dunya_uids')
+    def test_parse_existing_tmp_dir(self,
+                                    mock_patch_dunya_uids,
+                                    mock_parse_mbid_urls,
+                                    mock_tmp_dir):
+        # GIVEN
+        annotation = Annotation()
+        annotation.data = pd.DataFrame(
+            [{"col1": "val1"}, {"col1": "val2"}])
+        annotation.tmp_dir = mock_tmp_dir  # extract called before
+
+        # WHEN
+        with mock.patch.object(annotation,
+                               '_cleanup',
+                               autospec=True) as mock_cleanup:
+            with mock.patch("tempfile.TemporaryDirectory",
+                            autospec=True,
+                            return_value=mock_tmp_dir):
+                with mock.patch.object(annotation.data,
+                                       'to_json'
+                                       ) as mock_to_json:
+                    annotation.parse()
+
+        # THEN
+        mock_patch_dunya_uids.assert_called_once_with()
+        mock_parse_mbid_urls.assert_called_once_with()
+        mock_cleanup.assert_called_once_with()
+        mock_to_json.assert_called_once()
+
     def test_parse_mbid_urls(self):
         # GIVEN
         annotation = Annotation()
