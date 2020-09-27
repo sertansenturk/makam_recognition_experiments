@@ -155,9 +155,12 @@ class Annotation(Data):
         self._parse_mbid_urls()
         self._patch_dunya_uids()
 
+        if self.tmp_dir is not None:
+            self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
         annotations_tmp_file = os.path.join(
             self._tmp_dir_path(), self.ANNOTATION_ARTIFACT_NAME)
+
         self.data.to_json(annotations_tmp_file, orient="records")
 
     def _parse_mbid_urls(self):

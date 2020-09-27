@@ -69,6 +69,8 @@ class Audio(Data):
             if an HTTP error other than "404 - Not Found" is encountered
         """
         dunya.set_token(config.read_secrets().get("tokens", "dunya"))
+        if self.tmp_dir is not None:
+            self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
 
         failed_mbids = dict()

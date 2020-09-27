@@ -60,6 +60,8 @@ class PredominantMelodyMakam(Data):
         if not audio_paths:
             raise ValueError("audio_paths is empty")
 
+        if self.tmp_dir is not None:
+            self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
         for path in tqdm(audio_paths, total=len(audio_paths)):
             output = self.extractor.extract(path)
