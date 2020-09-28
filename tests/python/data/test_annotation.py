@@ -1,10 +1,10 @@
 from unittest import mock
 
-import pytest
-
 import mlflow
 import numpy as np
 import pandas as pd
+import pytest
+
 from mre.data import Annotation
 from pandas.testing import assert_frame_equal
 
@@ -14,6 +14,14 @@ def mock_experiment(scope="session") -> mock.MagicMock:
     experiment = mock.MagicMock()
     experiment.experiment_id = "mock_id"
     return experiment
+
+
+@pytest.fixture
+def mock_tmp_dir(scope="session") -> mock.MagicMock:
+    tmp_dir = mock.MagicMock()
+    tmp_dir.name = "/tmp/dir_path"
+
+    return tmp_dir
 
 
 class TestAnnotation:
@@ -214,14 +222,58 @@ class TestAnnotation:
 
     @mock.patch('mre.data.Annotation._parse_mbid_urls')
     @mock.patch('mre.data.Annotation._patch_dunya_uids')
-    def test_parse(self, mock_patch_dunya_uids, mock_parse_mbid_urls):
-        # WHEN
+    def test_parse(self,
+                   mock_patch_dunya_uids,
+                   mock_parse_mbid_urls,
+                   mock_tmp_dir):
+        # GIVEN
         annotation = Annotation()
-        annotation.parse()
+        annotation.data = pd.DataFrame(
+            [{"col1": "val1"}, {"col1": "val2"}])
+
+        # WHEN
+        with mock.patch("tempfile.TemporaryDirectory",
+                        autospec=True,
+                        return_value=mock_tmp_dir):
+            with mock.patch.object(annotation.data,
+                                   'to_json'
+                                   ) as mock_to_json:
+                annotation.parse()
 
         # THEN
         mock_patch_dunya_uids.assert_called_once_with()
         mock_parse_mbid_urls.assert_called_once_with()
+        mock_to_json.assert_called_once()
+
+    @mock.patch('mre.data.Annotation._parse_mbid_urls')
+    @mock.patch('mre.data.Annotation._patch_dunya_uids')
+    def test_parse_existing_tmp_dir(self,
+                                    mock_patch_dunya_uids,
+                                    mock_parse_mbid_urls,
+                                    mock_tmp_dir):
+        # GIVEN
+        annotation = Annotation()
+        annotation.data = pd.DataFrame(
+            [{"col1": "val1"}, {"col1": "val2"}])
+        annotation.tmp_dir = mock_tmp_dir  # extract called before
+
+        # WHEN
+        with mock.patch.object(annotation,
+                               '_cleanup',
+                               autospec=True) as mock_cleanup:
+            with mock.patch("tempfile.TemporaryDirectory",
+                            autospec=True,
+                            return_value=mock_tmp_dir):
+                with mock.patch.object(annotation.data,
+                                       'to_json'
+                                       ) as mock_to_json:
+                    annotation.parse()
+
+        # THEN
+        mock_patch_dunya_uids.assert_called_once_with()
+        mock_parse_mbid_urls.assert_called_once_with()
+        mock_cleanup.assert_called_once_with()
+        mock_to_json.assert_called_once()
 
     def test_parse_mbid_urls(self):
         # GIVEN
@@ -271,91 +323,3 @@ class TestAnnotation:
 
         # THEN
         assert_frame_equal(annotation.data, expected, check_like=True)
-
-    @mock.patch("mlflow.start_run")
-    @mock.patch("mlflow.set_experiment")
-    def test_log_existing_run(self,
-                              mock_mlflow_set_experiment,
-                              mock_mlflow_start_run):
-        # GIVEN
-        annotation = Annotation()
-        annotation.data = "dummy_data"
-        mock_run = pd.DataFrame([{"run_id": "rid"}])
-
-        # WHEN; THEN
-        with mock.patch("mre.data.annotation.get_run_by_name",
-                        return_value=mock_run):
-            with pytest.raises(ValueError):
-                annotation.log()
-
-            mock_mlflow_set_experiment.assert_not_called()
-            mock_mlflow_start_run.assert_not_called()
-
-    @mock.patch("mlflow.log_artifacts")
-    @mock.patch("mlflow.set_tags")
-    @mock.patch("mlflow.start_run")
-    @mock.patch("mlflow.set_experiment")
-    def test_log_no_run(self,
-                        mock_mlflow_set_experiment,
-                        mock_mlflow_start_run,
-                        mock_mlflow_set_tags,
-                        mock_mlflow_log_artifacts,
-                        mock_experiment):
-        # GIVEN
-        annotation = Annotation()
-        annotation.data = pd.DataFrame(
-            [{"col1": "val1"}, {"col1": "val2"}])
-        tmp_dir = "/tmp/dir"
-        mock_run = pd.DataFrame(columns=["run_id"])  # empty
-
-        # WHEN; THEN
-        with mock.patch('mlflow.get_experiment_by_name',
-                        autospec=True,
-                        return_value=mock_experiment):
-            with mock.patch('mlflow.search_runs',
-                            autospec=True,
-                            return_value=mock_run):
-                with mock.patch.object(annotation.data, 'to_json'):
-                    with mock.patch('tempfile.TemporaryDirectory',
-                                    autospec=True) as tmp_dir_cont:
-                        tmp_dir_cont.return_value.__enter__.return_value = \
-                            tmp_dir
-                        annotation.log()
-
-                        mock_mlflow_set_experiment.assert_called_once()
-                        mock_mlflow_start_run.assert_called_once()
-
-                        mock_mlflow_set_tags.assert_called_once()
-                        mock_mlflow_log_artifacts.assert_called_once_with(
-                            tmp_dir)
-
-    @mock.patch("mlflow.log_artifacts")
-    @mock.patch("mlflow.set_tags")
-    @mock.patch("mlflow.start_run")
-    @mock.patch("mlflow.set_experiment")
-    def test_log_no_experiment(self,
-                               mock_mlflow_set_experiment,
-                               mock_mlflow_start_run,
-                               mock_mlflow_set_tags,
-                               mock_mlflow_log_artifacts):
-        # GIVEN
-        annotation = Annotation()
-        annotation.data = pd.DataFrame(
-            [{"col1": "val1"}, {"col1": "val2"}])
-        tmp_dir = "/tmp/dir"
-
-        # WHEN; THEN
-        with mock.patch('mlflow.get_experiment_by_name',
-                        return_value=None):  # no experiment
-            with mock.patch.object(annotation.data, 'to_json'):
-                with mock.patch('tempfile.TemporaryDirectory',
-                                autospec=True) as tmp_dir_cont:
-                    tmp_dir_cont.return_value.__enter__.return_value = tmp_dir
-                    annotation.log()
-
-                    mock_mlflow_set_experiment.assert_called_once()
-                    mock_mlflow_start_run.assert_called_once()
-
-                    mock_mlflow_set_tags.assert_called_once()
-                    mock_mlflow_log_artifacts.assert_called_once_with(
-                        tmp_dir)

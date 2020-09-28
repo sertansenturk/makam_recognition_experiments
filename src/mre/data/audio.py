@@ -1,8 +1,7 @@
 import logging
 import os
 import tempfile
-from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 import mlflow
 import pandas as pd
@@ -11,6 +10,7 @@ from tqdm import tqdm
 
 from ..config import config
 from ..mlflow_common import get_run_by_name
+from .data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -18,17 +18,12 @@ logger.setLevel(logging.INFO)
 cfg = config.read()
 
 
-class Audio():
+class Audio(Data):
     """class to download recordings"""
     EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = cfg.get("mlflow", "audio_run_name")
     AUDIO_SOURCE = "https://dunya.compmusic.upf.edu"
     AUDIO_EXT = ".mp3"
-
-    def __init__(self):
-        """instantiates an Audio object
-        """
-        self.tmp_dir = None
 
     @classmethod
     def from_mlflow(cls) -> List[str]:
@@ -74,6 +69,8 @@ class Audio():
             if an HTTP error other than "404 - Not Found" is encountered
         """
         dunya.set_token(config.read_secrets().get("tokens", "dunya"))
+        if self.tmp_dir is not None:
+            self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
 
         failed_mbids = dict()
@@ -108,43 +105,14 @@ class Audio():
 
         return failed_mbids
 
-    def log(self):
-        """Logs the audio recordings as artifacts to an mlflow run
-
-        Raises
-        ------
-        ValueError
-            If a run with the same experiment and run name is already logged
-            in mlflow
-        """
-        mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
-        if mlflow_run is not None:
-            raise ValueError(
-                "There is already a run for %s:%s. Overwriting is not "
-                "permitted. Please delete the run manually if you want "
-                "to log the annotations again."
-                % (self.RUN_NAME, mlflow_run.run_id))
-
-        mlflow.set_experiment(self.EXPERIMENT_NAME)
-        with mlflow.start_run(run_name=self.RUN_NAME):
-            mlflow.set_tags({"audio_source": self.AUDIO_SOURCE})
-            mlflow.log_artifacts(self._tmp_dir_path())
-
-        self._cleanup()
-
-    def _tmp_dir_path(self) -> Path:
-        """returns the path of the temporary directory, where the audio files
-        are downloaded
+    def _mlflow_tags(self) -> Dict:
+        """returns tags to log onto a mlflow run
 
         Returns
         -------
-        Path
-            path of the temporary directory
+        Dict
+            tags to log, namely, source of audio files (Dunya website url)
         """
-        return Path(self.tmp_dir.name)
+        tags = {"audio_source": self.AUDIO_SOURCE}
 
-    def _cleanup(self):
-        """deletes the temporary directory, where the audio files are
-        downloaded
-        """
-        self.tmp_dir.cleanup()
+        return tags

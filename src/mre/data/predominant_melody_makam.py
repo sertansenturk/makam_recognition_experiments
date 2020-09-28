@@ -3,9 +3,8 @@ import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
-import mlflow
 from tomato import __version__ as tomato_version
 from tomato.audio.predominantmelody import PredominantMelody
 from tqdm import tqdm
@@ -13,6 +12,7 @@ from tqdm import tqdm
 from ..config import config
 from ..mlflow_common import get_run_by_name
 from .audio import Audio
+from .data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -20,7 +20,7 @@ logger.setLevel(logging.INFO)
 cfg = config.read()
 
 
-class PredominantMelodyMakam():
+class PredominantMelodyMakam(Data):
     """class to extract predominant melody from audio recordings using the
     method explained in:
 
@@ -37,7 +37,7 @@ class PredominantMelodyMakam():
     def __init__(self):
         """instantiates an Audio object
         """
-        self.tmp_dir = None
+        super().__init__()
         self.extractor = PredominantMelody()
 
     # def from_mlflow():
@@ -60,6 +60,8 @@ class PredominantMelodyMakam():
         if not audio_paths:
             raise ValueError("audio_paths is empty")
 
+        if self.tmp_dir is not None:
+            self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
         for path in tqdm(audio_paths, total=len(audio_paths)):
             output = self.extractor.extract(path)
@@ -74,46 +76,17 @@ class PredominantMelodyMakam():
 
             logger.debug("Saved to %s.", tmp_file)
 
-    def log(self):
-        """Logs the predominant melody as artifacts to an mlflow run
-
-        Raises
-        ------
-        ValueError
-            If a run with the same experiment and run name is already logged
-            in mlflow
-        """
-        mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
-        if mlflow_run is not None:
-            raise ValueError(
-                "There is already a run for %s:%s. Overwriting is not "
-                "permitted. Please delete the run manually if you want "
-                "to log the annotations again."
-                % (self.RUN_NAME, mlflow_run.run_id))
-
-        tags = self.extractor.get_settings()
-        tags["source_run_id"] = get_run_by_name(Audio.EXPERIMENT_NAME,
-                                                Audio.RUN_NAME)
-
-        mlflow.set_experiment(self.EXPERIMENT_NAME)
-        with mlflow.start_run(run_name=self.RUN_NAME):
-            mlflow.set_tags(tags)
-            mlflow.log_artifacts(self._tmp_dir_path())
-
-        self._cleanup()
-
-    def _tmp_dir_path(self) -> Path:
-        """returns the path of the temporary directory, where the feature
-        files are saved
+    def _mlflow_tags(self) -> Dict:
+        """returns tags to log onto a mlflow run
 
         Returns
         -------
-        Path
-            path of the temporary directory
+        Dict
+            tags to log, namely, PredominantMelodyMakam settings and
+            mlflow run id where audio recordings are stored
         """
-        return Path(self.tmp_dir.name)
+        tags = self.extractor.get_settings()
+        tags["source_run_id"] = get_run_by_name(
+            Audio.EXPERIMENT_NAME, Audio.RUN_NAME)["run_id"]
 
-    def _cleanup(self):
-        """deletes the temporary directory, where the feature files are saved
-        """
-        self.tmp_dir.cleanup()
+        return tags

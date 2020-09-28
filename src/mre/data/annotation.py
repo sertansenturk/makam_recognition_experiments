@@ -1,6 +1,7 @@
 import logging
 import os
 import tempfile
+from typing import Dict
 
 import mlflow
 import numpy as np
@@ -8,6 +9,7 @@ import pandas as pd
 
 from ..config import config
 from ..mlflow_common import get_run_by_name
+from .data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -15,7 +17,7 @@ logger.setLevel(logging.INFO)
 cfg = config.read()
 
 
-class Annotation:
+class Annotation(Data):
     """class to read and process makam recognition annotations"""
     MUSICBRAINZ_RECORDING_URL = "http://musicbrainz.org/recording/"
     EXPECTED_NUM_RECORDINGS = cfg.getint("dataset", "num_recordings")
@@ -33,6 +35,7 @@ class Annotation:
     def __init__(self):
         """instantiates an Annotation object
         """
+        super().__init__()
         self.data = None
 
     def head(self) -> pd.DataFrame:
@@ -152,6 +155,14 @@ class Annotation:
         self._parse_mbid_urls()
         self._patch_dunya_uids()
 
+        if self.tmp_dir is not None:
+            self._cleanup()
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        annotations_tmp_file = os.path.join(
+            self._tmp_dir_path(), self.ANNOTATION_ARTIFACT_NAME)
+
+        self.data.to_json(annotations_tmp_file, orient="records")
+
     def _parse_mbid_urls(self):
         """parses the urls in the MBID field
 
@@ -187,34 +198,16 @@ class Annotation:
         self.data.loc[self.data["dunya_uid"].isna(), "dunya_uid"] = (
             self.data.loc[self.data["dunya_uid"].isna(), "mbid"])
 
-    def log(self):
-        """logs the annotations as an artifact to mlflow
+    @staticmethod
+    def _mlflow_tags() -> Dict:
+        """returns tags to log onto a mlflow run
 
-        Raises
-        ------
-        ValueError
-            If a run with the same experiment and run name is already logged
-            in mlflow
+        Returns
+        -------
+        Dict
+            tags to log, namely, makam recognition dataset settings
         """
-        mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
-        if mlflow_run is not None:
-            raise ValueError(
-                "There is already a run for %s:%s. Overwriting is not "
-                "permitted. Please delete the run manually if you want "
-                "to log the annotations again."
-                % (self.RUN_NAME, mlflow_run.run_id))
+        tags = {"dataset_" + key: val
+                for key, val in dict(cfg["dataset"]).items()}
 
-        mlflow.set_experiment(self.EXPERIMENT_NAME)
-        with mlflow.start_run(run_name=self.RUN_NAME):
-            dataset_tags = {"dataset_" + key: val
-                            for key, val in dict(cfg["dataset"]).items()}
-            mlflow.set_tags(dataset_tags)
-
-            # log self.data as JSON-lines
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                annotations_tmp_file = os.path.join(
-                    tmp_dir, self.ANNOTATION_ARTIFACT_NAME)
-                self.data.to_json(annotations_tmp_file, orient="records")
-                mlflow.log_artifacts(tmp_dir)
-                logger.info("Logged artifact to mlflow under experiment %s, "
-                            "run %s", self.EXPERIMENT_NAME, self.RUN_NAME)
+        return tags
