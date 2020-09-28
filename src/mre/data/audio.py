@@ -23,7 +23,7 @@ class Audio(Data):
     EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = cfg.get("mlflow", "audio_run_name")
     AUDIO_SOURCE = "https://dunya.compmusic.upf.edu"
-    AUDIO_EXT = ".mp3"
+    FILE_EXTENSION = ".mp3"
 
     @classmethod
     def from_mlflow(cls) -> List[str]:
@@ -44,7 +44,7 @@ class Audio(Data):
         client = mlflow.tracking.MlflowClient()
         artifacts = client.list_artifacts(mlflow_run.run_id)
         artifact_names = [ff.path for ff in artifacts
-                          if ff.path.endswith(cls.AUDIO_EXT)]
+                          if ff.path.endswith(cls.FILE_EXTENSION)]
 
         artifact_paths = [client.download_artifacts(mlflow_run.run_id, an)
                           for an in artifact_names]
@@ -76,7 +76,8 @@ class Audio(Data):
         failed_mbids = dict()
         num_recordings = len(annotation_df)
         for idx, anno in tqdm(annotation_df.iterrows(), total=num_recordings):
-            tmp_file = os.path.join(self._tmp_dir_path(), f"{anno.mbid}.mp3")
+            tmp_file = os.path.join(self._tmp_dir_path(),
+                                    f"{anno.mbid}{self.FILE_EXTENSION}")
 
             try:
                 mp3_content = dunya.docserver.get_mp3(anno.dunya_uid)
