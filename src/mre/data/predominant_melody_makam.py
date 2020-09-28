@@ -86,7 +86,7 @@ class PredominantMelodyMakam(Data):
             mlflow run id where audio recordings are stored
         """
         tags = self.extractor.get_settings()
-        tags["source_run_id"] = get_run_by_name(Audio.EXPERIMENT_NAME,
-                                                Audio.RUN_NAME)
+        tags["source_run_id"] = get_run_by_name(
+            Audio.EXPERIMENT_NAME, Audio.RUN_NAME)["run_id"]
 
         return tags
