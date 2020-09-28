@@ -1,7 +1,7 @@
 from unittest import mock
-
 import pytest
 
+import pandas as pd
 from mre.data import PredominantMelodyMakam
 
 
@@ -93,11 +93,11 @@ class TestPredominantMelodyMakam():
         # GIVEN
         pmm = PredominantMelodyMakam()
         mock_extractor_settings = {"setting1": "value1"}
-        mock_audio_run_id = "mock_audio_run_id"
+        mock_audio_run = pd.DataFrame([{"run_id": "mock_audio_run_id"}])
 
         # WHEN
         with mock.patch("mre.data.predominant_melody_makam.get_run_by_name",
-                        return_value=mock_audio_run_id):
+                        return_value=mock_audio_run):
             with mock.patch.object(pmm.extractor,
                                    "get_settings",
                                    return_value=mock_extractor_settings):
@@ -105,6 +105,6 @@ class TestPredominantMelodyMakam():
 
         # THEN
         expected = {**mock_extractor_settings,
-                    "source_run_id": mock_audio_run_id}
+                    "source_run_id": mock_audio_run["run_id"]}
 
         assert result == expected
