@@ -40,8 +40,8 @@ class PredominantMelodyMakam(Data):
         super().__init__()
         self.extractor = PredominantMelody()
 
-    # def from_mlflow():
-    #     pass
+    def from_mlflow(self):
+        pass
 
     def extract(self, audio_paths: List[str]):
         """extracts predominant melody from each audio recording and

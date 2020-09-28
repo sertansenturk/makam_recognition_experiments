@@ -19,6 +19,10 @@ class Data(abc.ABC):
         """
         self.tmp_dir = None
 
+    @abc.abstractmethod
+    def from_mlflow(self):
+        pass
+
     def _tmp_dir_path(self) -> Path:
         """returns the path of the temporary directory, where the audio files
         are downloaded
