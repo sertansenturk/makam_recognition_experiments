@@ -1,5 +1,5 @@
 import configparser
-import os
+from pathlib import Path
 
 
 def read() -> configparser.ConfigParser:
@@ -25,7 +25,7 @@ def _get_config_filepath() -> str:
     str
         path of the mre configuration file
     """
-    return os.path.join(os.path.dirname(__file__), 'config.ini')
+    return Path(Path(__file__).parent, 'config.ini')
 
 
 def read_secrets() -> configparser.ConfigParser:
@@ -51,4 +51,4 @@ def _get_secrets_filepath() -> str:
     str
         path of the mre secrets file
     """
-    return os.path.join(os.path.dirname(__file__), 'secrets.ini')
+    return Path(Path(__file__).parent, 'secrets.ini')

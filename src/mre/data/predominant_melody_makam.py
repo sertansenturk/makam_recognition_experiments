@@ -1,6 +1,5 @@
 import csv
 import logging
-import os
 import tempfile
 from pathlib import Path
 from typing import Dict, List
@@ -96,8 +95,8 @@ class PredominantMelodyMakam(Data):
             output = self.extractor.extract(path)
             pitch = output["pitch"]
 
-            tmp_file = os.path.join(self._tmp_dir_path(),
-                                    f"{Path(path).stem}{self.FILE_EXTENSION}")
+            tmp_file = Path(self._tmp_dir_path(),
+                            f"{Path(path).stem}{self.FILE_EXTENSION}")
 
             with open(tmp_file, "w") as f:
                 wr = csv.writer(f)

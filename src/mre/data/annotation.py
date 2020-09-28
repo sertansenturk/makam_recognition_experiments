@@ -1,6 +1,6 @@
 import logging
-import os
 import tempfile
+from pathlib import Path
 from typing import Dict
 
 import mlflow
@@ -158,7 +158,7 @@ class Annotation(Data):
         if self.tmp_dir is not None:
             self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
-        annotations_tmp_file = os.path.join(
+        annotations_tmp_file = Path(
             self._tmp_dir_path(), self.ANNOTATION_ARTIFACT_NAME)
 
         self.data.to_json(annotations_tmp_file, orient="records")
