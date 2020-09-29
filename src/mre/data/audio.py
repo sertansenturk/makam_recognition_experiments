@@ -1,15 +1,13 @@
 import logging
 import tempfile
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict
 
-import mlflow
 import pandas as pd
 from compmusic import dunya
 from tqdm import tqdm
 
 from ..config import config
-from ..mlflow_common import get_run_by_name
 from .data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
@@ -24,35 +22,6 @@ class Audio(Data):
     RUN_NAME = cfg.get("mlflow", "audio_run_name")
     AUDIO_SOURCE = "https://dunya.compmusic.upf.edu"
     FILE_EXTENSION = ".mp3"
-
-    @classmethod
-    def from_mlflow(cls) -> List[str]:
-        """return audio file paths from the relevant mlflow run
-        Returns
-        -------
-        List[Path]
-            path of the audio files logged in mlflow as artifacts
-        Raises
-        ------
-        ValueError
-            if the audio recordings have not been logged in mlflow
-        """
-        mlflow_run = get_run_by_name(cls.EXPERIMENT_NAME, cls.RUN_NAME)
-        if mlflow_run is None:
-            raise ValueError("Audio recordings are not logged in mlflow")
-
-        client = mlflow.tracking.MlflowClient()
-        artifacts = client.list_artifacts(mlflow_run.run_id)
-        artifact_names = [ff.path for ff in artifacts
-                          if ff.path.endswith(cls.FILE_EXTENSION)]
-
-        artifact_paths = [client.download_artifacts(mlflow_run.run_id, an)
-                          for an in artifact_names]
-
-        logger.info("Returning the paths of %d audio recordings.",
-                    len(artifact_paths))
-
-        return artifact_paths
 
     def from_dunya(self, annotation_df: pd.DataFrame):
         """Downloads the audio recordings specified in the annotations from
@@ -77,7 +46,7 @@ class Audio(Data):
         num_recordings = len(annotation_df)
         for idx, anno in tqdm(annotation_df.iterrows(), total=num_recordings):
             tmp_file = Path(self._tmp_dir_path(),
-                            f"{anno.mbid}{self.FILE_EXTENSION}")
+                            anno.mbid + self.FILE_EXTENSION)
 
             try:
                 mp3_content = dunya.docserver.get_mp3(anno.dunya_uid)

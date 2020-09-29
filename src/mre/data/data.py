@@ -1,8 +1,11 @@
 import abc
 import logging
 from pathlib import Path
+from typing import List
 
-from ..mlflow_common import log
+import mlflow
+
+from ..mlflow_common import get_run_by_name, log
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -13,19 +16,45 @@ class Data(abc.ABC):
     """
     EXPERIMENT_NAME = None
     RUN_NAME = None
+    FILE_EXTENSION = '.ext'  # dummy extension
 
     def __init__(self):
         """instantiates an Audio object
         """
         self.tmp_dir = None
 
-    @abc.abstractmethod
-    def from_mlflow(self):
-        pass
+    @classmethod
+    def from_mlflow(cls) -> List[str]:
+        """return artifact file paths from the relevant mlflow run
+        Returns
+        -------
+        List[Path]
+            path of the artifacts logged in mlflow
+        Raises
+        ------
+        ValueError
+            if the run does not exist
+        """
+        mlflow_run = get_run_by_name(cls.EXPERIMENT_NAME, cls.RUN_NAME)
+        if mlflow_run is None:
+            raise ValueError("Artifacts are not logged in mlflow")
+
+        client = mlflow.tracking.MlflowClient()
+        artifacts = client.list_artifacts(mlflow_run.run_id)
+        artifact_names = [ff.path for ff in artifacts
+                          if ff.path.endswith(cls.FILE_EXTENSION)]
+
+        artifact_paths = [client.download_artifacts(mlflow_run.run_id, an)
+                          for an in artifact_names]
+
+        logger.info("Returning the paths of %d artifacts.",
+                    len(artifact_paths))
+
+        return artifact_paths
 
     def _tmp_dir_path(self) -> Path:
-        """returns the path of the temporary directory, where the audio files
-        are downloaded
+        """returns the path of the temporary directory, where the artifact
+        files are stored
 
         Returns
         -------
@@ -57,7 +86,7 @@ class Data(abc.ABC):
         pass
 
     def _cleanup(self):
-        """deletes the temporary directory, where the audio files are
-        downloaded
+        """deletes the temporary directory, where the artifacts files are
+        stored
         """
         self.tmp_dir.cleanup()

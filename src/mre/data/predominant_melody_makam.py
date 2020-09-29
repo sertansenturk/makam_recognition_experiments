@@ -4,7 +4,6 @@ import tempfile
 from pathlib import Path
 from typing import Dict, List
 
-import mlflow
 from tomato import __version__ as tomato_version
 from tomato.audio.predominantmelody import PredominantMelody \
     as PredominantMelodyExtractor
@@ -42,35 +41,6 @@ class PredominantMelodyMakam(Data):
         super().__init__()
         self.extractor = PredominantMelodyExtractor()
 
-    @classmethod
-    def from_mlflow(cls):
-        """return predominant melody file paths from the relevant mlflow run
-        Returns
-        -------
-        List[Path]
-            path of the predominant melody files logged in mlflow as artifacts
-        Raises
-        ------
-        ValueError
-            if the predominant melody features have not been logged in mlflow
-        """
-        mlflow_run = get_run_by_name(cls.EXPERIMENT_NAME, cls.RUN_NAME)
-        if mlflow_run is None:
-            raise ValueError("Predominant melodies are not logged in mlflow")
-
-        client = mlflow.tracking.MlflowClient()
-        artifacts = client.list_artifacts(mlflow_run.run_id)
-        artifact_names = [ff.path for ff in artifacts
-                          if ff.path.endswith(cls.FILE_EXTENSION)]
-
-        artifact_paths = [client.download_artifacts(mlflow_run.run_id, an)
-                          for an in artifact_names]
-
-        logger.info("Returning the paths of %d predominant melody features.",
-                    len(artifact_paths))
-
-        return artifact_paths
-
     def extract(self, audio_paths: List[str]):
         """extracts predominant melody from each audio recording and
         saves the features to a temporary folder
@@ -96,7 +66,7 @@ class PredominantMelodyMakam(Data):
             pitch = output["pitch"]
 
             tmp_file = Path(self._tmp_dir_path(),
-                            f"{Path(path).stem}{self.FILE_EXTENSION}")
+                            Path(path).stem + self.FILE_EXTENSION)
 
             with open(tmp_file, "w") as f:
                 wr = csv.writer(f)
