@@ -1,12 +1,13 @@
-import csv
 import logging
 import tempfile
 from pathlib import Path
 from typing import Dict, List
 
+import numpy as np
+
 from tomato import __version__ as tomato_version
-from tomato.audio.predominantmelody import PredominantMelody \
-    as PredominantMelodyExtractor
+from tomato.audio.predominantmelody import \
+    PredominantMelody as PredominantMelodyExtractor
 from tqdm import tqdm
 
 from ..config import config
@@ -33,7 +34,6 @@ class PredominantMelodyMakam(Data):
     RUN_NAME = cfg.get("mlflow", "predominant_melody_makam_run_name")
     IMPLEMENTATION_SOURCE = (
         f"https://github.com/sertansenturk/tomato/tree/{tomato_version}")
-    FILE_EXTENSION = ".pitch"
 
     def __init__(self):
         """instantiates an Audio object
@@ -68,10 +68,7 @@ class PredominantMelodyMakam(Data):
             tmp_file = Path(self._tmp_dir_path(),
                             Path(path).stem + self.FILE_EXTENSION)
 
-            with open(tmp_file, "w") as f:
-                wr = csv.writer(f)
-                wr.writerows(pitch)
-
+            np.save(tmp_file, pitch)
             logger.debug("Saved to %s.", tmp_file)
 
     def _mlflow_tags(self) -> Dict:

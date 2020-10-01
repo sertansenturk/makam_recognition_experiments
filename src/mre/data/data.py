@@ -16,7 +16,8 @@ class Data(abc.ABC):
     """
     EXPERIMENT_NAME = None
     RUN_NAME = None
-    FILE_EXTENSION = '.ext'  # dummy extension
+    FILE_EXTENSION = '.npy'  # data is saved as binary numpy format by default
+    # https://numpy.org/doc/stable/reference/generated/numpy.lib.format.html
 
     def __init__(self):
         """instantiates an Audio object
@@ -83,7 +84,13 @@ class Data(abc.ABC):
 
     @abc.abstractmethod
     def _mlflow_tags(self):
-        pass
+        """returns tags to log onto a mlflow run
+
+        Returns
+        -------
+        Dict
+            tags to log
+        """
 
     def _cleanup(self):
         """deletes the temporary directory, where the artifacts files are

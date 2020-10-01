@@ -17,18 +17,6 @@ def mock_tmp_dir(scope="session") -> mock.MagicMock:
 
 
 class TestAudio:
-    def test_cleanup(self):
-        # GIVEN
-        audio = Audio()
-
-        # WHEN; THEN
-        with mock.patch.object(audio, "tmp_dir"):
-            with mock.patch.object(audio.tmp_dir,
-                                   "cleanup"
-                                   ) as mock_cleanup:
-                audio._cleanup()
-        mock_cleanup.assert_called_once_with()
-
     @pytest.mark.parametrize("annotation_df", [
         pd.DataFrame([{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}]),
         pd.DataFrame([{"mbid": "mbid1", "dunya_uid": "dunya_uid1"},

@@ -1,5 +1,6 @@
 from unittest import mock
 import pytest
+import pathlib
 
 import pandas as pd
 from mre.data import PredominantMelodyMakam
@@ -45,17 +46,21 @@ class TestPredominantMelodyMakam():
                                    autospec=True,
                                    return_value={"pitch": mock_pitch}
                                    ) as mock_extract:
-                with mock.patch('builtins.open',
-                                mock.mock_open()
-                                ) as mock_open:
+                with mock.patch('numpy.save',
+                                autospec=True,
+                                ) as mock_save:
                     pmm.extract(audio_paths)
 
         # THEN
-        expected_num_writes = len(audio_paths) * len(mock_pitch)
         expected_extract_calls = [mock.call(ap) for ap in audio_paths]
+        expected_save_calls = [
+            mock.call(pathlib.Path(mock_tmp_dir.name, "audio1.npy"),
+                      mock_pitch),
+            mock.call(pathlib.Path(mock_tmp_dir.name, "audio2.npy"),
+                      mock_pitch)]
 
         mock_extract.assert_has_calls(expected_extract_calls)
-        assert mock_open().write.call_count == expected_num_writes
+        mock_save.assert_has_calls(expected_save_calls)
 
     def test_extract_existing_tmp_dir(self, mock_tmp_dir):
         # GIVEN
@@ -76,18 +81,22 @@ class TestPredominantMelodyMakam():
                                        autospec=True,
                                        return_value={"pitch": mock_pitch}
                                        ) as mock_extract:
-                    with mock.patch('builtins.open',
-                                    mock.mock_open()
-                                    ) as mock_open:
+                    with mock.patch('numpy.save',
+                                    autospec=True,
+                                    ) as mock_save:
                         pmm.extract(audio_paths)
 
         # THEN
-        expected_num_writes = len(audio_paths) * len(mock_pitch)
         expected_extract_calls = [mock.call(ap) for ap in audio_paths]
+        expected_save_calls = [
+            mock.call(pathlib.Path(mock_tmp_dir.name, "audio1.npy"),
+                      mock_pitch),
+            mock.call(pathlib.Path(mock_tmp_dir.name, "audio2.npy"),
+                      mock_pitch)]
 
         mock_cleanup.assert_called_once_with()
         mock_extract.assert_has_calls(expected_extract_calls)
-        assert mock_open().write.call_count == expected_num_writes
+        mock_save.assert_has_calls(expected_save_calls)
 
     def test_mlflow_tags(self):
         # GIVEN

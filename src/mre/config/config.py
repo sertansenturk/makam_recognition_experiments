@@ -17,12 +17,12 @@ def read() -> configparser.ConfigParser:
     return cfg
 
 
-def _get_config_filepath() -> str:
+def _get_config_filepath() -> Path:
     """returns the path of the mre configuration file
 
     Returns
     -------
-    str
+    pathlib.Path
         path of the mre configuration file
     """
     return Path(Path(__file__).parent, 'config.ini')
@@ -43,12 +43,12 @@ def read_secrets() -> configparser.ConfigParser:
     return secrets
 
 
-def _get_secrets_filepath() -> str:
+def _get_secrets_filepath() -> Path:
     """returns the path of the mre secrets file
 
     Returns
     -------
-    str
+    pathlib.Path
         path of the mre secrets file
     """
     return Path(Path(__file__).parent, 'secrets.ini')

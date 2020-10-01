@@ -46,8 +46,8 @@ class TestData:
         # GIVEN
         data = Data()
         mock_run = pd.Series({"run_id": "rid1"})
-        artifact_names = ["data1.ext",
-                          "data2.ext"]
+        artifact_names = ["data1" + data.FILE_EXTENSION,
+                          "data2" + data.FILE_EXTENSION]
 
         # WHEN; THEN
         mock_list = []
