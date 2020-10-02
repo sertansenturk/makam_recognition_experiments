@@ -26,7 +26,6 @@ class Annotation(Data):
     EXPECTED_NUM_MAKAMS = (
         EXPECTED_NUM_RECORDINGS / EXPECTED_NUM_RECORDINGS_PER_MAKAM)
 
-    EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = cfg.get("mlflow", "annotation_run_name")
     ANNOTATION_ARTIFACT_NAME = cfg.get("mlflow", "annotation_artifact_name")
     FILE_EXTENSION = '.json'

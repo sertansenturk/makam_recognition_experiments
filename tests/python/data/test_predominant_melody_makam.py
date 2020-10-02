@@ -1,6 +1,6 @@
+from pathlib import Path
 from unittest import mock
 import pytest
-import pathlib
 
 import pandas as pd
 from mre.data import PredominantMelodyMakam
@@ -33,7 +33,7 @@ class TestPredominantMelodyMakam():
 
     def test_extract(self, mock_tmp_dir):
         # GIVEN
-        audio_paths = ["./path/audio1.mp3", "./path/audio2.mp3"]
+        audio_paths = ["./path/file1.mp3", "./path/file2.mp3"]
         mock_pitch = [[0, 1], [2, 0], [1, 2]]
 
         # WHEN
@@ -54,17 +54,15 @@ class TestPredominantMelodyMakam():
         # THEN
         expected_extract_calls = [mock.call(ap) for ap in audio_paths]
         expected_save_calls = [
-            mock.call(pathlib.Path(mock_tmp_dir.name, "audio1.npy"),
-                      mock_pitch),
-            mock.call(pathlib.Path(mock_tmp_dir.name, "audio2.npy"),
-                      mock_pitch)]
+            mock.call(Path(mock_tmp_dir.name, "file1.npy"), mock_pitch),
+            mock.call(Path(mock_tmp_dir.name, "file2.npy"), mock_pitch)]
 
         mock_extract.assert_has_calls(expected_extract_calls)
         mock_save.assert_has_calls(expected_save_calls)
 
     def test_extract_existing_tmp_dir(self, mock_tmp_dir):
         # GIVEN
-        audio_paths = ["./path/audio1.mp3", "./path/audio2.mp3"]
+        audio_paths = ["./path/file1.mp3", "./path/file2.mp3"]
         mock_pitch = [[0, 1], [2, 0], [1, 2]]
         pmm = PredominantMelodyMakam()
         pmm.tmp_dir = mock_tmp_dir  # extract called before
@@ -89,10 +87,8 @@ class TestPredominantMelodyMakam():
         # THEN
         expected_extract_calls = [mock.call(ap) for ap in audio_paths]
         expected_save_calls = [
-            mock.call(pathlib.Path(mock_tmp_dir.name, "audio1.npy"),
-                      mock_pitch),
-            mock.call(pathlib.Path(mock_tmp_dir.name, "audio2.npy"),
-                      mock_pitch)]
+            mock.call(Path(mock_tmp_dir.name, "file1.npy"), mock_pitch),
+            mock.call(Path(mock_tmp_dir.name, "file2.npy"), mock_pitch)]
 
         mock_cleanup.assert_called_once_with()
         mock_extract.assert_has_calls(expected_extract_calls)
@@ -102,11 +98,11 @@ class TestPredominantMelodyMakam():
         # GIVEN
         pmm = PredominantMelodyMakam()
         mock_extractor_settings = {"setting1": "value1"}
-        mock_audio_run = pd.DataFrame([{"run_id": "mock_audio_run_id"}])
+        mock_run = pd.Series({"run_id": "mock_run_id"})
 
         # WHEN
         with mock.patch("mre.data.predominant_melody_makam.get_run_by_name",
-                        return_value=mock_audio_run):
+                        return_value=mock_run):
             with mock.patch.object(pmm.extractor,
                                    "get_settings",
                                    return_value=mock_extractor_settings):
@@ -114,6 +110,6 @@ class TestPredominantMelodyMakam():
 
         # THEN
         expected = {**mock_extractor_settings,
-                    "source_run_id": mock_audio_run["run_id"]}
+                    "source_run_id": mock_run["run_id"]}
 
         assert result == expected

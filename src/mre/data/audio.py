@@ -18,7 +18,6 @@ cfg = config.read()
 
 class Audio(Data):
     """class to download recordings"""
-    EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = cfg.get("mlflow", "audio_run_name")
     AUDIO_SOURCE = "https://dunya.compmusic.upf.edu"
     FILE_EXTENSION = ".mp3"

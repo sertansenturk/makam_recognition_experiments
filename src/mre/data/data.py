@@ -5,16 +5,19 @@ from typing import List
 
 import mlflow
 
+from ..config import config
 from ..mlflow_common import get_run_by_name, log
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
 
+cfg = config.read()
+
 
 class Data(abc.ABC):
     """abstract class to extract-transform-load data
     """
-    EXPERIMENT_NAME = None
+    EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = None
     FILE_EXTENSION = '.npy'  # data is saved as binary numpy format by default
     # https://numpy.org/doc/stable/reference/generated/numpy.lib.format.html
