@@ -24,16 +24,16 @@ def mock_experiment(scope="session") -> mock.MagicMock:
 
 
 class TestPredominantMelodyMakam():
-    def test_extract_empty_paths(self):
+    def test_transform_empty_paths(self):
         # GIVEN
         pitch_paths = []
 
         # WHEN; THEN
         pcd = PitchClassDistribution()
         with pytest.raises(ValueError):
-            pcd.extract(pitch_paths)
+            pcd.transform(pitch_paths)
 
-    def test_extract(self, mock_tmp_dir):
+    def test_transform(self, mock_tmp_dir):
         # GIVEN
         pitch_paths = ["./path/file1.npy", "./path/file2.npy"]
         mock_distribution = PitchDistribution(
@@ -60,7 +60,7 @@ class TestPredominantMelodyMakam():
                                                'to_json',
                                                autospec=True,
                                                ) as mock_to_json:
-                            pcd.extract(pitch_paths)
+                            pcd.transform(pitch_paths)
 
         # THEN
         expected_to_json_calls = [
@@ -71,14 +71,14 @@ class TestPredominantMelodyMakam():
         assert mock_to_pcd.call_count == len(pitch_paths)
         mock_to_json.assert_has_calls(expected_to_json_calls)
 
-    def test_extract_existing_tmp_dir(self, mock_tmp_dir):
+    def test_transform_existing_tmp_dir(self, mock_tmp_dir):
         # GIVEN
         pitch_paths = ["./path/file1.npy", "./path/file2.npy"]
         mock_distribution = PitchDistribution(
             [100, 500, 1300],  # span over an octave (1200 cents)
             [0, 10, 8])
         pcd = PitchClassDistribution()
-        pcd.tmp_dir = mock_tmp_dir  # extract called before
+        pcd.tmp_dir = mock_tmp_dir  # transform called before
 
         # WHEN
         with mock.patch.object(pcd,
@@ -102,7 +102,7 @@ class TestPredominantMelodyMakam():
                                                    'to_json',
                                                    autospec=True,
                                                    ) as mock_to_json:
-                                pcd.extract(pitch_paths)
+                                pcd.transform(pitch_paths)
 
         # THEN
         expected_to_json_calls = [

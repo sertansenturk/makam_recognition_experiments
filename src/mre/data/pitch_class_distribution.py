@@ -30,7 +30,7 @@ class PitchClassDistribution(Data):
     STEP_SIZE = cfg.getfloat("pitch_class_distribution", "step_size")
     FILE_EXTENSION = ".json"
 
-    def extract(self, predominant_melody_paths: List[str]):
+    def transform(self, predominant_melody_paths: List[str]):
         """extracts PCDs from the predominant melody of each audio recording
         and saves the features to a temporary folder
 
