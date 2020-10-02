@@ -22,16 +22,16 @@ def mock_experiment(scope="session") -> mock.MagicMock:
 
 
 class TestPredominantMelodyMakam():
-    def test_extract_empty_paths(self):
+    def test_transform_empty_paths(self):
         # GIVEN
         audio_paths = []
 
         # WHEN; THEN
         pmm = PredominantMelodyMakam()
         with pytest.raises(ValueError):
-            pmm.extract(audio_paths)
+            pmm.transform(audio_paths)
 
-    def test_extract(self, mock_tmp_dir):
+    def test_transform(self, mock_tmp_dir):
         # GIVEN
         audio_paths = ["./path/file1.mp3", "./path/file2.mp3"]
         mock_pitch = [[0, 1], [2, 0], [1, 2]]
@@ -49,7 +49,7 @@ class TestPredominantMelodyMakam():
                 with mock.patch('numpy.save',
                                 autospec=True,
                                 ) as mock_save:
-                    pmm.extract(audio_paths)
+                    pmm.transform(audio_paths)
 
         # THEN
         expected_extract_calls = [mock.call(ap) for ap in audio_paths]
@@ -60,12 +60,12 @@ class TestPredominantMelodyMakam():
         mock_extract.assert_has_calls(expected_extract_calls)
         mock_save.assert_has_calls(expected_save_calls)
 
-    def test_extract_existing_tmp_dir(self, mock_tmp_dir):
+    def test_transform_existing_tmp_dir(self, mock_tmp_dir):
         # GIVEN
         audio_paths = ["./path/file1.mp3", "./path/file2.mp3"]
         mock_pitch = [[0, 1], [2, 0], [1, 2]]
         pmm = PredominantMelodyMakam()
-        pmm.tmp_dir = mock_tmp_dir  # extract called before
+        pmm.tmp_dir = mock_tmp_dir  # transform called before
 
         # WHEN
         with mock.patch.object(pmm,
@@ -82,7 +82,7 @@ class TestPredominantMelodyMakam():
                     with mock.patch('numpy.save',
                                     autospec=True,
                                     ) as mock_save:
-                        pmm.extract(audio_paths)
+                        pmm.transform(audio_paths)
 
         # THEN
         expected_extract_calls = [mock.call(ap) for ap in audio_paths]

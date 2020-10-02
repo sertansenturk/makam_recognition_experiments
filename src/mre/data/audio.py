@@ -74,6 +74,11 @@ class Audio(Data):
 
         return failed_mbids
 
+    def transform(self):
+        """we do not alter the audio recordings so this is an empty
+        implementation of the inherited abstract method
+        """
+
     def _mlflow_tags(self) -> Dict:
         """returns tags to log onto a mlflow run
 

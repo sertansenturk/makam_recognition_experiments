@@ -39,7 +39,7 @@ class PredominantMelodyMakam(Data):
         super().__init__()
         self.extractor = PredominantMelodyExtractor()
 
-    def extract(self, audio_paths: List[str]):
+    def transform(self, audio_paths: List[str]):
         """extracts predominant melody from each audio recording and
         saves the features to a temporary folder
 
