@@ -7,7 +7,7 @@ import numpy as np
 
 from tomato import __version__ as tomato_version
 from tomato.audio.predominantmelody import \
-    PredominantMelody as PredominantMelodyExtractor
+    PredominantMelody as PredominantMelodyTransformer
 from tqdm import tqdm
 
 from ..config import config
@@ -37,7 +37,7 @@ class PredominantMelodyMakam(Data):
         """instantiates a PredominantMelodyExtractor object
         """
         super().__init__()
-        self.extractor = PredominantMelodyExtractor()
+        self.transformer = PredominantMelodyTransformer()
 
     def transform(self, audio_paths: List[str]):
         """extracts predominant melody from each audio recording and
@@ -60,7 +60,7 @@ class PredominantMelodyMakam(Data):
             self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
         for path in tqdm(audio_paths, total=len(audio_paths)):
-            output = self.extractor.extract(path)
+            output = self.transformer.extract(path)
             pitch = output["pitch"]
 
             tmp_file = Path(self._tmp_dir_path(),
@@ -78,7 +78,7 @@ class PredominantMelodyMakam(Data):
             tags to log, namely, PredominantMelodyMakam settings and
             mlflow run id where audio recordings are stored
         """
-        tags = self.extractor.get_settings()
+        tags = self.transformer.get_settings()
         tags["source_run_id"] = get_run_by_name(
             self.EXPERIMENT_NAME,
             cfg.get("mlflow", "audio_run_name"))["run_id"]

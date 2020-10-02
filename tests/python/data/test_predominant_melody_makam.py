@@ -41,7 +41,7 @@ class TestPredominantMelodyMakam():
         with mock.patch("tempfile.TemporaryDirectory",
                         autospec=True,
                         return_value=mock_tmp_dir):
-            with mock.patch.object(pmm.extractor,
+            with mock.patch.object(pmm.transformer,
                                    'extract',
                                    autospec=True,
                                    return_value={"pitch": mock_pitch}
@@ -74,7 +74,7 @@ class TestPredominantMelodyMakam():
             with mock.patch("tempfile.TemporaryDirectory",
                             autospec=True,
                             return_value=mock_tmp_dir):
-                with mock.patch.object(pmm.extractor,
+                with mock.patch.object(pmm.transformer,
                                        'extract',
                                        autospec=True,
                                        return_value={"pitch": mock_pitch}
@@ -97,19 +97,19 @@ class TestPredominantMelodyMakam():
     def test_mlflow_tags(self):
         # GIVEN
         pmm = PredominantMelodyMakam()
-        mock_extractor_settings = {"setting1": "value1"}
+        mock_transformer_settings = {"setting1": "value1"}
         mock_run = pd.Series({"run_id": "mock_run_id"})
 
         # WHEN
         with mock.patch("mre.data.predominant_melody_makam.get_run_by_name",
                         return_value=mock_run):
-            with mock.patch.object(pmm.extractor,
+            with mock.patch.object(pmm.transformer,
                                    "get_settings",
-                                   return_value=mock_extractor_settings):
+                                   return_value=mock_transformer_settings):
                 result = pmm._mlflow_tags()
 
         # THEN
-        expected = {**mock_extractor_settings,
+        expected = {**mock_transformer_settings,
                     "source_run_id": mock_run["run_id"]}
 
         assert result == expected
