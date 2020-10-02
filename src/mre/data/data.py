@@ -1,6 +1,6 @@
 import abc
 import logging
-from pathlib import Path
+from pathlib import Optional, Path
 from typing import List
 
 import mlflow
@@ -25,7 +25,24 @@ class Data(abc.ABC):
     def __init__(self):
         """instantiates an Audio object
         """
-        self.tmp_dir = None
+        self.tmp_dir: Optional[Path] = None
+
+    def _tmp_dir_path(self) -> Path:
+        """returns the path of the temporary directory, where the artifact
+        files are stored
+
+        Returns
+        -------
+        Path
+            path of the temporary directory
+        """
+        return Path(self.tmp_dir.name)
+
+    def _cleanup(self):
+        """deletes the temporary directory, where the artifact files are
+        stored
+        """
+        self.tmp_dir.cleanup()
 
     @classmethod
     def from_mlflow(cls) -> List[str]:
@@ -56,17 +73,6 @@ class Data(abc.ABC):
 
         return artifact_paths
 
-    def _tmp_dir_path(self) -> Path:
-        """returns the path of the temporary directory, where the artifact
-        files are stored
-
-        Returns
-        -------
-        Path
-            path of the temporary directory
-        """
-        return Path(self.tmp_dir.name)
-
     def log(self):
         """Logs the artifacts to an mlflow run with appropriate tags
 
@@ -94,9 +100,3 @@ class Data(abc.ABC):
         Dict
             tags to log
         """
-
-    def _cleanup(self):
-        """deletes the temporary directory, where the artifacts files are
-        stored
-        """
-        self.tmp_dir.cleanup()
