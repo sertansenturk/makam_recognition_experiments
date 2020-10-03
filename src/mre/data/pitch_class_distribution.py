@@ -30,31 +30,35 @@ class PitchClassDistribution(Data):
     STEP_SIZE = cfg.getfloat("pitch_class_distribution", "step_size")
     FILE_EXTENSION = ".json"
 
-    def transform(self, predominant_melody_paths: List[str]):
-        """extracts PCDs from the predominant melody of each audio recording
-        and saves the features to a temporary folder
+    def transform(self, norm_melody_paths: List[str]):
+        """extracts PCDs from the tonic normalized predominant melody of each
+        audio recording and saves the features to a temporary folder.
+
+        IMPORTANT: The method assumes the predominant melody is already
+        converted to cent scale by normalizing with respect to the tonic
+        frequency of the audio recording.
 
         Parameters
         ----------
-        predominant_melody_paths : List[str]
+        norm_melody_paths : List[str]
             paths of the predominant melody features to extract PCDs
 
         Raises
         ------
         ValueError
-            if audio_paths is empty
+            if norm_melody_paths is empty
         """
-        if not predominant_melody_paths:
-            raise ValueError("predominant_melody_paths is empty")
+        if not norm_melody_paths:
+            raise ValueError("norm_melody_paths is empty")
 
         if self.tmp_dir is not None:
             self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
-        for path in tqdm(predominant_melody_paths,
-                         total=len(predominant_melody_paths)):
-            pitch = np.load(path)
-            distribution = PitchDistribution.from_hz_pitch(
-                pitch[:, 1],
+        for path in tqdm(norm_melody_paths,
+                         total=len(norm_melody_paths)):
+            melody = np.load(path)
+            distribution = PitchDistribution.from_cent_pitch(
+                melody,  # pitch values sliced internally
                 kernel_width=self.KERNEL_WIDTH,
                 norm_type=self.NORM_TYPE,
                 step_size=self.STEP_SIZE)
@@ -81,7 +85,7 @@ class PitchClassDistribution(Data):
             "step_size": self.STEP_SIZE}
         tags["source_run_id"] = get_run_by_name(
             self.EXPERIMENT_NAME,
-            cfg.get("mlflow", "predominant_melody_makam_run_name")
+            cfg.get("mlflow", "predominant_melody_normalize_run_name")
             )["run_id"]
 
         return tags

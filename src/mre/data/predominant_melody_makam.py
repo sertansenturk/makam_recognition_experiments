@@ -61,12 +61,12 @@ class PredominantMelodyMakam(Data):
         self.tmp_dir = tempfile.TemporaryDirectory()
         for path in tqdm(audio_paths, total=len(audio_paths)):
             output = self.transformer.extract(path)
-            pitch = output["pitch"]
+            melody = output["pitch"]
 
             tmp_file = Path(self._tmp_dir_path(),
                             Path(path).stem + self.FILE_EXTENSION)
 
-            np.save(tmp_file, pitch)
+            np.save(tmp_file, melody)
             logger.debug("Saved to %s.", tmp_file)
 
     def _mlflow_tags(self) -> Dict:

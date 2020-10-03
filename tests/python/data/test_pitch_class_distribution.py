@@ -23,19 +23,19 @@ def mock_experiment(scope="session") -> mock.MagicMock:
     return experiment
 
 
-class TestPredominantMelodyMakam():
+class TestPitchClassDistribution():
     def test_transform_empty_paths(self):
         # GIVEN
-        pitch_paths = []
+        melody_paths = []
 
         # WHEN; THEN
         pcd = PitchClassDistribution()
         with pytest.raises(ValueError):
-            pcd.transform(pitch_paths)
+            pcd.transform(melody_paths)
 
     def test_transform(self, mock_tmp_dir):
         # GIVEN
-        pitch_paths = ["./path/file1.npy", "./path/file2.npy"]
+        melody_paths = ["./path/file1.npy", "./path/file2.npy"]
         mock_distribution = PitchDistribution(
             [100, 500, 1300],  # span over an octave (1200 cents)
             [0, 10, 8])
@@ -49,7 +49,7 @@ class TestPredominantMelodyMakam():
                             autospec=True
                             ) as mock_load:
                 with mock.patch.object(PitchDistribution,
-                                       attribute='from_hz_pitch',
+                                       attribute='from_cent_pitch',
                                        autospec=True,
                                        return_value=mock_distribution):
                     with mock.patch.object(mock_distribution,
@@ -60,20 +60,20 @@ class TestPredominantMelodyMakam():
                                                'to_json',
                                                autospec=True,
                                                ) as mock_to_json:
-                            pcd.transform(pitch_paths)
+                            pcd.transform(melody_paths)
 
         # THEN
         expected_to_json_calls = [
             mock.call(Path(mock_tmp_dir.name, "file1.json")),
             mock.call(Path(mock_tmp_dir.name, "file2.json"))]
 
-        assert mock_load.call_count == len(pitch_paths)
-        assert mock_to_pcd.call_count == len(pitch_paths)
+        assert mock_load.call_count == len(melody_paths)
+        assert mock_to_pcd.call_count == len(melody_paths)
         mock_to_json.assert_has_calls(expected_to_json_calls)
 
     def test_transform_existing_tmp_dir(self, mock_tmp_dir):
         # GIVEN
-        pitch_paths = ["./path/file1.npy", "./path/file2.npy"]
+        melody_paths = ["./path/file1.npy"]
         mock_distribution = PitchDistribution(
             [100, 500, 1300],  # span over an octave (1200 cents)
             [0, 10, 8])
@@ -88,31 +88,21 @@ class TestPredominantMelodyMakam():
                             autospec=True,
                             return_value=mock_tmp_dir):
                 with mock.patch("numpy.load",
-                                autospec=True
-                                ) as mock_load:
+                                autospec=True):
                     with mock.patch.object(PitchDistribution,
-                                           attribute='from_hz_pitch',
+                                           attribute='from_cent_pitch',
                                            autospec=True,
                                            return_value=mock_distribution):
                         with mock.patch.object(mock_distribution,
                                                'to_pcd',
-                                               autospec=True,
-                                               ) as mock_to_pcd:
+                                               autospec=True):
                             with mock.patch.object(mock_distribution,
                                                    'to_json',
-                                                   autospec=True,
-                                                   ) as mock_to_json:
-                                pcd.transform(pitch_paths)
+                                                   autospec=True):
+                                pcd.transform(melody_paths)
 
         # THEN
-        expected_to_json_calls = [
-            mock.call(Path(mock_tmp_dir.name, "file1.json")),
-            mock.call(Path(mock_tmp_dir.name, "file2.json"))]
-
         mock_cleanup.assert_called_once_with()
-        assert mock_load.call_count == len(pitch_paths)
-        assert mock_to_pcd.call_count == len(pitch_paths)
-        mock_to_json.assert_has_calls(expected_to_json_calls)
 
     def test_mlflow_tags(self):
         # GIVEN
@@ -126,4 +116,3 @@ class TestPredominantMelodyMakam():
 
         # THEN
         assert result["source_run_id"] == mock_run["run_id"]
-        # assert set(result.keys())
