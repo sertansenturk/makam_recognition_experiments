@@ -37,7 +37,7 @@ class TestPitchClassDistribution():
         # GIVEN
         melody_paths = ["./path/file1.npy", "./path/file2.npy"]
         mock_distribution = PitchDistribution(
-            [100, 500, 1300],  # span over an octave (1200 cents)
+            [100, 500, 1100],  # do not span over an octave (1200 cents)
             [0, 10, 8])
         pcd = PitchClassDistribution()
 
@@ -48,8 +48,8 @@ class TestPitchClassDistribution():
             with mock.patch("numpy.load",
                             autospec=True
                             ) as mock_load:
-                with mock.patch.object(PitchDistribution,
-                                       attribute='from_cent_pitch',
+                with mock.patch.object(pcd,
+                                       'transform_func',
                                        autospec=True,
                                        return_value=mock_distribution):
                     with mock.patch.object(mock_distribution,
@@ -75,7 +75,7 @@ class TestPitchClassDistribution():
         # GIVEN
         melody_paths = ["./path/file1.npy"]
         mock_distribution = PitchDistribution(
-            [100, 500, 1300],  # span over an octave (1200 cents)
+            [100, 500, 1100],  # do not span over an octave (1200 cents)
             [0, 10, 8])
         pcd = PitchClassDistribution()
         pcd.tmp_dir = mock_tmp_dir  # transform called before
@@ -89,8 +89,8 @@ class TestPitchClassDistribution():
                             return_value=mock_tmp_dir):
                 with mock.patch("numpy.load",
                                 autospec=True):
-                    with mock.patch.object(PitchDistribution,
-                                           attribute='from_cent_pitch',
+                    with mock.patch.object(pcd,
+                                           'transform_func',
                                            autospec=True,
                                            return_value=mock_distribution):
                         with mock.patch.object(mock_distribution,

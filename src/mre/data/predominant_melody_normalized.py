@@ -28,7 +28,13 @@ class PredominantMelodyNormalized(Data):
     IMPLEMENTATION_SOURCE = (
         f"https://github.com/sertansenturk/tomato/tree/{tomato_version}")
 
-    def transform(self,
+    def __init__(self):
+        """instantiates a PredominantMelodyMakam object
+        """
+        super().__init__()
+        self.transform_func = Converter.hz_to_cent
+
+    def transform(self,  # pylint: disable-msg=W0221
                   melody_paths: List[str],
                   tonic_frequencies: pd.Series):
         """reads predominant melody features from the given paths, converts
@@ -82,8 +88,8 @@ class PredominantMelodyNormalized(Data):
         self.tmp_dir = tempfile.TemporaryDirectory()
         for path, freq in tqdm(zip(melody_paths, tonic_frequencies),
                                total=len(tonic_frequencies)):
-            melody = np.load(path)
-            melody[:, 1] = Converter.hz_to_cent(melody[:, 1], freq)
+            melody: np.array = np.load(path)
+            melody[:, 1]: np.array = self.transform_func(melody[:, 1], freq)
 
             tmp_file = Path(self._tmp_dir_path(),
                             Path(path).stem + self.FILE_EXTENSION)

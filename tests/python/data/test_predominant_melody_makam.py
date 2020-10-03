@@ -41,8 +41,8 @@ class TestPredominantMelodyMakam():
         with mock.patch("tempfile.TemporaryDirectory",
                         autospec=True,
                         return_value=mock_tmp_dir):
-            with mock.patch.object(pmm.transformer,
-                                   'extract',
+            with mock.patch.object(pmm,
+                                   'transform_func',
                                    autospec=True,
                                    return_value={"pitch": mock_pitch}
                                    ) as mock_extract:
@@ -74,8 +74,8 @@ class TestPredominantMelodyMakam():
             with mock.patch("tempfile.TemporaryDirectory",
                             autospec=True,
                             return_value=mock_tmp_dir):
-                with mock.patch.object(pmm.transformer,
-                                       'extract',
+                with mock.patch.object(pmm,
+                                       'transform_func',
                                        autospec=True,
                                        return_value={"pitch": mock_pitch}):
                     with mock.patch('numpy.save',

@@ -60,8 +60,7 @@ class Audio(Data):
                     failed_mbids[anno.mbid] = {
                         "type": "dunya.conn.HTTPError",
                         "reason": "404_url_not_found",
-                        "message": str(err)
-                    }
+                        "message": str(err)}
                 else:
                     self._cleanup()
                     raise err
@@ -74,7 +73,7 @@ class Audio(Data):
 
         return failed_mbids
 
-    def transform(self):
+    def transform(self):  # pylint: disable-msg=W0221
         """we do not alter the audio recordings so this is an empty
         implementation of the inherited abstract method
         """

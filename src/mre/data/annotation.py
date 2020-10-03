@@ -150,7 +150,7 @@ class Annotation(Data):
                 f"Expected: {self.EXPECTED_NUM_MAKAMS}.")
         logger.info("%d makams.", num_makams)
 
-    def transform(self):
+    def transform(self):  # pylint: disable-msg=W0221
         """parses the annotations
         """
         self._parse_mbid_urls()

@@ -34,12 +34,13 @@ class PredominantMelodyMakam(Data):
         f"https://github.com/sertansenturk/tomato/tree/{tomato_version}")
 
     def __init__(self):
-        """instantiates a PredominantMelodyExtractor object
+        """instantiates a PredominantMelodyMakam object
         """
         super().__init__()
         self.transformer = PredominantMelodyTransformer()
+        self.transform_func = self.transformer.extract
 
-    def transform(self, audio_paths: List[str]):
+    def transform(self, audio_paths: List[str]):  # pylint: disable-msg=W0221
         """extracts predominant melody from each audio recording and
         saves the features to a temporary folder
 
@@ -60,8 +61,8 @@ class PredominantMelodyMakam(Data):
             self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
         for path in tqdm(audio_paths, total=len(audio_paths)):
-            output = self.transformer.extract(path)
-            melody = output["pitch"]
+            output: Dict = self.transform_func(path)
+            melody: np.array = output["pitch"]
 
             tmp_file = Path(self._tmp_dir_path(),
                             Path(path).stem + self.FILE_EXTENSION)

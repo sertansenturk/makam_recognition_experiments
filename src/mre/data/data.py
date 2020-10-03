@@ -1,7 +1,7 @@
 import abc
 import logging
 from pathlib import Path
-from typing import Optional, List
+from typing import Callable, Optional, List
 
 import mlflow
 
@@ -26,6 +26,7 @@ class Data(abc.ABC):
         """instantiates an Audio object
         """
         self.tmp_dir: Optional[Path] = None
+        self.transform_func: Optional[Callable] = None
 
     def _tmp_dir_path(self) -> Path:
         """returns the path of the temporary directory, where the artifact
@@ -72,6 +73,11 @@ class Data(abc.ABC):
                     len(artifact_paths))
 
         return artifact_paths
+
+    @abc.abstractmethod
+    def transform(self, *args):
+        """applies transformation to the input data
+        """
 
     def log(self):
         """Logs the artifacts to an mlflow run with appropriate tags

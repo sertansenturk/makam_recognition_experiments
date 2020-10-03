@@ -30,7 +30,14 @@ class PitchClassDistribution(Data):
     STEP_SIZE = cfg.getfloat("pitch_class_distribution", "step_size")
     FILE_EXTENSION = ".json"
 
-    def transform(self, norm_melody_paths: List[str]):
+    def __init__(self):
+        """instantiates a PredominantMelodyMakam object
+        """
+        super().__init__()
+        self.transform_func = PitchDistribution.from_cent_pitch
+
+    def transform(self,  # pylint: disable-msg=W0221
+                  norm_melody_paths: List[str]):
         """extracts PCDs from the tonic normalized predominant melody of each
         audio recording and saves the features to a temporary folder.
 
@@ -57,7 +64,7 @@ class PitchClassDistribution(Data):
         for path in tqdm(norm_melody_paths,
                          total=len(norm_melody_paths)):
             melody = np.load(path)
-            distribution = PitchDistribution.from_cent_pitch(
+            distribution: PitchDistribution = self.transform_func(
                 melody,  # pitch values sliced internally
                 kernel_width=self.KERNEL_WIDTH,
                 norm_type=self.NORM_TYPE,
