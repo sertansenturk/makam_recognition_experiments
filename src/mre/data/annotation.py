@@ -1,6 +1,6 @@
 import logging
-import os
 import tempfile
+from pathlib import Path
 from typing import Dict
 
 import mlflow
@@ -26,9 +26,9 @@ class Annotation(Data):
     EXPECTED_NUM_MAKAMS = (
         EXPECTED_NUM_RECORDINGS / EXPECTED_NUM_RECORDINGS_PER_MAKAM)
 
-    EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = cfg.get("mlflow", "annotation_run_name")
     ANNOTATION_ARTIFACT_NAME = cfg.get("mlflow", "annotation_artifact_name")
+    FILE_EXTENSION = '.json'
 
     URL = cfg["dataset"]["annotation_file"]
 
@@ -57,7 +57,8 @@ class Annotation(Data):
 
         client = mlflow.tracking.MlflowClient()
         annotation_file = client.download_artifacts(
-            mlflow_run.run_id, self.ANNOTATION_ARTIFACT_NAME)
+            mlflow_run.run_id,
+            self.ANNOTATION_ARTIFACT_NAME + self.FILE_EXTENSION)
 
         self.data = pd.read_json(annotation_file, orient="records")
 
@@ -149,7 +150,7 @@ class Annotation(Data):
                 f"Expected: {self.EXPECTED_NUM_MAKAMS}.")
         logger.info("%d makams.", num_makams)
 
-    def parse(self):
+    def transform(self):  # pylint: disable-msg=W0221
         """parses the annotations
         """
         self._parse_mbid_urls()
@@ -158,8 +159,9 @@ class Annotation(Data):
         if self.tmp_dir is not None:
             self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
-        annotations_tmp_file = os.path.join(
-            self._tmp_dir_path(), self.ANNOTATION_ARTIFACT_NAME)
+        annotations_tmp_file = Path(
+            self._tmp_dir_path(),
+            self.ANNOTATION_ARTIFACT_NAME + self.FILE_EXTENSION)
 
         self.data.to_json(annotations_tmp_file, orient="records")
 

@@ -1,27 +1,36 @@
 import abc
 import logging
 from pathlib import Path
+from typing import Callable, Optional, List
 
-from ..mlflow_common import log
+import mlflow
+
+from ..config import config
+from ..mlflow_common import get_run_by_name, log
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
+
+cfg = config.read()
 
 
 class Data(abc.ABC):
     """abstract class to extract-transform-load data
     """
-    EXPERIMENT_NAME = None
+    EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = None
+    FILE_EXTENSION = '.npy'  # data is saved as binary numpy format by default
+    # https://numpy.org/doc/stable/reference/generated/numpy.lib.format.html
 
     def __init__(self):
         """instantiates an Audio object
         """
-        self.tmp_dir = None
+        self.tmp_dir: Optional[Path] = None
+        self.transform_func: Optional[Callable] = None
 
     def _tmp_dir_path(self) -> Path:
-        """returns the path of the temporary directory, where the audio files
-        are downloaded
+        """returns the path of the temporary directory, where the artifact
+        files are stored
 
         Returns
         -------
@@ -29,6 +38,46 @@ class Data(abc.ABC):
             path of the temporary directory
         """
         return Path(self.tmp_dir.name)
+
+    def _cleanup(self):
+        """deletes the temporary directory, where the artifact files are
+        stored
+        """
+        self.tmp_dir.cleanup()
+
+    @classmethod
+    def from_mlflow(cls) -> List[str]:
+        """return artifact file paths from the relevant mlflow run
+        Returns
+        -------
+        List[Path]
+            path of the artifacts logged in mlflow
+        Raises
+        ------
+        ValueError
+            if the run does not exist
+        """
+        mlflow_run = get_run_by_name(cls.EXPERIMENT_NAME, cls.RUN_NAME)
+        if mlflow_run is None:
+            raise ValueError("Artifacts are not logged in mlflow")
+
+        client = mlflow.tracking.MlflowClient()
+        artifacts = client.list_artifacts(mlflow_run.run_id)
+        artifact_names = [ff.path for ff in artifacts
+                          if ff.path.endswith(cls.FILE_EXTENSION)]
+
+        artifact_paths = [client.download_artifacts(mlflow_run.run_id, an)
+                          for an in artifact_names]
+
+        logger.info("Returning the paths of %d artifacts.",
+                    len(artifact_paths))
+
+        return artifact_paths
+
+    @abc.abstractmethod
+    def transform(self, *args):
+        """applies transformation to the input data
+        """
 
     def log(self):
         """Logs the artifacts to an mlflow run with appropriate tags
@@ -50,10 +99,10 @@ class Data(abc.ABC):
 
     @abc.abstractmethod
     def _mlflow_tags(self):
-        pass
+        """returns tags to log onto a mlflow run
 
-    def _cleanup(self):
-        """deletes the temporary directory, where the audio files are
-        downloaded
+        Returns
+        -------
+        Dict
+            tags to log
         """
-        self.tmp_dir.cleanup()

@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest import mock
 import pytest
 
@@ -21,18 +22,18 @@ def mock_experiment(scope="session") -> mock.MagicMock:
 
 
 class TestPredominantMelodyMakam():
-    def test_extract_empty_paths(self):
+    def test_transform_empty_paths(self):
         # GIVEN
         audio_paths = []
 
         # WHEN; THEN
         pmm = PredominantMelodyMakam()
         with pytest.raises(ValueError):
-            pmm.extract(audio_paths)
+            pmm.transform(audio_paths)
 
-    def test_extract(self, mock_tmp_dir):
+    def test_transform(self, mock_tmp_dir):
         # GIVEN
-        audio_paths = ["./path/audio1.mp3", "./path/audio2.mp3"]
+        audio_paths = ["./path/file1.mp3", "./path/file2.mp3"]
         mock_pitch = [[0, 1], [2, 0], [1, 2]]
 
         # WHEN
@@ -40,29 +41,31 @@ class TestPredominantMelodyMakam():
         with mock.patch("tempfile.TemporaryDirectory",
                         autospec=True,
                         return_value=mock_tmp_dir):
-            with mock.patch.object(pmm.extractor,
-                                   'extract',
+            with mock.patch.object(pmm,
+                                   'transform_func',
                                    autospec=True,
                                    return_value={"pitch": mock_pitch}
                                    ) as mock_extract:
-                with mock.patch('builtins.open',
-                                mock.mock_open()
-                                ) as mock_open:
-                    pmm.extract(audio_paths)
+                with mock.patch('numpy.save',
+                                autospec=True,
+                                ) as mock_save:
+                    pmm.transform(audio_paths)
 
         # THEN
-        expected_num_writes = len(audio_paths) * len(mock_pitch)
         expected_extract_calls = [mock.call(ap) for ap in audio_paths]
+        expected_save_calls = [
+            mock.call(Path(mock_tmp_dir.name, "file1.npy"), mock_pitch),
+            mock.call(Path(mock_tmp_dir.name, "file2.npy"), mock_pitch)]
 
         mock_extract.assert_has_calls(expected_extract_calls)
-        assert mock_open().write.call_count == expected_num_writes
+        mock_save.assert_has_calls(expected_save_calls)
 
-    def test_extract_existing_tmp_dir(self, mock_tmp_dir):
+    def test_transform_existing_tmp_dir(self, mock_tmp_dir):
         # GIVEN
-        audio_paths = ["./path/audio1.mp3", "./path/audio2.mp3"]
+        audio_paths = ["./path/file1.mp3"]
         mock_pitch = [[0, 1], [2, 0], [1, 2]]
         pmm = PredominantMelodyMakam()
-        pmm.tmp_dir = mock_tmp_dir  # extract called before
+        pmm.tmp_dir = mock_tmp_dir  # transform called before
 
         # WHEN
         with mock.patch.object(pmm,
@@ -71,40 +74,33 @@ class TestPredominantMelodyMakam():
             with mock.patch("tempfile.TemporaryDirectory",
                             autospec=True,
                             return_value=mock_tmp_dir):
-                with mock.patch.object(pmm.extractor,
-                                       'extract',
+                with mock.patch.object(pmm,
+                                       'transform_func',
                                        autospec=True,
-                                       return_value={"pitch": mock_pitch}
-                                       ) as mock_extract:
-                    with mock.patch('builtins.open',
-                                    mock.mock_open()
-                                    ) as mock_open:
-                        pmm.extract(audio_paths)
+                                       return_value={"pitch": mock_pitch}):
+                    with mock.patch('numpy.save',
+                                    autospec=True):
+                        pmm.transform(audio_paths)
 
         # THEN
-        expected_num_writes = len(audio_paths) * len(mock_pitch)
-        expected_extract_calls = [mock.call(ap) for ap in audio_paths]
-
         mock_cleanup.assert_called_once_with()
-        mock_extract.assert_has_calls(expected_extract_calls)
-        assert mock_open().write.call_count == expected_num_writes
 
     def test_mlflow_tags(self):
         # GIVEN
         pmm = PredominantMelodyMakam()
-        mock_extractor_settings = {"setting1": "value1"}
-        mock_audio_run = pd.DataFrame([{"run_id": "mock_audio_run_id"}])
+        mock_transformer_settings = {"setting1": "value1"}
+        mock_run = pd.Series({"run_id": "mock_run_id"})
 
         # WHEN
         with mock.patch("mre.data.predominant_melody_makam.get_run_by_name",
-                        return_value=mock_audio_run):
-            with mock.patch.object(pmm.extractor,
+                        return_value=mock_run):
+            with mock.patch.object(pmm.transformer,
                                    "get_settings",
-                                   return_value=mock_extractor_settings):
+                                   return_value=mock_transformer_settings):
                 result = pmm._mlflow_tags()
 
         # THEN
-        expected = {**mock_extractor_settings,
-                    "source_run_id": mock_audio_run["run_id"]}
+        expected = {**mock_transformer_settings,
+                    "source_run_id": mock_run["run_id"]}
 
         assert result == expected

@@ -222,10 +222,10 @@ class TestAnnotation:
 
     @mock.patch('mre.data.Annotation._parse_mbid_urls')
     @mock.patch('mre.data.Annotation._patch_dunya_uids')
-    def test_parse(self,
-                   mock_patch_dunya_uids,
-                   mock_parse_mbid_urls,
-                   mock_tmp_dir):
+    def test_transform(self,
+                       mock_patch_dunya_uids,
+                       mock_parse_mbid_urls,
+                       mock_tmp_dir):
         # GIVEN
         annotation = Annotation()
         annotation.data = pd.DataFrame(
@@ -238,7 +238,7 @@ class TestAnnotation:
             with mock.patch.object(annotation.data,
                                    'to_json'
                                    ) as mock_to_json:
-                annotation.parse()
+                annotation.transform()
 
         # THEN
         mock_patch_dunya_uids.assert_called_once_with()
@@ -247,10 +247,10 @@ class TestAnnotation:
 
     @mock.patch('mre.data.Annotation._parse_mbid_urls')
     @mock.patch('mre.data.Annotation._patch_dunya_uids')
-    def test_parse_existing_tmp_dir(self,
-                                    mock_patch_dunya_uids,
-                                    mock_parse_mbid_urls,
-                                    mock_tmp_dir):
+    def test_transform_existing_tmp_dir(self,
+                                        mock_patch_dunya_uids,
+                                        mock_parse_mbid_urls,
+                                        mock_tmp_dir):
         # GIVEN
         annotation = Annotation()
         annotation.data = pd.DataFrame(
@@ -267,7 +267,7 @@ class TestAnnotation:
                 with mock.patch.object(annotation.data,
                                        'to_json'
                                        ) as mock_to_json:
-                    annotation.parse()
+                    annotation.transform()
 
         # THEN
         mock_patch_dunya_uids.assert_called_once_with()

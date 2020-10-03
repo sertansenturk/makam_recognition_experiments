@@ -1,17 +1,17 @@
-import csv
 import logging
-import os
 import tempfile
 from pathlib import Path
 from typing import Dict, List
 
+import numpy as np
+
 from tomato import __version__ as tomato_version
-from tomato.audio.predominantmelody import PredominantMelody
+from tomato.audio.predominantmelody import \
+    PredominantMelody as PredominantMelodyTransformer
 from tqdm import tqdm
 
 from ..config import config
 from ..mlflow_common import get_run_by_name
-from .audio import Audio
 from .data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
@@ -29,21 +29,18 @@ class PredominantMelodyMakam(Data):
     of 3rd International Conference on Audio Technologies for Music and Media
     (ATMM 2014), pages 142–153, Ankara, Turkey.
     """
-    EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = cfg.get("mlflow", "predominant_melody_makam_run_name")
     IMPLEMENTATION_SOURCE = (
         f"https://github.com/sertansenturk/tomato/tree/{tomato_version}")
 
     def __init__(self):
-        """instantiates an Audio object
+        """instantiates a PredominantMelodyMakam object
         """
         super().__init__()
-        self.extractor = PredominantMelody()
+        self.transformer = PredominantMelodyTransformer()
+        self.transform_func = self.transformer.extract
 
-    # def from_mlflow():
-    #     pass
-
-    def extract(self, audio_paths: List[str]):
+    def transform(self, audio_paths: List[str]):  # pylint: disable-msg=W0221
         """extracts predominant melody from each audio recording and
         saves the features to a temporary folder
 
@@ -64,16 +61,13 @@ class PredominantMelodyMakam(Data):
             self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
         for path in tqdm(audio_paths, total=len(audio_paths)):
-            output = self.extractor.extract(path)
-            pitch = output["pitch"]
+            output: Dict = self.transform_func(path)
+            melody: np.array = output["pitch"]
 
-            tmp_file = os.path.join(self._tmp_dir_path(),
-                                    f"{Path(path).stem}.pitch")
+            tmp_file = Path(self._tmp_dir_path(),
+                            Path(path).stem + self.FILE_EXTENSION)
 
-            with open(tmp_file, "w") as f:
-                wr = csv.writer(f)
-                wr.writerows(pitch)
-
+            np.save(tmp_file, melody)
             logger.debug("Saved to %s.", tmp_file)
 
     def _mlflow_tags(self) -> Dict:
@@ -85,8 +79,9 @@ class PredominantMelodyMakam(Data):
             tags to log, namely, PredominantMelodyMakam settings and
             mlflow run id where audio recordings are stored
         """
-        tags = self.extractor.get_settings()
+        tags = self.transformer.get_settings()
         tags["source_run_id"] = get_run_by_name(
-            Audio.EXPERIMENT_NAME, Audio.RUN_NAME)["run_id"]
+            self.EXPERIMENT_NAME,
+            cfg.get("mlflow", "audio_run_name"))["run_id"]
 
         return tags
