@@ -2,8 +2,6 @@ from unittest import mock
 from pathlib import Path
 import pytest
 
-import pandas as pd
-
 from mre.data import PitchClassDistribution
 from mre.data.pitch_class_distribution import PitchDistribution
 
@@ -107,12 +105,14 @@ class TestPitchClassDistribution():
     def test_mlflow_tags(self):
         # GIVEN
         pcd = PitchClassDistribution()
-        mock_run = pd.Series({"run_id": "mock_run_id"})
 
         # WHEN
-        with mock.patch("mre.data.pitch_class_distribution.get_run_by_name",
-                        return_value=mock_run):
-            result = pcd._mlflow_tags()
+        result = pcd._mlflow_tags()
 
         # THEN
-        assert result["source_run_id"] == mock_run["run_id"]
+        expected = {
+            "kernel_width": pcd.KERNEL_WIDTH,
+            "norm_type": pcd.NORM_TYPE,
+            "step_size": pcd.STEP_SIZE}
+
+        assert result == expected

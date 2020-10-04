@@ -4,12 +4,10 @@ from pathlib import Path
 from typing import Dict, List
 
 import numpy as np
-from tomato import __version__ as tomato_version
 from tomato.audio.pitchdistribution import PitchDistribution
 from tqdm import tqdm
 
 from ..config import config
-from ..mlflow_common import get_run_by_name
 from .data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
@@ -23,11 +21,11 @@ class PitchClassDistribution(Data):
     melody of each audio recording
     """
     RUN_NAME = cfg.get("mlflow", "pitch_class_distribution_run_name")
-    IMPLEMENTATION_SOURCE = (
-        f"https://github.com/sertansenturk/tomato/tree/{tomato_version}")
+
     KERNEL_WIDTH = cfg.getfloat("pitch_class_distribution", "kernel_width")
     NORM_TYPE = cfg.get("pitch_class_distribution", "norm_type")
     STEP_SIZE = cfg.getfloat("pitch_class_distribution", "step_size")
+
     FILE_EXTENSION = ".json"
 
     def __init__(self):
@@ -64,6 +62,7 @@ class PitchClassDistribution(Data):
         for path in tqdm(norm_melody_paths,
                          total=len(norm_melody_paths)):
             melody = np.load(path)
+
             distribution: PitchDistribution = self.transform_func(
                 melody,  # pitch values sliced internally
                 kernel_width=self.KERNEL_WIDTH,
@@ -72,8 +71,7 @@ class PitchClassDistribution(Data):
             distribution.to_pcd()
 
             tmp_file = Path(self._tmp_dir_path(),
-                            f"{Path(path).stem}{self.FILE_EXTENSION}")
-
+                            Path(path).stem + self.FILE_EXTENSION)
             distribution.to_json(tmp_file)
             logger.debug("Saved to %s.", tmp_file)
 
@@ -83,16 +81,9 @@ class PitchClassDistribution(Data):
         Returns
         -------
         Dict
-            tags to log, namely, PCD extractor settings and mlflow run id
-            where predominant melody features are stored
+            tags to log, namely, PCD extractor settings
         """
-        tags = {
+        return {
             "kernel_width": self.KERNEL_WIDTH,
             "norm_type": self.NORM_TYPE,
             "step_size": self.STEP_SIZE}
-        tags["source_run_id"] = get_run_by_name(
-            self.EXPERIMENT_NAME,
-            cfg.get("mlflow", "predominant_melody_normalize_run_name")
-            )["run_id"]
-
-        return tags
