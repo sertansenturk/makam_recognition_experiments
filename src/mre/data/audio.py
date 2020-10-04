@@ -44,11 +44,11 @@ class Audio(Data):
         failed_mbids = dict()
         num_recordings = len(annotation_df)
         for idx, anno in tqdm(annotation_df.iterrows(), total=num_recordings):
-            tmp_file = Path(self._tmp_dir_path(),
-                            anno.mbid + self.FILE_EXTENSION)
-
             try:
                 mp3_content = dunya.docserver.get_mp3(anno.dunya_uid)
+
+                tmp_file = Path(self._tmp_dir_path(),
+                                anno.mbid + self.FILE_EXTENSION)
                 with open(tmp_file, "wb") as f:
                     f.write(mp3_content)
                 logger.debug("%d/%d: Saved to %s.",

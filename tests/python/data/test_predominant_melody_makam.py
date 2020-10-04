@@ -2,7 +2,6 @@ from pathlib import Path
 from unittest import mock
 import pytest
 
-import pandas as pd
 from mre.data import PredominantMelodyMakam
 
 
@@ -89,18 +88,14 @@ class TestPredominantMelodyMakam():
         # GIVEN
         pmm = PredominantMelodyMakam()
         mock_transformer_settings = {"setting1": "value1"}
-        mock_run = pd.Series({"run_id": "mock_run_id"})
 
         # WHEN
-        with mock.patch("mre.data.predominant_melody_makam.get_run_by_name",
-                        return_value=mock_run):
-            with mock.patch.object(pmm.transformer,
-                                   "get_settings",
-                                   return_value=mock_transformer_settings):
-                result = pmm._mlflow_tags()
+        with mock.patch.object(pmm.transformer,
+                               "get_settings",
+                               return_value=mock_transformer_settings):
+            result = pmm._mlflow_tags()
 
         # THEN
-        expected = {**mock_transformer_settings,
-                    "source_run_id": mock_run["run_id"]}
+        expected = mock_transformer_settings
 
         assert result == expected

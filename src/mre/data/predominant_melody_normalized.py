@@ -6,12 +6,10 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
-from tomato import __version__ as tomato_version
 from tomato.converter import Converter
 from tqdm import tqdm
 
 from ..config import config
-from ..mlflow_common import get_run_by_name
 from .data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
@@ -25,8 +23,8 @@ class PredominantMelodyNormalized(Data):
     such that the tonic frequency is 0 cents
     """
     RUN_NAME = cfg.get("mlflow", "predominant_melody_normalize_run_name")
-    IMPLEMENTATION_SOURCE = (
-        f"https://github.com/sertansenturk/tomato/tree/{tomato_version}")
+
+    MIN_FREQ = cfg.getfloat("tonic_normalization", "min_freq")
 
     def __init__(self):
         """instantiates a PredominantMelodyMakam object
@@ -89,11 +87,12 @@ class PredominantMelodyNormalized(Data):
         for path, freq in tqdm(zip(melody_paths, tonic_frequencies),
                                total=len(tonic_frequencies)):
             melody: np.array = np.load(path)
-            melody[:, 1]: np.array = self.transform_func(melody[:, 1], freq)
+
+            melody[:, 1]: np.array = self.transform_func(
+                melody[:, 1], freq, min_freq=self.MIN_FREQ)
 
             tmp_file = Path(self._tmp_dir_path(),
                             Path(path).stem + self.FILE_EXTENSION)
-
             np.save(tmp_file, melody)
             logger.debug("Saved to %s.", tmp_file)
 
@@ -103,19 +102,6 @@ class PredominantMelodyNormalized(Data):
         Returns
         -------
         Dict
-            tags to log, namely, PredominantMelodyMakam settings and
-            mlflow run id where audio recordings are stored
+            tags to log, namely, PredominantMelodyNormalized settings
         """
-        melody_source_run_id = get_run_by_name(
-            self.EXPERIMENT_NAME,
-            cfg.get("mlflow", "predominant_melody_makam_run_name")
-            )["run_id"]
-        tonic_source_run_id = get_run_by_name(
-            self.EXPERIMENT_NAME,
-            cfg.get("mlflow", "annotation_run_name")
-            )["run_id"]
-        tags = {
-            "predominant_melody_source_run_id": melody_source_run_id,
-            "tonic_source_run_id": tonic_source_run_id}
-
-        return tags
+        return {"min_freq": self.MIN_FREQ}

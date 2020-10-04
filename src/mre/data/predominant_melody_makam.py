@@ -5,13 +5,11 @@ from typing import Dict, List
 
 import numpy as np
 
-from tomato import __version__ as tomato_version
 from tomato.audio.predominantmelody import \
     PredominantMelody as PredominantMelodyTransformer
 from tqdm import tqdm
 
 from ..config import config
-from ..mlflow_common import get_run_by_name
 from .data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
@@ -30,8 +28,6 @@ class PredominantMelodyMakam(Data):
     (ATMM 2014), pages 142–153, Ankara, Turkey.
     """
     RUN_NAME = cfg.get("mlflow", "predominant_melody_makam_run_name")
-    IMPLEMENTATION_SOURCE = (
-        f"https://github.com/sertansenturk/tomato/tree/{tomato_version}")
 
     def __init__(self):
         """instantiates a PredominantMelodyMakam object
@@ -39,6 +35,7 @@ class PredominantMelodyMakam(Data):
         super().__init__()
         self.transformer = PredominantMelodyTransformer()
         self.transform_func = self.transformer.extract
+        self.source_run_id = None
 
     def transform(self, audio_paths: List[str]):  # pylint: disable-msg=W0221
         """extracts predominant melody from each audio recording and
@@ -62,11 +59,11 @@ class PredominantMelodyMakam(Data):
         self.tmp_dir = tempfile.TemporaryDirectory()
         for path in tqdm(audio_paths, total=len(audio_paths)):
             output: Dict = self.transform_func(path)
+
             melody: np.array = output["pitch"]
 
             tmp_file = Path(self._tmp_dir_path(),
                             Path(path).stem + self.FILE_EXTENSION)
-
             np.save(tmp_file, melody)
             logger.debug("Saved to %s.", tmp_file)
 
@@ -76,12 +73,6 @@ class PredominantMelodyMakam(Data):
         Returns
         -------
         Dict
-            tags to log, namely, PredominantMelodyMakam settings and
-            mlflow run id where audio recordings are stored
+            tags to log, namely, PredominantMelodyMakam settings
         """
-        tags = self.transformer.get_settings()
-        tags["source_run_id"] = get_run_by_name(
-            self.EXPERIMENT_NAME,
-            cfg.get("mlflow", "audio_run_name"))["run_id"]
-
-        return tags
+        return self.transformer.get_settings()

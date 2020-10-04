@@ -134,18 +134,11 @@ class TestPredominantMelodyNormalized():
     def test_mlflow_tags(self):
         # GIVEN
         pmn = PredominantMelodyNormalized()
-        mock_run_effects = [pd.Series({"run_id": "mock_run_id1"}),
-                            pd.Series({"run_id": "mock_run_id2"})]
 
         # WHEN
-        mock_fun_str = "mre.data.predominant_melody_normalized.get_run_by_name"
-        with mock.patch(mock_fun_str,
-                        side_effect=mock_run_effects):
-            result = pmn._mlflow_tags()
+        result = pmn._mlflow_tags()
 
         # THEN
-        expected = {
-            "predominant_melody_source_run_id": "mock_run_id1",
-            "tonic_source_run_id": "mock_run_id2"}
+        expected = {"min_freq": pmn.MIN_FREQ}
 
         assert result == expected
