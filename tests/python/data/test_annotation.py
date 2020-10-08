@@ -27,17 +27,13 @@ def mock_tmp_dir(scope="session") -> mock.MagicMock:
 class TestAnnotation:
     @mock.patch("mre.data.annotation.get_run_by_name", return_value=None)
     def test_from_mlflow_no_run(self, mock_run):
-        # GIVEN
-        annotation = Annotation()
-
         # WHEN; THEN
         with pytest.raises(ValueError):
-            annotation.from_mlflow()
+            _ = Annotation.from_mlflow()
         mock_run.assert_called_once()
 
     def test_from_mlflow(self):
         # GIVEN
-        annotation = Annotation()
         mock_run = pd.Series({"run_id": "rid1"})
         annotation_filepath = "annotation_path.json"
 
@@ -55,22 +51,21 @@ class TestAnnotation:
                     with mock.patch('pandas.read_json',
                                     autospec=True
                                     ) as mock_read_json:
-                        annotation.from_mlflow()
+                        _ = Annotation.from_mlflow()
 
                         mock_download_artifacts.assert_called_once()
                         mock_read_json.assert_called_once_with(
                             annotation_filepath, orient="records")
 
-    @mock.patch('mre.data.Annotation._validate')
+    @mock.patch('mre.data.Annotation.validate')
     @mock.patch('pandas.read_json', autospec=True)
     def test_from_github(self, mock_read_json, mock_validate):
         # GIVEN
         url = "mock_url"
-        annotation = Annotation()
 
         # WHEN
-        with mock.patch.object(annotation, 'URL', url):
-            _ = annotation.from_github()
+        with mock.patch('mre.data.Annotation.URL', url):
+            _ = Annotation.from_github()
 
         # THEN
         mock_read_json.assert_called_once_with(url)
@@ -89,7 +84,7 @@ class TestAnnotation:
         annotation = Annotation()
 
         # WHEN
-        annotation._validate()
+        annotation.validate()
 
         # THEN
         mock_validate_num_recordings.assert_called_once_with()

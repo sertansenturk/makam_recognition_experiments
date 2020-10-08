@@ -38,6 +38,34 @@ class Annotation(Data):
         super().__init__()
         self.data = None
 
+    @classmethod
+    def from_mlflow(cls):
+        """reads annotations from the relevant mlflow run
+        """
+        mlflow_run = get_run_by_name(cls.EXPERIMENT_NAME, cls.RUN_NAME)
+        if mlflow_run is None:
+            raise ValueError("Annotations are not logged in mlflow")
+
+        client = mlflow.tracking.MlflowClient()
+        annotation_file = client.download_artifacts(
+            mlflow_run.run_id,
+            cls.ANNOTATION_ARTIFACT_NAME + cls.FILE_EXTENSION)
+
+        anno = Annotation()
+        anno.data = pd.read_json(annotation_file, orient="records")
+
+        return anno
+
+    @classmethod
+    def from_github(cls):
+        """reads the annotation file from github and validates
+        """
+        anno = Annotation()
+        anno.data = pd.read_json(cls.URL)
+        anno.validate()
+
+        return anno
+
     def head(self) -> pd.DataFrame:
         """returns the first five annotations
 
@@ -48,27 +76,7 @@ class Annotation(Data):
         """
         return self.data.head()
 
-    def from_mlflow(self):
-        """reads annotations from the relevant mlflow run
-        """
-        mlflow_run = get_run_by_name(self.EXPERIMENT_NAME, self.RUN_NAME)
-        if mlflow_run is None:
-            raise ValueError("Annotations are not logged in mlflow")
-
-        client = mlflow.tracking.MlflowClient()
-        annotation_file = client.download_artifacts(
-            mlflow_run.run_id,
-            self.ANNOTATION_ARTIFACT_NAME + self.FILE_EXTENSION)
-
-        self.data = pd.read_json(annotation_file, orient="records")
-
-    def from_github(self):
-        """reads the annotation file from github and validates
-        """
-        self.data = pd.read_json(self.URL)
-        self._validate()
-
-    def _validate(self):
+    def validate(self):
         """runs all validations
         """
         self._validate_num_recordings()

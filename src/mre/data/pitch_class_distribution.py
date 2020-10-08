@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import Dict, List
 
 import numpy as np
+import pandas as pd
+
 from tomato.audio.pitchdistribution import PitchDistribution
 from tqdm import tqdm
 
@@ -32,46 +34,75 @@ class PitchClassDistribution(Data):
         """instantiates a PredominantMelodyMakam object
         """
         super().__init__()
-        self.transform_func = PitchDistribution.from_cent_pitch
+        self.transform_func = PitchDistribution.from_hz_pitch
 
     def transform(self,  # pylint: disable-msg=W0221
-                  norm_melody_paths: List[str]):
-        """extracts PCDs from the tonic normalized predominant melody of each
-        audio recording and saves the features to a temporary folder.
-
-        IMPORTANT: The method assumes the predominant melody is already
-        converted to cent scale by normalizing with respect to the tonic
-        frequency of the audio recording.
+                  melody_paths: List[str],
+                  tonic_frequencies: pd.Series):
+        """extracts PCDs from predominant melody of each audio recording by
+        assigning the tonic frequency to the first bin and saves the features
+        to a temporary folder.
 
         Parameters
         ----------
-        norm_melody_paths : List[str]
+        melody_paths : List[str]
             paths of the predominant melody features to extract PCDs
+        tonic_frequencies: pandas.Series
+            tonic frequency corresponding to each predominant melody file
 
         Raises
         ------
         ValueError
-            if norm_melody_paths is empty
+            if melody_paths is empty
+
+        ValueError
+            if tonic_frequencies is empty
+
+        ValueError
+            if melody_paths has a duplicate path
+
+        ValueError
+            if tonic_frequencies has a duplicate index
+
+        ValueError
+            if melody_paths filenames and tonic_frequencies
+            indices do not match
         """
-        if not norm_melody_paths:
-            raise ValueError("norm_melody_paths is empty")
+        if not melody_paths:
+            raise ValueError("melody_paths is empty")
+
+        if tonic_frequencies.empty:
+            raise ValueError("tonic_frequencies is empty!")
+
+        mel_mbids = [Path(pp).stem for pp in melody_paths]
+        tonic_mbids = list(tonic_frequencies.index)
+        if len(set(mel_mbids)) != len(mel_mbids):
+            raise ValueError("melody_paths has a duplicate path!")
+        if len(set(tonic_mbids)) != len(tonic_mbids):
+            raise ValueError("tonic_mbids has a duplicate index!")
+
+        if set(mel_mbids) != set(tonic_mbids):
+            raise ValueError("MBIDs of melody_paths and "
+                             "tonic_mbids do not match!")
 
         if self.tmp_dir is not None:
             self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
-        for path in tqdm(norm_melody_paths,
-                         total=len(norm_melody_paths)):
+        for path in tqdm(melody_paths,
+                         total=len(melody_paths)):
             melody = np.load(path)
+            mbid = Path(path).stem
 
             distribution: PitchDistribution = self.transform_func(
                 melody,  # pitch values sliced internally
                 kernel_width=self.KERNEL_WIDTH,
                 norm_type=self.NORM_TYPE,
-                step_size=self.STEP_SIZE)
+                step_size=self.STEP_SIZE,
+                ref_freq=tonic_frequencies.loc[mbid])
             distribution.to_pcd()
 
             tmp_file = Path(self._tmp_dir_path(),
-                            Path(path).stem + self.FILE_EXTENSION)
+                            mbid + self.FILE_EXTENSION)
             distribution.to_json(tmp_file)
             logger.debug("Saved to %s.", tmp_file)
 
