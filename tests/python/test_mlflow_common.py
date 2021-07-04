@@ -35,7 +35,7 @@ class TestMlflow:
     @mock.patch("mre.mlflow_common.logger.warning")
     def test_get_run_by_name_no_run(self, mock_warning, mock_experiment):
         # GIVEN
-        mock_runs = pd.DataFrame(columns=["run_id"])  # empty
+        mock_runs = pd.DataFrame(columns=["run_id"], dtype=object)  # empty
         experiment_name = "exp_name"
         run_name = "run_name"
 
@@ -133,7 +133,7 @@ class TestMlflow:
         run_name = "run_name"
         artifact_dir = "tmp_dir"
         tags = {"key1": "val1"}
-        mock_run = pd.DataFrame(columns=["run_id"])  # empty
+        mock_run = pd.DataFrame(columns=["run_id"], dtype=object)  # empty
 
         # WHEN; THEN
         with mock.patch('mlflow.get_experiment_by_name',

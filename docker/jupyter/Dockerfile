@@ -20,6 +20,11 @@ RUN conda install --quiet --yes \
     fix-permissions $CONDA_DIR
 
 USER root
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libmagic-dev && \
+    apt-get purge -y --auto-remove && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN ldconfig && \
     jupyter nbextension enable toc2/main --sys-prefix && \
     jupyter nbextension enable collapsible_headings/main --sys-prefix && \
