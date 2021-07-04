@@ -1,6 +1,6 @@
 essentia==2.1b5;platform_system=='Linux'
-git+https://github.com/MTG/pycompmusic.git@88d98a0bc37b2c3ca040dbe6141a53bf9bcff9e4#egg=compmusic
-pandas==1.0.*
-mlflow==1.8.*
+git+https://github.com/MTG/pycompmusic.git@8d07307b733cc2ddfce8d28ce5d88f498b4f193e#egg=pycompmusic
+pandas==0.24.*
+mlflow==1.18.*
 tqdm==4.48.*
 git+https://github.com/sertansenturk/tomato.git@v0.14.0#egg=tomato

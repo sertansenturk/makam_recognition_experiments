@@ -77,9 +77,9 @@ setup(
     install_requires=[
         "essentia>=2.1b5;platform_system=='Linux'",  # audio signal processing
         "pycompmusic @ git+https://github.com/MTG/pycompmusic.git"
-        "@88d98a0bc37b2c3ca040dbe6141a53bf9bcff9e4#egg=compmusic",  # corpus
-        "mlflow==1.8.*",
-        "pandas>=1.0.*",
+        "@8d07307b733cc2ddfce8d28ce5d88f498b4f193e#egg=pycompmusic",  # corpus
+        "mlflow==1.18.*",
+        "pandas>=0.24.*",
         "tqdm>=4.48.*",
         "tomato @ git+https://github.com/sertansenturk/tomato.git"
         "@v0.14.0#egg=tomato"  # makam music analysis
