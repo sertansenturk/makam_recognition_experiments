@@ -1,1 +1,1 @@
-from .config import read, read_secrets
+from mre.config.config import read, read_secrets

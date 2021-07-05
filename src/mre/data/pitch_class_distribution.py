@@ -9,8 +9,8 @@ import pandas as pd
 from tomato.audio.pitchdistribution import PitchDistribution
 from tqdm import tqdm
 
-from ..config import config
-from .data import Data
+from mre.config import config
+from mre.data.data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)

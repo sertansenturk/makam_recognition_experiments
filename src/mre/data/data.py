@@ -5,8 +5,8 @@ from typing import Callable, Optional, List
 
 import mlflow
 
-from ..config import config
-from ..mlflow_common import get_run_by_name, log
+from mre.config import config
+from mre.mlflow_common import get_run_by_name, log
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)

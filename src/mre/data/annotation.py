@@ -7,9 +7,9 @@ import mlflow
 import numpy as np
 import pandas as pd
 
-from ..config import config
-from ..mlflow_common import get_run_by_name
-from .data import Data
+from mre.config import config
+from mre.mlflow_common import get_run_by_name
+from mre.data.data import Data
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
