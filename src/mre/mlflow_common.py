@@ -48,10 +48,14 @@ def get_run_by_name(experiment_name: str, run_name: str) -> pd.Series:
             raise ValueError(
                 "There are more than one runs for %s: %s . Please "
                 "inspect the run in the mlflow UI and manually make "
-                "necessary corrections." % (run_name, ", ".join(annotation_runs.run_id))
+                "necessary corrections."
+                % (
+                    run_name,
+                    ", ".join(annotation_runs.run_id),  # pylint: disable-msg=E1101
+                )
             )
 
-        return annotation_runs.iloc[0]
+        return annotation_runs.iloc[0]  # pylint: disable-msg=E1101
 
     logger.warning("Experiment %s does not exist.", experiment_name)
     return None

@@ -40,7 +40,7 @@ class Audio(Data):
         dunya.set_token(config.read_secrets().get("tokens", "dunya"))
         if self.tmp_dir is not None:
             self._cleanup()
-        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.tmp_dir = tempfile.TemporaryDirectory()  # pylint: disable-msg=R1732
 
         failed_mbids = dict()
         num_recordings = len(annotation_df)

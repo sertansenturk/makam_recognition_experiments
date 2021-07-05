@@ -36,8 +36,8 @@ class PitchClassDistribution(Data):
         super().__init__()
         self.transform_func = PitchDistribution.from_hz_pitch
 
-    def transform(
-        self,  # pylint: disable-msg=W0221
+    def transform(  # pylint: disable-msg=W0221
+        self,
         melody_paths: List[str],
         tonic_frequencies: pd.Series,
     ):
@@ -88,7 +88,7 @@ class PitchClassDistribution(Data):
 
         if self.tmp_dir is not None:
             self._cleanup()
-        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.tmp_dir = tempfile.TemporaryDirectory()  # pylint: disable-msg=R1732
         for path in tqdm(melody_paths, total=len(melody_paths)):
             melody = np.load(path)
             mbid = Path(path).stem

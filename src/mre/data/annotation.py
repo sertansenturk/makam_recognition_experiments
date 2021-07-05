@@ -109,7 +109,7 @@ class Annotation(Data):
         if any(missing_mbid):
             raise ValueError("Missing MBIDs.")
 
-        unique_num_recordings = self.data.mbid.nunique()
+        unique_num_recordings = self.data.mbid.nunique()  # pylint: disable-msg=E1101
         num_recordings = len(self.data)
         if unique_num_recordings != num_recordings:
             raise ValueError("MBIDs are not unique.")
@@ -165,7 +165,7 @@ class Annotation(Data):
 
         if self.tmp_dir is not None:
             self._cleanup()
-        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.tmp_dir = tempfile.TemporaryDirectory()  # pylint: disable-msg=R1732
         annotations_tmp_file = Path(
             self._tmp_dir_path(), self.ANNOTATION_ARTIFACT_NAME + self.FILE_EXTENSION
         )
@@ -205,7 +205,9 @@ class Annotation(Data):
 
         This method fills missing dunya_uid's by the corresponding MBID
         """
-        self.data.loc[self.data["dunya_uid"].isna(), "dunya_uid"] = self.data.loc[
+        self.data.loc[
+            self.data["dunya_uid"].isna(), "dunya_uid"
+        ] = self.data.loc[  # pylint: disable-msg=E1101
             self.data["dunya_uid"].isna(), "mbid"
         ]
 

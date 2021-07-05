@@ -57,7 +57,7 @@ class PredominantMelodyMakam(Data):
 
         if self.tmp_dir is not None:
             self._cleanup()
-        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.tmp_dir = tempfile.TemporaryDirectory()  # pylint: disable-msg=R1732
         for path in tqdm(audio_paths, total=len(audio_paths)):
             output: Dict = self.transform_func(path)
 
