@@ -5,8 +5,9 @@ from typing import Dict, List
 
 import numpy as np
 
-from tomato.audio.predominantmelody import \
-    PredominantMelody as PredominantMelodyTransformer
+from tomato.audio.predominantmelody import (
+    PredominantMelody as PredominantMelodyTransformer,
+)
 from tqdm import tqdm
 
 from mre.config import config
@@ -27,11 +28,11 @@ class PredominantMelodyMakam(Data):
     of 3rd International Conference on Audio Technologies for Music and Media
     (ATMM 2014), pages 142–153, Ankara, Turkey.
     """
+
     RUN_NAME = cfg.get("mlflow", "predominant_melody_makam_run_name")
 
     def __init__(self):
-        """instantiates a PredominantMelodyMakam object
-        """
+        """instantiates a PredominantMelodyMakam object"""
         super().__init__()
         self.transformer = PredominantMelodyTransformer()
         self.transform_func = self.transformer.extract
@@ -62,8 +63,7 @@ class PredominantMelodyMakam(Data):
 
             melody: np.array = output["pitch"]
 
-            tmp_file = Path(self._tmp_dir_path(),
-                            Path(path).stem + self.FILE_EXTENSION)
+            tmp_file = Path(self._tmp_dir_path(), Path(path).stem + self.FILE_EXTENSION)
             np.save(tmp_file, melody)
             logger.debug("Saved to %s.", tmp_file)
 

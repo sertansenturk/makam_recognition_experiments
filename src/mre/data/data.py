@@ -15,16 +15,15 @@ cfg = config.read()
 
 
 class Data(abc.ABC):
-    """abstract class to extract-transform-load data
-    """
+    """abstract class to extract-transform-load data"""
+
     EXPERIMENT_NAME = cfg.get("mlflow", "data_processing_experiment_name")
     RUN_NAME = None
-    FILE_EXTENSION = '.npy'  # data is saved as binary numpy format by default
+    FILE_EXTENSION = ".npy"  # data is saved as binary numpy format by default
     # https://numpy.org/doc/stable/reference/generated/numpy.lib.format.html
 
     def __init__(self):
-        """instantiates an Audio object
-        """
+        """instantiates an Audio object"""
         self.tmp_dir: Optional[Path] = None
         self.transform_func: Optional[Callable] = None
 
@@ -63,21 +62,21 @@ class Data(abc.ABC):
 
         client = mlflow.tracking.MlflowClient()
         artifacts = client.list_artifacts(mlflow_run.run_id)
-        artifact_names = [ff.path for ff in artifacts
-                          if ff.path.endswith(cls.FILE_EXTENSION)]
+        artifact_names = [
+            ff.path for ff in artifacts if ff.path.endswith(cls.FILE_EXTENSION)
+        ]
 
-        artifact_paths = [client.download_artifacts(mlflow_run.run_id, an)
-                          for an in artifact_names]
+        artifact_paths = [
+            client.download_artifacts(mlflow_run.run_id, an) for an in artifact_names
+        ]
 
-        logger.info("Returning the paths of %d artifacts.",
-                    len(artifact_paths))
+        logger.info("Returning the paths of %d artifacts.", len(artifact_paths))
 
         return artifact_paths
 
     @abc.abstractmethod
     def transform(self, *args):
-        """applies transformation to the input data
-        """
+        """applies transformation to the input data"""
 
     def log(self):
         """Logs the artifacts to an mlflow run with appropriate tags
@@ -88,12 +87,17 @@ class Data(abc.ABC):
             If a run with the same experiment and run name is already logged
             in mlflow
         """
-        log(experiment_name=self.EXPERIMENT_NAME,
+        log(
+            experiment_name=self.EXPERIMENT_NAME,
             run_name=self.RUN_NAME,
             artifact_dir=self._tmp_dir_path(),
-            tags=self._mlflow_tags())
-        logger.info("Logged artifacts & tags to mlflow under experiment %s, "
-                    "run %s", self.EXPERIMENT_NAME, self.RUN_NAME)
+            tags=self._mlflow_tags(),
+        )
+        logger.info(
+            "Logged artifacts & tags to mlflow under experiment %s, " "run %s",
+            self.EXPERIMENT_NAME,
+            self.RUN_NAME,
+        )
 
         self._cleanup()
 

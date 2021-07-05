@@ -17,29 +17,33 @@ def mock_tmp_dir(scope="session") -> mock.MagicMock:
 
 
 class TestAudio:
-    @pytest.mark.parametrize("annotation_df", [
-        pd.DataFrame([{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}]),
-        pd.DataFrame([{"mbid": "mbid1", "dunya_uid": "dunya_uid1"},
-                      {"mbid": "mbid2", "dunya_uid": "dunya_uid2"}])])
+    @pytest.mark.parametrize(
+        "annotation_df",
+        [
+            pd.DataFrame([{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}]),
+            pd.DataFrame(
+                [
+                    {"mbid": "mbid1", "dunya_uid": "dunya_uid1"},
+                    {"mbid": "mbid2", "dunya_uid": "dunya_uid2"},
+                ]
+            ),
+        ],
+    )
     def test_from_dunya(self, annotation_df, mock_tmp_dir):
         # GIVEN
         audio = Audio()
 
         # WHEN
-        with mock.patch("mre.data.audio.config",
-                        autospec=True):
-            with mock.patch("tempfile.TemporaryDirectory",
-                            autospec=True,
-                            return_value=mock_tmp_dir):
-                with mock.patch("compmusic.dunya.docserver.get_mp3"
-                                ) as mock_get_mp3:
-                    with mock.patch('builtins.open', mock.mock_open()
-                                    ) as mock_open:
+        with mock.patch("mre.data.audio.config", autospec=True):
+            with mock.patch(
+                "tempfile.TemporaryDirectory", autospec=True, return_value=mock_tmp_dir
+            ):
+                with mock.patch("compmusic.dunya.docserver.get_mp3") as mock_get_mp3:
+                    with mock.patch("builtins.open", mock.mock_open()) as mock_open:
                         audio.from_dunya(annotation_df)
 
         # THEN
-        expected_get_mp3_calls = [mock.call(val)
-                                  for val in annotation_df.dunya_uid]
+        expected_get_mp3_calls = [mock.call(val) for val in annotation_df.dunya_uid]
         expected_write_call = mock_get_mp3()
         expected_num_writes = len(annotation_df)
 
@@ -51,28 +55,25 @@ class TestAudio:
         # GIVEN
         audio = Audio()
         audio.tmp_dir = mock_tmp_dir  # extract called before
-        annotation_df = pd.DataFrame(
-            [{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}])
+        annotation_df = pd.DataFrame([{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}])
 
         # WHEN
-        with mock.patch.object(audio,
-                               '_cleanup',
-                               autospec=True) as mock_cleanup:
-            with mock.patch("mre.data.audio.config",
-                            autospec=True):
-                with mock.patch("tempfile.TemporaryDirectory",
-                                autospec=True,
-                                return_value=mock_tmp_dir):
-                    with mock.patch("compmusic.dunya.docserver.get_mp3"
-                                    ) as mock_get_mp3:
-                        with mock.patch('builtins.open', mock.mock_open()
-                                        ) as mock_open:
+        with mock.patch.object(audio, "_cleanup", autospec=True) as mock_cleanup:
+            with mock.patch("mre.data.audio.config", autospec=True):
+                with mock.patch(
+                    "tempfile.TemporaryDirectory",
+                    autospec=True,
+                    return_value=mock_tmp_dir,
+                ):
+                    with mock.patch(
+                        "compmusic.dunya.docserver.get_mp3"
+                    ) as mock_get_mp3:
+                        with mock.patch("builtins.open", mock.mock_open()) as mock_open:
                             audio.from_dunya(annotation_df)
 
         # THEN
         mock_cleanup.assert_called_once_with()
-        expected_get_mp3_calls = [mock.call(val)
-                                  for val in annotation_df.dunya_uid]
+        expected_get_mp3_calls = [mock.call(val) for val in annotation_df.dunya_uid]
         expected_write_call = mock_get_mp3()
         expected_num_writes = len(annotation_df)
 
@@ -83,20 +84,17 @@ class TestAudio:
     def test_from_dunya_exception_404(self, mock_tmp_dir):
         # GIVEN
         audio = Audio()
-        annotation_df = pd.DataFrame(
-            [{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}])
+        annotation_df = pd.DataFrame([{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}])
 
         # WHEN
-        with mock.patch("mre.data.audio.config",
-                        autospec=True):
-            with mock.patch("tempfile.TemporaryDirectory",
-                            autospec=True,
-                            return_value=mock_tmp_dir):
-                with mock.patch("compmusic.dunya.docserver.get_mp3"
-                                ) as mock_get_mp3:
+        with mock.patch("mre.data.audio.config", autospec=True):
+            with mock.patch(
+                "tempfile.TemporaryDirectory", autospec=True, return_value=mock_tmp_dir
+            ):
+                with mock.patch("compmusic.dunya.docserver.get_mp3") as mock_get_mp3:
                     mock_get_mp3.side_effect = dunya.conn.HTTPError(
-                        mock.Mock(status=404),
-                        '404 Client Error: Not Found for url:')
+                        mock.Mock(status=404), "404 Client Error: Not Found for url:"
+                    )
 
                     result = audio.from_dunya(annotation_df)
 
@@ -109,19 +107,17 @@ class TestAudio:
     def test_from_dunya_exception_not_404(self, mock_tmp_dir):
         # GIVEN
         audio = Audio()
-        annotation_df = pd.DataFrame(
-            [{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}])
+        annotation_df = pd.DataFrame([{"mbid": "mbid1", "dunya_uid": "dunya_uid1"}])
 
         # WHEN
-        with mock.patch("mre.data.audio.config",
-                        autospec=True):
-            with mock.patch("tempfile.TemporaryDirectory",
-                            autospec=True,
-                            return_value=mock_tmp_dir):
-                with mock.patch("compmusic.dunya.docserver.get_mp3"
-                                ) as mock_get_mp3:
+        with mock.patch("mre.data.audio.config", autospec=True):
+            with mock.patch(
+                "tempfile.TemporaryDirectory", autospec=True, return_value=mock_tmp_dir
+            ):
+                with mock.patch("compmusic.dunya.docserver.get_mp3") as mock_get_mp3:
                     mock_get_mp3.side_effect = dunya.conn.HTTPError(
-                        mock.Mock(status=401), 'Unauthorized')
+                        mock.Mock(status=401), "Unauthorized"
+                    )
                     with pytest.raises(dunya.conn.HTTPError):
                         _ = audio.from_dunya(annotation_df)
 

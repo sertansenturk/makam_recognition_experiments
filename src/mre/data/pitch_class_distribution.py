@@ -22,6 +22,7 @@ class PitchClassDistribution(Data):
     """class to extract pitch class distribution (PCD) from the predominant
     melody of each audio recording
     """
+
     RUN_NAME = cfg.get("mlflow", "pitch_class_distribution_run_name")
 
     KERNEL_WIDTH = cfg.getfloat("pitch_class_distribution", "kernel_width")
@@ -31,14 +32,15 @@ class PitchClassDistribution(Data):
     FILE_EXTENSION = ".json"
 
     def __init__(self):
-        """instantiates a PredominantMelodyMakam object
-        """
+        """instantiates a PredominantMelodyMakam object"""
         super().__init__()
         self.transform_func = PitchDistribution.from_hz_pitch
 
-    def transform(self,  # pylint: disable-msg=W0221
-                  melody_paths: List[str],
-                  tonic_frequencies: pd.Series):
+    def transform(
+        self,  # pylint: disable-msg=W0221
+        melody_paths: List[str],
+        tonic_frequencies: pd.Series,
+    ):
         """extracts PCDs from predominant melody of each audio recording by
         assigning the tonic frequency to the first bin and saves the features
         to a temporary folder.
@@ -82,14 +84,12 @@ class PitchClassDistribution(Data):
             raise ValueError("tonic_mbids has a duplicate index!")
 
         if set(mel_mbids) != set(tonic_mbids):
-            raise ValueError("MBIDs of melody_paths and "
-                             "tonic_mbids do not match!")
+            raise ValueError("MBIDs of melody_paths and " "tonic_mbids do not match!")
 
         if self.tmp_dir is not None:
             self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
-        for path in tqdm(melody_paths,
-                         total=len(melody_paths)):
+        for path in tqdm(melody_paths, total=len(melody_paths)):
             melody = np.load(path)
             mbid = Path(path).stem
 
@@ -98,11 +98,11 @@ class PitchClassDistribution(Data):
                 kernel_width=self.KERNEL_WIDTH,
                 norm_type=self.NORM_TYPE,
                 step_size=self.STEP_SIZE,
-                ref_freq=tonic_frequencies.loc[mbid])
+                ref_freq=tonic_frequencies.loc[mbid],
+            )
             distribution.to_pcd()
 
-            tmp_file = Path(self._tmp_dir_path(),
-                            mbid + self.FILE_EXTENSION)
+            tmp_file = Path(self._tmp_dir_path(), mbid + self.FILE_EXTENSION)
             distribution.to_json(tmp_file)
             logger.debug("Saved to %s.", tmp_file)
 
@@ -117,4 +117,5 @@ class PitchClassDistribution(Data):
         return {
             "kernel_width": self.KERNEL_WIDTH,
             "norm_type": self.NORM_TYPE,
-            "step_size": self.STEP_SIZE}
+            "step_size": self.STEP_SIZE,
+        }

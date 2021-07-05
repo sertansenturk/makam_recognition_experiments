@@ -220,6 +220,13 @@ tox: python-dev-run
 pytest: PYTHON_DEV_CMD := tox -e py37
 pytest: python-dev-run
 
+lint: PYTHON_DEV_CMD := tox -e lint
+lint: python-dev-run
+
+format: PYTHON_DEV_CMD := black --line-length 88 setup.py src/ tests/
+format: python-dev-run
+black: format
+
 sphinx-build:
 	DOCKER_BUILDKIT=${BUILDKIT} \
 	docker build \

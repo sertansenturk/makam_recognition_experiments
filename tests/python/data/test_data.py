@@ -24,9 +24,7 @@ class TestData:
 
         # WHEN; THEN
         with mock.patch.object(data, "tmp_dir"):
-            with mock.patch.object(data.tmp_dir,
-                                   "cleanup"
-                                   ) as mock_cleanup:
+            with mock.patch.object(data.tmp_dir, "cleanup") as mock_cleanup:
                 data._cleanup()
         mock_cleanup.assert_called_once_with()
 
@@ -46,8 +44,7 @@ class TestData:
         # GIVEN
         data = Data()
         mock_run = pd.Series({"run_id": "rid1"})
-        artifact_names = ["data1" + data.FILE_EXTENSION,
-                          "data2" + data.FILE_EXTENSION]
+        artifact_names = ["data1" + data.FILE_EXTENSION, "data2" + data.FILE_EXTENSION]
 
         # WHEN; THEN
         mock_list = []
@@ -58,18 +55,21 @@ class TestData:
             mock_list.append(tmp_call)
             mock_calls.append(mock.call(mock_run.run_id, an))
 
-        with mock.patch("mre.data.data.get_run_by_name",
-                        return_value=mock_run):
-            with mock.patch('mlflow.tracking.MlflowClient.__init__',
-                            autospec=True,
-                            return_value=None):
-                with mock.patch.object(mlflow.tracking.MlflowClient,
-                                       "list_artifacts",
-                                       autospec=True,
-                                       return_value=mock_list):
-                    with mock.patch.object(mlflow.tracking.MlflowClient,
-                                           "download_artifacts"
-                                           ) as mock_download_artifacts:
+        with mock.patch("mre.data.data.get_run_by_name", return_value=mock_run):
+            with mock.patch(
+                "mlflow.tracking.MlflowClient.__init__",
+                autospec=True,
+                return_value=None,
+            ):
+                with mock.patch.object(
+                    mlflow.tracking.MlflowClient,
+                    "list_artifacts",
+                    autospec=True,
+                    return_value=mock_list,
+                ):
+                    with mock.patch.object(
+                        mlflow.tracking.MlflowClient, "download_artifacts"
+                    ) as mock_download_artifacts:
                         _ = data.from_mlflow()
                         mock_download_artifacts.assert_has_calls(mock_calls)
 
@@ -79,20 +79,16 @@ class TestData:
         data = Data()
 
         # WHEN; THEN
-        with mock.patch("mre.data.data.log"
-                        ) as mock_log:
-            with mock.patch.object(data,
-                                   "tmp_dir",
-                                   mock_tmp_dir):
-                with mock.patch.object(data,
-                                       "_cleanup"
-                                       ) as mock_cleanup:
+        with mock.patch("mre.data.data.log") as mock_log:
+            with mock.patch.object(data, "tmp_dir", mock_tmp_dir):
+                with mock.patch.object(data, "_cleanup") as mock_cleanup:
                     data.log()
 
                     mock_log.assert_called_once_with(
                         experiment_name=data.EXPERIMENT_NAME,
                         run_name=data.RUN_NAME,
                         artifact_dir=data._tmp_dir_path(),
-                        tags=data._mlflow_tags())
+                        tags=data._mlflow_tags(),
+                    )
 
                     mock_cleanup.assert_called_once_with()

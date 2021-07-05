@@ -23,7 +23,7 @@ def mock_experiment(scope="session") -> mock.MagicMock:
     return experiment
 
 
-class TestPitchClassDistribution():
+class TestPitchClassDistribution:
     def test_transform_empty_melody_paths(self):
         # GIVEN
         melody_paths = []
@@ -42,8 +42,7 @@ class TestPitchClassDistribution():
         # WHEN; THEN
         pcd = PitchClassDistribution()
         with pytest.raises(ValueError):
-            pcd.transform(melody_paths,
-                          tonic_freqs)
+            pcd.transform(melody_paths, tonic_freqs)
 
     def test_transform_duplicate_melody_paths(self):
         # GIVEN
@@ -80,35 +79,35 @@ class TestPitchClassDistribution():
         melody_paths = ["./path/id1.npy", "./path/id2.npy"]
         tonic_freqs = pd.Series([400, 100], index=["id1", "id2"])
         mock_distribution = PitchDistribution(
-            [100, 500, 1100],  # do not span over an octave (1200 cents)
-            [0, 10, 8])
+            [100, 500, 1100], [0, 10, 8]  # do not span over an octave (1200 cents)
+        )
         pcd = PitchClassDistribution()
 
         # WHEN
-        with mock.patch("tempfile.TemporaryDirectory",
+        with mock.patch(
+            "tempfile.TemporaryDirectory", autospec=True, return_value=mock_tmp_dir
+        ):
+            with mock.patch("numpy.load", autospec=True) as mock_load:
+                with mock.patch.object(
+                    pcd, "transform_func", autospec=True, return_value=mock_distribution
+                ):
+                    with mock.patch.object(
+                        mock_distribution,
+                        "to_pcd",
                         autospec=True,
-                        return_value=mock_tmp_dir):
-            with mock.patch("numpy.load",
-                            autospec=True
-                            ) as mock_load:
-                with mock.patch.object(pcd,
-                                       'transform_func',
-                                       autospec=True,
-                                       return_value=mock_distribution):
-                    with mock.patch.object(mock_distribution,
-                                           'to_pcd',
-                                           autospec=True,
-                                           ) as mock_to_pcd:
-                        with mock.patch.object(mock_distribution,
-                                               'to_json',
-                                               autospec=True,
-                                               ) as mock_to_json:
+                    ) as mock_to_pcd:
+                        with mock.patch.object(
+                            mock_distribution,
+                            "to_json",
+                            autospec=True,
+                        ) as mock_to_json:
                             pcd.transform(melody_paths, tonic_freqs)
 
         # THEN
         expected_to_json_calls = [
             mock.call(Path(mock_tmp_dir.name, "id1.json")),
-            mock.call(Path(mock_tmp_dir.name, "id2.json"))]
+            mock.call(Path(mock_tmp_dir.name, "id2.json")),
+        ]
 
         assert mock_load.call_count == len(melody_paths)
         assert mock_to_pcd.call_count == len(melody_paths)
@@ -119,30 +118,29 @@ class TestPitchClassDistribution():
         melody_paths = ["./path/id1.npy"]
         tonic_freqs = pd.Series([400], index=["id1"])
         mock_distribution = PitchDistribution(
-            [100, 500, 1100],  # do not span over an octave (1200 cents)
-            [0, 10, 8])
+            [100, 500, 1100], [0, 10, 8]  # do not span over an octave (1200 cents)
+        )
         pcd = PitchClassDistribution()
         pcd.tmp_dir = mock_tmp_dir  # transform called before
 
         # WHEN
-        with mock.patch.object(pcd,
-                               '_cleanup',
-                               autospec=True) as mock_cleanup:
-            with mock.patch("tempfile.TemporaryDirectory",
-                            autospec=True,
-                            return_value=mock_tmp_dir):
-                with mock.patch("numpy.load",
-                                autospec=True):
-                    with mock.patch.object(pcd,
-                                           'transform_func',
-                                           autospec=True,
-                                           return_value=mock_distribution):
-                        with mock.patch.object(mock_distribution,
-                                               'to_pcd',
-                                               autospec=True):
-                            with mock.patch.object(mock_distribution,
-                                                   'to_json',
-                                                   autospec=True):
+        with mock.patch.object(pcd, "_cleanup", autospec=True) as mock_cleanup:
+            with mock.patch(
+                "tempfile.TemporaryDirectory", autospec=True, return_value=mock_tmp_dir
+            ):
+                with mock.patch("numpy.load", autospec=True):
+                    with mock.patch.object(
+                        pcd,
+                        "transform_func",
+                        autospec=True,
+                        return_value=mock_distribution,
+                    ):
+                        with mock.patch.object(
+                            mock_distribution, "to_pcd", autospec=True
+                        ):
+                            with mock.patch.object(
+                                mock_distribution, "to_json", autospec=True
+                            ):
                                 pcd.transform(melody_paths, tonic_freqs)
 
         # THEN
@@ -159,6 +157,7 @@ class TestPitchClassDistribution():
         expected = {
             "kernel_width": pcd.KERNEL_WIDTH,
             "norm_type": pcd.NORM_TYPE,
-            "step_size": pcd.STEP_SIZE}
+            "step_size": pcd.STEP_SIZE,
+        }
 
         assert result == expected

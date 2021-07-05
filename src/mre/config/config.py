@@ -25,7 +25,7 @@ def _get_config_filepath() -> Path:
     pathlib.Path
         path of the mre configuration file
     """
-    return Path(Path(__file__).parent, 'config.ini')
+    return Path(Path(__file__).parent, "config.ini")
 
 
 def read_secrets() -> configparser.ConfigParser:
@@ -51,4 +51,4 @@ def _get_secrets_filepath() -> Path:
     pathlib.Path
         path of the mre secrets file
     """
-    return Path(Path(__file__).parent, 'secrets.ini')
+    return Path(Path(__file__).parent, "secrets.ini")

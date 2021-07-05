@@ -9,7 +9,7 @@ PACKAGE_NAME = "mre"
 
 
 def get_version():
-    """ Read version from __init__.py
+    """Read version from __init__.py
 
     Raises:
         ValueError: if __init__ is not read, or __version__ is not in __init__
@@ -17,8 +17,7 @@ def get_version():
     Returns:
         str -- value of __version__ as defined in __init__.py
     """
-    version_file = os.path.join(
-        HERE, EXP_DIR, PACKAGE_NAME, "__init__.py")
+    version_file = os.path.join(HERE, EXP_DIR, PACKAGE_NAME, "__init__.py")
     with open(version_file) as f:
         init_contents = f.read().strip()
 
@@ -82,7 +81,7 @@ setup(
         "pandas>=0.24.*",
         "tqdm>=4.48.*",
         "tomato @ git+https://github.com/sertansenturk/tomato.git"
-        "@v0.14.0#egg=tomato"  # makam music analysis
+        "@v0.14.0#egg=tomato",  # makam music analysis
     ],
     extras_require={
         "development": [
@@ -92,7 +91,7 @@ setup(
             "pylint-fail-under",
             "pytest",
             "rope",
-            "tox"
+            "tox",
         ]
-    }
+    },
 )

@@ -19,37 +19,36 @@ cfg = config.read()
 
 class Annotation(Data):
     """class to read and process makam recognition annotations"""
+
     MUSICBRAINZ_RECORDING_URL = "http://musicbrainz.org/recording/"
     EXPECTED_NUM_RECORDINGS = cfg.getint("dataset", "num_recordings")
     EXPECTED_NUM_RECORDINGS_PER_MAKAM = cfg.getint(
-        "dataset", "num_recordings_per_makam")
-    EXPECTED_NUM_MAKAMS = (
-        EXPECTED_NUM_RECORDINGS / EXPECTED_NUM_RECORDINGS_PER_MAKAM)
+        "dataset", "num_recordings_per_makam"
+    )
+    EXPECTED_NUM_MAKAMS = EXPECTED_NUM_RECORDINGS / EXPECTED_NUM_RECORDINGS_PER_MAKAM
 
     RUN_NAME = cfg.get("mlflow", "annotation_run_name")
     ANNOTATION_ARTIFACT_NAME = cfg.get("mlflow", "annotation_artifact_name")
-    FILE_EXTENSION = '.json'
+    FILE_EXTENSION = ".json"
 
     URL = cfg["dataset"]["annotation_file"]
 
     def __init__(self):
-        """instantiates an Annotation object
-        """
+        """instantiates an Annotation object"""
         super().__init__()
         self.data = None
 
     @classmethod
     def from_mlflow(cls):
-        """reads annotations from the relevant mlflow run
-        """
+        """reads annotations from the relevant mlflow run"""
         mlflow_run = get_run_by_name(cls.EXPERIMENT_NAME, cls.RUN_NAME)
         if mlflow_run is None:
             raise ValueError("Annotations are not logged in mlflow")
 
         client = mlflow.tracking.MlflowClient()
         annotation_file = client.download_artifacts(
-            mlflow_run.run_id,
-            cls.ANNOTATION_ARTIFACT_NAME + cls.FILE_EXTENSION)
+            mlflow_run.run_id, cls.ANNOTATION_ARTIFACT_NAME + cls.FILE_EXTENSION
+        )
 
         anno = Annotation()
         anno.data = pd.read_json(annotation_file, orient="records")
@@ -58,8 +57,7 @@ class Annotation(Data):
 
     @classmethod
     def from_github(cls):
-        """reads the annotation file from github and validates
-        """
+        """reads the annotation file from github and validates"""
         anno = Annotation()
         anno.data = pd.read_json(cls.URL)
         anno.validate()
@@ -77,8 +75,7 @@ class Annotation(Data):
         return self.data.head()
 
     def validate(self):
-        """runs all validations
-        """
+        """runs all validations"""
         self._validate_num_recordings()
         self._validate_mbids()
         self._validate_num_recordings_per_makam()
@@ -96,7 +93,8 @@ class Annotation(Data):
         if num_recordings != self.EXPECTED_NUM_RECORDINGS:
             raise ValueError(
                 f"There are {num_recordings} recordings. "
-                f"Expected: {self.EXPECTED_NUM_RECORDINGS}.")
+                f"Expected: {self.EXPECTED_NUM_RECORDINGS}."
+            )
         logger.info("%d annotated recordings.", num_recordings)
 
     def _validate_mbids(self):
@@ -140,7 +138,8 @@ class Annotation(Data):
         if num_recordings_per_makam != self.EXPECTED_NUM_RECORDINGS_PER_MAKAM:
             raise ValueError(
                 f"{num_recordings_per_makam} number of recordings per makam. "
-                f"Expected: {self.EXPECTED_NUM_RECORDINGS_PER_MAKAM}")
+                f"Expected: {self.EXPECTED_NUM_RECORDINGS_PER_MAKAM}"
+            )
         logger.info("%d recordings per makam.", num_recordings_per_makam)
 
     def _validate_num_makams(self):
@@ -155,12 +154,12 @@ class Annotation(Data):
         if num_makams != self.EXPECTED_NUM_MAKAMS:
             raise ValueError(
                 f"There are {num_makams} makams. "
-                f"Expected: {self.EXPECTED_NUM_MAKAMS}.")
+                f"Expected: {self.EXPECTED_NUM_MAKAMS}."
+            )
         logger.info("%d makams.", num_makams)
 
     def transform(self):  # pylint: disable-msg=W0221
-        """parses the annotations
-        """
+        """parses the annotations"""
         self._parse_mbid_urls()
         self._patch_dunya_uids()
 
@@ -168,8 +167,8 @@ class Annotation(Data):
             self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()
         annotations_tmp_file = Path(
-            self._tmp_dir_path(),
-            self.ANNOTATION_ARTIFACT_NAME + self.FILE_EXTENSION)
+            self._tmp_dir_path(), self.ANNOTATION_ARTIFACT_NAME + self.FILE_EXTENSION
+        )
 
         self.data.to_json(annotations_tmp_file, orient="records")
 
@@ -185,13 +184,14 @@ class Annotation(Data):
         self.data["mb_url"] = self.data["mbid"]
 
         invalid_url_bool = ~self.data["mb_url"].str.startswith(
-            self.MUSICBRAINZ_RECORDING_URL, na=False)
+            self.MUSICBRAINZ_RECORDING_URL, na=False
+        )
         if any(invalid_url_bool):
-            raise ValueError('Invalid urls:\n{}'.format(
-                self.data.to_string()))
+            raise ValueError("Invalid urls:\n{}".format(self.data.to_string()))
 
-        self.data["mbid"] = self.data["mb_url"].str.split(pat="/").apply(
-            lambda a: a[-1])
+        self.data["mbid"] = (
+            self.data["mb_url"].str.split(pat="/").apply(lambda a: a[-1])
+        )
 
     def _patch_dunya_uids(self):
         """Fills missing dunya UIDs with MBIDs
@@ -205,8 +205,9 @@ class Annotation(Data):
 
         This method fills missing dunya_uid's by the corresponding MBID
         """
-        self.data.loc[self.data["dunya_uid"].isna(), "dunya_uid"] = (
-            self.data.loc[self.data["dunya_uid"].isna(), "mbid"])
+        self.data.loc[self.data["dunya_uid"].isna(), "dunya_uid"] = self.data.loc[
+            self.data["dunya_uid"].isna(), "mbid"
+        ]
 
     @staticmethod
     def _mlflow_tags() -> Dict:
@@ -217,7 +218,6 @@ class Annotation(Data):
         Dict
             tags to log, namely, makam recognition dataset settings
         """
-        tags = {"dataset_" + key: val
-                for key, val in dict(cfg["dataset"]).items()}
+        tags = {"dataset_" + key: val for key, val in dict(cfg["dataset"]).items()}
 
         return tags

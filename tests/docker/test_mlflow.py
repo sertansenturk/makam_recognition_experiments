@@ -8,38 +8,28 @@ RUN_IDS = {}
 
 @pytest.fixture(scope="module")
 def logs():
-    parameters = {
-        "param1": "param1_val",
-        "param2": "param2_val"
-    }
+    parameters = {"param1": "param1_val", "param2": "param2_val"}
     metric = {
         "key": "metric1",
         "step": list(range(10)),
-        "val": [i**2 for i in range(10)]
+        "val": [i ** 2 for i in range(10)],
     }
-    tag = {
-        "key": "tag_key1",
-        "val": "tag_val1"
-    }
+    tag = {"key": "tag_key1", "val": "tag_val1"}
 
-    return {
-        "parameters": parameters,
-        "metric": metric,
-        "tag": tag
-    }
+    return {"parameters": parameters, "metric": metric, "tag": tag}
 
 
 @pytest.fixture(scope="module")
 def artifact():
     artifact_file = "dummy.txt"
-    with open(artifact_file, 'w'):
+    with open(artifact_file, "w"):
         pass  # create an empty file
 
     return artifact_file
 
 
 def mlflow_start_run(commands):
-    experiment_name = 'test_experiment'
+    experiment_name = "test_experiment"
     run_name = "test_run"
 
     mlflow.set_experiment(experiment_name)
@@ -97,9 +87,9 @@ def test_mlflow_get_metric(logs):
     metric_steps = [mm.step for mm in metric]
 
     # THEN
-    assert (
-        (metric_vals == logs["metric"]["val"]) and
-        (metric_steps == logs["metric"]["step"]))
+    assert (metric_vals == logs["metric"]["val"]) and (
+        metric_steps == logs["metric"]["step"]
+    )
 
 
 @pytest.mark.dependency()

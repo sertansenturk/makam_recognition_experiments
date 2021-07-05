@@ -2,9 +2,7 @@ import importlib
 import logging
 
 
-def get_jupyter_logger(name: str,
-                       level: int = logging.INFO
-                       ) -> logging.Logger:
+def get_jupyter_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     """creates a logger object for jupyter notebooks using basic config
 
     Parameters
