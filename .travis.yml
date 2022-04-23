@@ -6,7 +6,7 @@ jobs:
     - name: "docker-compose-build"
       if: branch NOT IN (master, dev) # already covered by docker-compose-test
       services: docker
-      script: make build
+      script: make build BUILD_OPTS="-q" # quiet;checkout set  otherwise travis job exceeds the maximum log length
     - name: "docker-compose-test"
       if: branch IN (master, dev)
       services: docker
