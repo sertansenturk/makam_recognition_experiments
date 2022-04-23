@@ -187,7 +187,7 @@ class Annotation(Data):
             self.MUSICBRAINZ_RECORDING_URL, na=False
         )
         if any(invalid_url_bool):
-            raise ValueError("Invalid urls:\n{}".format(self.data.to_string()))
+            raise ValueError(f"Invalid urls:\n{self.data.to_string()}")
 
         self.data["mbid"] = (
             self.data["mb_url"].str.split(pat="/").apply(lambda a: a[-1])

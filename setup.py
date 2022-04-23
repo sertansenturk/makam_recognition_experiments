@@ -18,7 +18,7 @@ def get_version():
         str -- value of __version__ as defined in __init__.py
     """
     version_file = os.path.join(HERE, EXP_DIR, PACKAGE_NAME, "__init__.py")
-    with open(version_file) as f:
+    with open(version_file, encoding="utf-8") as f:
         init_contents = f.read().strip()
 
         exp = r"^__version__ = ['\"]([^'\"]*)['\"]"
@@ -26,7 +26,9 @@ def get_version():
         if mo:
             return mo.group(1)
 
-        raise ValueError("Unable to find version string in %s." % (f,))
+        raise ValueError(
+            f"Unable to find version string in {version_file}:\n{init_contents}"
+        )
 
 
 setup(
@@ -42,7 +44,7 @@ setup(
         "https://github.com/sertansenturk/makam_recognition_experiments.git"
         if "dev" in get_version()
         else "https://github.com/sertansenturk/makam_recognition_experiments/"
-        "releases/tag/v{0:s}".format(get_version())
+        f"releases/tag/v{get_version()}"
     ),
     classifiers=[
         "Development Status :: 4 - Beta",

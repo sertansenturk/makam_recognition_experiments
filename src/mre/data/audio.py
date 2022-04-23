@@ -42,7 +42,7 @@ class Audio(Data):
             self._cleanup()
         self.tmp_dir = tempfile.TemporaryDirectory()  # pylint: disable-msg=R1732
 
-        failed_mbids = dict()
+        failed_mbids = {}
         num_recordings = len(annotation_df)
         for idx, anno in tqdm(annotation_df.iterrows(), total=num_recordings):
             try:
