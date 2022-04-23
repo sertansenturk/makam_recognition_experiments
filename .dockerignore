@@ -13,10 +13,10 @@
 **
 
 # Allow files and directories
-!tests/
+!tests/**
 !requirements.*txt
 !setup.py
-!src/
+!src/**
 !tox.ini
 !.pylintrc
 !docker/jupyter/scripts/*.sh
