@@ -70,8 +70,7 @@ class Data(abc.ABC):
             client.download_artifacts(mlflow_run.run_id, an) for an in artifact_names
         ]
 
-        logger.info("Returning the paths of %d artifacts.",
-                    len(artifact_paths))
+        logger.info("Returning the paths of %d artifacts.", len(artifact_paths))
 
         return artifact_paths
 

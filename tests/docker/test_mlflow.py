@@ -12,7 +12,7 @@ def logs():
     metric = {
         "key": "metric1",
         "step": list(range(10)),
-        "val": [i ** 2 for i in range(10)],
+        "val": [i**2 for i in range(10)],
     }
     tag = {"key": "tag_key1", "val": "tag_val1"}
 

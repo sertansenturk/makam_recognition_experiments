@@ -15,7 +15,7 @@ RUN pip install -r /install/requirements.txt && \
     rm -rf /install
 
 RUN groupadd -g $GID -o $UNAME
-RUN useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME
+RUN useradd -m -l -u $UID -g $GID -o -s /bin/bash $UNAME
 USER $UNAME
 
 WORKDIR /makam_recognition_experiments/
