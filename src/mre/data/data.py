@@ -1,7 +1,7 @@
 import abc
 import logging
 from pathlib import Path
-from typing import Callable, Optional, List
+from typing import Callable, Optional, List, Dict
 
 import mlflow
 
@@ -70,9 +70,19 @@ class Data(abc.ABC):
             client.download_artifacts(mlflow_run.run_id, an) for an in artifact_names
         ]
 
-        logger.info("Returning the paths of %d artifacts.", len(artifact_paths))
+        logger.info("Returning the paths of %d artifacts.",
+                    len(artifact_paths))
 
         return artifact_paths
+
+    @classmethod
+    def get_tags(cls) -> Dict:
+        mlflow_run = get_run_by_name(cls.EXPERIMENT_NAME, cls.RUN_NAME)
+        if mlflow_run is None:
+            raise ValueError("Artifacts are not logged in mlflow")
+
+        run = mlflow.get_run(mlflow_run.run_id)
+        return run.data.tags
 
     @abc.abstractmethod
     def transform(self, *args):
