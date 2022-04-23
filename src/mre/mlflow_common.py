@@ -45,14 +45,11 @@ def get_run_by_name(experiment_name: str, run_name: str) -> pd.Series:
             return None
 
         if len(annotation_runs) > 1:
+            run_ids = ", ".join(annotation_runs.run_id)  # pylint: disable-msg=E1101
             raise ValueError(
-                "There are more than one runs for %s: %s . Please "
+                f"There are more than one runs for {run_name}: {run_ids}. Please "
                 "inspect the run in the mlflow UI and manually make "
                 "necessary corrections."
-                % (
-                    run_name,
-                    ", ".join(annotation_runs.run_id),  # pylint: disable-msg=E1101
-                )
             )
 
         return annotation_runs.iloc[0]  # pylint: disable-msg=E1101
@@ -71,9 +68,9 @@ def log(
     mlflow_run = get_run_by_name(experiment_name, run_name)
     if mlflow_run is not None:
         raise ValueError(
-            "There is already a run for %s:%s. Overwriting is not "
-            "permitted. Please delete the run manually if you want "
-            "to log the annotations again." % (run_name, mlflow_run.run_id)
+            f"There is already a run for {run_name}:{mlflow_run.run_id}. "
+            "Overwriting is not permitted. Please delete the run manually if you "
+            "want to log the annotations again."
         )
 
     mlflow.set_experiment(experiment_name)
