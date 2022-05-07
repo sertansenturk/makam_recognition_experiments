@@ -4,7 +4,7 @@ import pytest
 from mre.data.dataset import Dataset
 
 
-class TestDataSet:
+class TestDataset:
     def test_dataset(self):
         X = np.array([[1, 2], [2, 2], [3, 4]])
         y = np.array(["class1", "class2", "class2"])
@@ -30,10 +30,14 @@ class TestDataSet:
     @pytest.mark.parametrize(
         "X,y",
         [
-            (np.array([[1, 2], [2, 2], [3, 4]]),
-             np.array(["class1", "class2"])),  # y has less
-            (np.array([[1, 2], [2, 2]]),
-             np.array(["class1", "class2", "class2"])),  # X has less
+            (
+                np.array([[1, 2], [2, 2], [3, 4]]),
+                np.array(["class1", "class2"]),
+            ),  # y has less
+            (
+                np.array([[1, 2], [2, 2]]),
+                np.array(["class1", "class2", "class2"]),
+            ),  # X has less
         ],
     )
     def test_dataset_X_y_mismatch(self, X, y):
@@ -49,7 +53,7 @@ class TestDataSet:
         with pytest.raises(ValueError, match="y is empty"):
             Dataset(X, y)
 
-    def test_dataset(self):
+    def test_dataset_X_empty(self):
         X = np.array([])
         y = np.array(["class1", "class2", "class2"])
 
