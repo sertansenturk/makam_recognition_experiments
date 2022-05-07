@@ -5,29 +5,11 @@ from dataclasses import dataclass, field
 from typing import Dict, List
 
 import pandas as pd
-
-# import numpy as np
-# from sklearn.model_selection import (
-#     cross_validate,
-#     GridSearchCV,
-#     RepeatedStratifiedKFold,
-#     StratifiedKFold,
-#     StratifiedShuffleSplit,
-# )
+from matplotlib import pyplot as plt
+import seaborn as sns
 
 from mre.experimentation.architecture import Architecture
 from mre.data.dataset import Dataset
-
-
-# VERBOSE = 0
-# N_JOBS = -1
-
-
-# class SupportedCrossValidationTechniques(Enum):
-#     stratified_random_split_cv = auto()
-#     stratified_shuffle_split_cv = auto()
-#     stratified_10_fold_cv = auto()
-#     nested_stratified_10_fold_cv = auto()
 
 
 @dataclass
@@ -63,3 +45,32 @@ class CrossValidator:
     @classmethod
     def _max_architecture_name_len(cls, architectures: List[Architecture]) -> int:
         return max(len(arch.name) for arch in architectures)
+
+    def box_plot_best_models_by_trial(self):
+        ax = sns.boxplot(
+            x="trial_id",
+            y="test_score",
+            hue="architecture",
+            data=self.results,
+            palette="Set3"
+        )
+        plt.grid()
+
+        return ax
+
+    def box_plot_best_models(self):
+        ax = sns.boxplot(
+            x="architecture",
+            y="mean",
+            data=(
+                self.results
+                .groupby(["trial_id", "architecture"])
+                ["test_score"]
+                .agg(["mean", "std"])
+                .reset_index()
+            ),
+            palette="Set3"
+        )
+        plt.grid()
+
+        return ax
