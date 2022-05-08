@@ -65,10 +65,10 @@ class NestedStratified10FoldCV(CrossValidator):
 
         return inner_cv, outer_cv
 
-    def _cross_validate(self, dataset, inner_cv, outer_cv, arch):
+    def _cross_validate(self, dataset, inner_cv, outer_cv, architecture):
         clf = GridSearchCV(
-            estimator=arch.estimator,
-            param_grid=arch.param_grid,
+            estimator=architecture.estimator,
+            param_grid=architecture.param_grid,
             cv=inner_cv,
             verbose=VERBOSE,
             n_jobs=N_JOBS,

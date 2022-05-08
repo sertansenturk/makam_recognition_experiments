@@ -1,4 +1,4 @@
-from abc import abstractclassmethod
+from abc import abstractmethod
 
 # from enum import Enum, auto
 from dataclasses import dataclass, field
@@ -20,27 +20,27 @@ class CrossValidator:
     num_trials: int = 10
     results: pd.DataFrame = field(default=None, init=False)
 
-    @abstractclassmethod
+    @abstractmethod
     def run(self, dataset: Dataset, architectures: List[Architecture]):
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def _setup(self, random_state):
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def _cross_validate(self, dataset, inner_cv, outer_cv, architecture: Architecture):
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def _summarize_model_at_trial(
         self, scores, architecture: Architecture, max_architecture_name_len: int
     ):
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def _collect_nested_scores(
-        self, score, nested_scores: Dict, trial_id: int, architecture: Architecture
+        self, scores, nested_scores: Dict, trial_id: int, architecture: Architecture
     ):
         pass
 

@@ -1,8 +1,6 @@
-from platform import architecture
 from unittest import mock
 
 import numpy as np
-from mre.data.data import Data
 import pytest
 
 from mre.experimentation.architecture import Architecture
