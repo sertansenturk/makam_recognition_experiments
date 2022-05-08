@@ -81,6 +81,7 @@ setup(
         "@8d07307b733cc2ddfce8d28ce5d88f498b4f193e#egg=pycompmusic",  # corpus
         "mlflow==1.18.*",
         "pandas>=0.24.*",
+        "seaborn==0.10.*",
         "scikit-learn==0.22.*",
         "tqdm>=4.48.*",
         "tomato @ git+https://github.com/sertansenturk/tomato.git"

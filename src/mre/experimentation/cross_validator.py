@@ -33,7 +33,9 @@ class CrossValidator:
         pass
 
     @abstractclassmethod
-    def _summarize_model_at_trial(self, scores, architecture: Architecture, max_architecture_name_len: int):
+    def _summarize_model_at_trial(
+        self, scores, architecture: Architecture, max_architecture_name_len: int
+    ):
         pass
 
     @abstractclassmethod
@@ -52,7 +54,7 @@ class CrossValidator:
             y="test_score",
             hue="architecture",
             data=self.results,
-            palette="Set3"
+            palette="Set3",
         )
         plt.grid()
 
@@ -63,13 +65,11 @@ class CrossValidator:
             x="architecture",
             y="mean",
             data=(
-                self.results
-                .groupby(["trial_id", "architecture"])
-                ["test_score"]
+                self.results.groupby(["trial_id", "architecture"])["test_score"]
                 .agg(["mean", "std"])
                 .reset_index()
             ),
-            palette="Set3"
+            palette="Set3",
         )
         plt.grid()
 

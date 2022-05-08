@@ -33,22 +33,20 @@ class NestedStratified10FoldCV(CrossValidator):
 
             inner_cv, outer_cv = self._setup(ii)
             for arch in architectures:
-                scores = self._cross_validate(
-                    dataset, inner_cv, outer_cv, arch)
+                scores = self._cross_validate(dataset, inner_cv, outer_cv, arch)
                 self._collect_nested_scores(scores, nested_scores, ii, arch)
                 self._summarize_model_at_trial(scores, arch, max_arch_name_len)
 
         self.results = pd.DataFrame(nested_scores)
 
-    def _summarize_model_at_trial(self, scores, architecture, max_architecture_name_len):
-        best_params_str = [str(est.best_params_)
-                           for est in scores["estimator"]]
-        most_common_best_params = max(
-            best_params_str, key=best_params_str.count
-        )
+    def _summarize_model_at_trial(
+        self, scores, architecture, max_architecture_name_len
+    ):
+        best_params_str = [str(est.best_params_) for est in scores["estimator"]]
+        most_common_best_params = max(best_params_str, key=best_params_str.count)
 
         print(
-            f'   {architecture.name:<{max_architecture_name_len}}, '
+            f"   {architecture.name:<{max_architecture_name_len}}, "
             f'Test acc: {np.mean(scores["test_score"]):.2f}∓{np.std(scores["test_score"]):.2f}, '
             f'Train acc: {np.mean(scores["train_score"]):.2f}∓{np.std(scores["train_score"]):.2f}, '
             f'Max fit time: {max(scores["fit_time"]):.1f} sec, '

@@ -1,6 +1,7 @@
 essentia==2.1b5;platform_system=='Linux'
 git+https://github.com/MTG/pycompmusic.git@8d07307b733cc2ddfce8d28ce5d88f498b4f193e#egg=pycompmusic
 pandas==0.24.*
+seaborn==0.10.0
 scikit-learn==0.22.*
 mlflow==1.18.*
 tqdm==4.48.*

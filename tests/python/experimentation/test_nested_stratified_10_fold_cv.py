@@ -75,8 +75,7 @@ class TestNestedStratified10FoldCV:
     ):
         cv.run(dataset=dataset, architectures=architectures)
 
-        mock_setup.assert_has_calls([mock.call(ii)
-                                     for ii in range(cv.num_trials)])
+        mock_setup.assert_has_calls([mock.call(ii) for ii in range(cv.num_trials)])
         mock_cross_validate.assert_has_calls(
             [
                 mock.call(dataset, "inner_cv", "outer_cv", arch)
@@ -98,11 +97,7 @@ class TestNestedStratified10FoldCV:
         )
         mock_summarize_model_at_trial.assert_has_calls(
             [
-                mock.call(
-                    "scores",
-                    arch,
-                    8  # length of "ml_model"
-                )
+                mock.call("scores", arch, 8)  # length of "ml_model"
                 for arch in architectures
                 for ii in range(cv.num_trials)
             ]
@@ -116,17 +111,19 @@ class TestNestedStratified10FoldCV:
             "score_time": ["score_t1", "score_t2"],
             "estimator": [mock_estimator(1), mock_estimator(2)],
         }
-        nested_scores = [{
-            "architecture": "ml_model",
-            "train_score": "train_sc0",
-            "test_score": "test_sc0",
-            "fit_time": "fit_t0",
-            "score_time": "score_t0",
-            "split_id": 1,
-            "trial_id": 2,
-            "best_params_": "mocked_best_params_0",
-            "cv_results_": "mocked_cv_results_0",
-        }]
+        nested_scores = [
+            {
+                "architecture": "ml_model",
+                "train_score": "train_sc0",
+                "test_score": "test_sc0",
+                "fit_time": "fit_t0",
+                "score_time": "score_t0",
+                "split_id": 1,
+                "trial_id": 2,
+                "best_params_": "mocked_best_params_0",
+                "cv_results_": "mocked_cv_results_0",
+            }
+        ]
         trial_id = 3
         architecture = Architecture(
             "ml_model",
@@ -134,8 +131,7 @@ class TestNestedStratified10FoldCV:
             param_grid={"param1": ["val1", "val2"]},
         )
 
-        cv._collect_nested_scores(
-            scores, nested_scores, trial_id, architecture)
+        cv._collect_nested_scores(scores, nested_scores, trial_id, architecture)
         expected_nested_scores = [
             {
                 "architecture": "ml_model",
