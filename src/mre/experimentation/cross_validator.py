@@ -29,7 +29,7 @@ class CrossValidator:
         pass
 
     @abstractmethod
-    def _cross_validate(self, dataset, inner_cv, outer_cv, architecture: Architecture):
+    def _cross_validate(self, dataset, architecture: Architecture, *cv_splits):
         pass
 
     @abstractmethod

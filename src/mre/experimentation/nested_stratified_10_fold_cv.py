@@ -33,7 +33,7 @@ class NestedStratified10FoldCV(CrossValidator):
 
             inner_cv, outer_cv = self._setup(ii)
             for arch in architectures:
-                scores = self._cross_validate(dataset, inner_cv, outer_cv, arch)
+                scores = self._cross_validate(dataset, arch, inner_cv, outer_cv)
                 self._collect_model_results_at_trial(scores, results_list, ii, arch)
                 self._display_model_results_at_trial(scores, arch, max_arch_name_len)
 
@@ -49,7 +49,7 @@ class NestedStratified10FoldCV(CrossValidator):
 
         return inner_cv, outer_cv
 
-    def _cross_validate(self, dataset, inner_cv, outer_cv, architecture):
+    def _cross_validate(self, dataset, architecture, inner_cv, outer_cv):
         clf = GridSearchCV(
             estimator=architecture.estimator,
             param_grid=architecture.param_grid,

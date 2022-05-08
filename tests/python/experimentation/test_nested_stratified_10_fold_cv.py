@@ -76,7 +76,7 @@ class TestNestedStratified10FoldCV:
         mock_setup.assert_has_calls([mock.call(ii) for ii in range(cv.num_trials)])
         mock_cross_validate.assert_has_calls(
             [
-                mock.call(dataset, "inner_cv", "outer_cv", arch)
+                mock.call(dataset, arch, "inner_cv", "outer_cv")
                 for arch in architectures
                 for _ in range(cv.num_trials)
             ]
