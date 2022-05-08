@@ -46,11 +46,11 @@ def cv():
 
 class TestNestedStratified10FoldCV:
     @mock.patch(
-        "mre.experimentation.NestedStratified10FoldCV._summarize_model_at_trial",
+        "mre.experimentation.NestedStratified10FoldCV._display_model_results_at_trial",
         return_value=None,
     )
     @mock.patch(
-        "mre.experimentation.NestedStratified10FoldCV._collect_nested_scores",
+        "mre.experimentation.NestedStratified10FoldCV._collect_model_results_at_trial",
         return_value=None,
     )
     @mock.patch(
@@ -65,8 +65,8 @@ class TestNestedStratified10FoldCV:
         self,
         mock_setup,
         mock_cross_validate,
-        mock_collect_nested_scores,
-        mock_summarize_model_at_trial,
+        mock_collect_model_results_at_trial,
+        mock_display_model_results_at_trial,
         cv,
         dataset,
         architectures,
@@ -81,11 +81,11 @@ class TestNestedStratified10FoldCV:
                 for _ in range(cv.num_trials)
             ]
         )
-        mock_collect_nested_scores.assert_has_calls(
+        mock_collect_model_results_at_trial.assert_has_calls(
             [
                 mock.call(
                     "scores",
-                    [],  # since nested_scores is mocked it's not populated
+                    [],  # since results_list is mocked it's not populated
                     ii,
                     arch,
                 )
@@ -93,7 +93,7 @@ class TestNestedStratified10FoldCV:
                 for ii in range(cv.num_trials)
             ]
         )
-        mock_summarize_model_at_trial.assert_has_calls(
+        mock_display_model_results_at_trial.assert_has_calls(
             [
                 mock.call("scores", arch, 8)  # length of "ml_model"
                 for arch in architectures
@@ -101,7 +101,7 @@ class TestNestedStratified10FoldCV:
             ]
         )
 
-    def test_collect_nested_scores(self, cv, mock_estimator):
+    def test_collect_model_results_at_trial(self, cv, mock_estimator):
         scores = {
             "train_score": ["train_sc1", "train_sc2"],
             "test_score": ["test_sc1", "test_sc2"],
@@ -109,7 +109,7 @@ class TestNestedStratified10FoldCV:
             "score_time": ["score_t1", "score_t2"],
             "estimator": [mock_estimator(1), mock_estimator(2)],
         }
-        nested_scores = [
+        results_list = [
             {
                 "architecture": "ml_model",
                 "train_score": "train_sc0",
@@ -129,8 +129,8 @@ class TestNestedStratified10FoldCV:
             param_grid={"param1": ["val1", "val2"]},
         )
 
-        cv._collect_nested_scores(scores, nested_scores, trial_id, architecture)
-        expected_nested_scores = [
+        cv._collect_model_results_at_trial(scores, results_list, trial_id, architecture)
+        expected_results_list = [
             {
                 "architecture": "ml_model",
                 "train_score": "train_sc0",
@@ -165,7 +165,7 @@ class TestNestedStratified10FoldCV:
                 "cv_results_": "mocked_cv_results_2",
             },
         ]
-        print(nested_scores)
-        print(expected_nested_scores)
+        print(results_list)
+        print(expected_results_list)
 
-        assert nested_scores == expected_nested_scores
+        assert results_list == expected_results_list

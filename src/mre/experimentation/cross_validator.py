@@ -33,14 +33,14 @@ class CrossValidator:
         pass
 
     @abstractmethod
-    def _summarize_model_at_trial(
-        self, scores, architecture: Architecture, max_architecture_name_len: int
+    def _collect_model_results_at_trial(
+        self, scores, results_list: Dict, trial_id: int, architecture: Architecture
     ):
         pass
 
     @abstractmethod
-    def _collect_nested_scores(
-        self, scores, nested_scores: Dict, trial_id: int, architecture: Architecture
+    def _display_model_results_at_trial(
+        self, scores, architecture: Architecture, max_architecture_name_len: int
     ):
         pass
 
