@@ -1,7 +1,7 @@
 import logging
 
 from typing import List
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
@@ -47,8 +47,10 @@ class NestedStratified10FoldCV(CrossValidator):
 
         print(
             f"   {architecture.name:<{max_architecture_name_len}}, "
-            f'Test acc: {np.mean(scores["test_score"]):.2f}∓{np.std(scores["test_score"]):.2f}, '
-            f'Train acc: {np.mean(scores["train_score"]):.2f}∓{np.std(scores["train_score"]):.2f}, '
+            f'Test acc: {np.mean(scores["test_score"]):.2f}∓'
+            f'{np.std(scores["test_score"]):.2f}, '
+            f'Train acc: {np.mean(scores["train_score"]):.2f}∓'
+            f'{np.std(scores["train_score"]):.2f}, '
             f'Max fit time: {max(scores["fit_time"]):.1f} sec, '
             f"Best Params: {most_common_best_params}"
         )
