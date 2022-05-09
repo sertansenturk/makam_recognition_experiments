@@ -1,3 +1,4 @@
 from mre.experimentation.architecture import Architecture
 from mre.experimentation.nested_stratified_10_fold_cv import NestedStratified10FoldCV
 from mre.experimentation.stratified_10_fold_cv import Stratified10FoldCV
+from mre.experimentation.stratified_shuffle_cv import StratifiedShuffleCV
