@@ -1,6 +1,6 @@
 import logging
 
-from typing import List
+from typing import Dict, List
 from dataclasses import dataclass
 
 import numpy as np
@@ -39,7 +39,7 @@ class NestedStratified10FoldCV(CrossValidator):
 
         self.results = pd.DataFrame(results_list)
 
-    def _setup(self, random_state):
+    def _setup(self, random_state: int):
         inner_cv = StratifiedKFold(
             n_splits=self.num_splits, shuffle=True, random_state=random_state
         )
@@ -49,7 +49,9 @@ class NestedStratified10FoldCV(CrossValidator):
 
         return inner_cv, outer_cv
 
-    def _cross_validate(self, dataset, architecture, inner_cv, outer_cv):
+    def _cross_validate(
+        self, dataset: Dataset, architecture: Architecture, inner_cv, outer_cv
+    ) -> Dict:
         clf = GridSearchCV(
             estimator=architecture.estimator,
             param_grid=architecture.param_grid,
@@ -70,7 +72,11 @@ class NestedStratified10FoldCV(CrossValidator):
         )
 
     def _collect_model_results_at_trial(
-        self, scores, results_list, trial_id, architecture
+        self,
+        scores: Dict,
+        results_list: List,
+        trial_id: int,
+        architecture: Architecture,
     ):
         for ns in range(self.num_splits):
             results_list.append(
@@ -88,12 +94,12 @@ class NestedStratified10FoldCV(CrossValidator):
             )
 
     def _display_model_results_at_trial(
-        self, scores, architecture, max_architecture_name_len
+        self, scores: Dict, architecture: Architecture, max_architecture_name_len: int
     ):
         best_params_str = [str(est.best_params_) for est in scores["estimator"]]
         most_common_best_params = max(best_params_str, key=best_params_str.count)
 
-        logger.info(
+        print(
             f"   {architecture.name:<{max_architecture_name_len}}, "
             f'Test acc: {np.mean(scores["test_score"]):.2f}∓'
             f'{np.std(scores["test_score"]):.2f}, '
