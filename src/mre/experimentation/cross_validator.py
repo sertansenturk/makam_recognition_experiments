@@ -1,7 +1,6 @@
 from abc import abstractmethod
 import logging
 
-# from enum import Enum, auto
 from dataclasses import dataclass, field
 from typing import Dict, List
 
@@ -69,8 +68,7 @@ class CrossValidator:
             x="architecture",
             y="mean",
             data=(
-                self.results.groupby(["trial_id", "architecture"])[
-                    "test_score"]
+                self.results.groupby(["trial_id", "architecture"])["test_score"]
                 .agg(["mean", "std"])
                 .reset_index()
                 .sort_values(by="mean", ascending=True)

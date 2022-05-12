@@ -6,11 +6,11 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
-from tomato.audio.pitchdistribution import PitchDistribution
 from tqdm import tqdm
 
 from mre.config import config
 from mre.data.data import Data
+from mre.data.tdms_processor import TDMSProcessor
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -18,31 +18,30 @@ logger.setLevel(logging.INFO)
 cfg = config.read()
 
 
-class PitchClassDistribution(Data):
-    """class to extract pitch class distribution (PCD) from the predominant
+class TimeDelayedMelodySurface(Data):
+    """class to extract time-delayed melody surface (TDMS) from the predominant
     melody of each audio recording
     """
 
-    RUN_NAME = cfg.get("mlflow", "pitch_class_distribution_run_name")
+    RUN_NAME = cfg.get("mlflow", "time_delayed_melody_surface_run_name")
 
-    KERNEL_WIDTH = cfg.getfloat("pitch_class_distribution", "kernel_width")
-    NORM_TYPE = cfg.get("pitch_class_distribution", "norm_type")
-    STEP_SIZE = cfg.getfloat("pitch_class_distribution", "step_size")
+    KERNEL_WIDTH = cfg.getfloat("time_delayed_melody_surface", "kernel_width")
+    STEP_SIZE = cfg.getfloat("time_delayed_melody_surface", "step_size")
 
     FILE_EXTENSION = ".json"
 
     def __init__(self):
-        """instantiates a PitchClassDistribution object"""
+        """instantiates a TDML object"""
         super().__init__()
-        self.transform_func = PitchDistribution.from_hz_pitch
+        self.transform_func = TDMSProcessor.from_hz_pitch
 
     def transform(  # pylint: disable-msg=W0221
         self,
         melody_paths: List[str],
         tonic_frequencies: pd.Series,
     ):
-        """extracts PCDs from predominant melody of each audio recording by
-        assigning the tonic frequency to the first bin and saves the features
+        """extracts TDMLs from predominant melody of each audio recording by
+        normalizing with respect to the tonic frequency and saves the features
         to a temporary folder.
 
         Parameters
@@ -93,17 +92,15 @@ class PitchClassDistribution(Data):
             melody = np.load(path)
             mbid = Path(path).stem
 
-            distribution: PitchDistribution = self.transform_func(
+            tdml = self.transform_func(
                 melody,  # pitch values sliced internally
-                kernel_width=self.KERNEL_WIDTH,
-                norm_type=self.NORM_TYPE,
-                step_size=self.STEP_SIZE,
                 ref_freq=tonic_frequencies.loc[mbid],
+                kernel_width=self.KERNEL_WIDTH,
+                step_size=self.STEP_SIZE,
             )
-            distribution.to_pcd()
 
             tmp_file = Path(self._tmp_dir_path(), mbid + self.FILE_EXTENSION)
-            distribution.to_json(tmp_file)
+            tdml.to_json(tmp_file)
             logger.debug("Saved to %s.", tmp_file)
 
     def _mlflow_tags(self) -> Dict:
@@ -114,8 +111,8 @@ class PitchClassDistribution(Data):
         Dict
             tags to log, namely, PCD extractor settings
         """
-        return {
-            "kernel_width": self.KERNEL_WIDTH,
-            "norm_type": self.NORM_TYPE,
-            "step_size": self.STEP_SIZE,
-        }
+        # return {
+        #     "kernel_width": self.KERNEL_WIDTH,
+        #     "norm_type": self.NORM_TYPE,
+        #     "step_size": self.STEP_SIZE,
+        # }
