@@ -29,7 +29,7 @@ class NestedStratified10FoldCV(CrossValidator):
 
         results_list = []
         for ii in range(self.num_trials):
-            logger.info("Trial %d", ii)
+            print(f"Trial {ii}")
 
             inner_cv, outer_cv = self._setup(ii)
             for arch in architectures:

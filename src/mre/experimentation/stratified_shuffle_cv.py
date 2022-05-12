@@ -29,7 +29,7 @@ class StratifiedShuffleCV(CrossValidator):
 
         results_list = []
         for ii in range(self.num_trials):
-            logger.info("Trial %d", ii)
+            print(f"Trial {ii}")
 
             inner_cv, outer_cv = self._setup(ii)
             for arch in architectures:
@@ -38,6 +38,8 @@ class StratifiedShuffleCV(CrossValidator):
                 self._display_model_results_at_trial(scores, arch, max_arch_name_len)
 
         self.results = pd.DataFrame(results_list)
+
+        return scores
 
     def _setup(self, random_state: int):
         # 80 train, 20 (validation + test)

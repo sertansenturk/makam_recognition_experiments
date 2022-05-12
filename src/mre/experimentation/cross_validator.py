@@ -1,4 +1,5 @@
 from abc import abstractmethod
+import logging
 
 # from enum import Enum, auto
 from dataclasses import dataclass, field
@@ -8,8 +9,11 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-from mre.experimentation.architecture import Architecture
 from mre.data.dataset import Dataset
+from mre.experimentation.architecture import Architecture
+
+logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
+logger.setLevel(logging.INFO)
 
 
 @dataclass
@@ -48,7 +52,7 @@ class CrossValidator:
     def _max_architecture_name_len(cls, architectures: List[Architecture]) -> int:
         return max(len(arch.name) for arch in architectures)
 
-    def box_plot_best_models_by_trial(self):
+    def boxplot_best_models_by_trial(self):
         ax = sns.boxplot(
             x="trial_id",
             y="test_score",
@@ -60,14 +64,16 @@ class CrossValidator:
 
         return ax
 
-    def box_plot_best_models(self):
+    def boxplot_best_models(self):
         ax = sns.boxplot(
             x="architecture",
             y="mean",
             data=(
-                self.results.groupby(["trial_id", "architecture"])["test_score"]
+                self.results.groupby(["trial_id", "architecture"])[
+                    "test_score"]
                 .agg(["mean", "std"])
                 .reset_index()
+                .sort_values(by="mean", ascending=True)
             ),
             palette="Set3",
         )

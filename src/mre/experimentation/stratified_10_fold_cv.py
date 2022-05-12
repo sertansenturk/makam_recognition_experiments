@@ -27,7 +27,7 @@ class Stratified10FoldCV(CrossValidator):
 
         results_list = []
         for ii in range(self.num_trials):
-            logger.info("Trial %d", ii)
+            print(f"Trial {ii}")
 
             # there is a single loop used in 10-fold cross-validation
             # we name it as "outer" to contrast with the nested case
