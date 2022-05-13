@@ -128,6 +128,24 @@ class TestTDMSFeature:
 
         assert tdms.compression_exponent == 1
 
+    @pytest.mark.parametrize(
+        "step_size,kernel_width,expected",
+        [
+            (100, 25, 0.25),
+            (7.5, 7.5, 1),
+            (22.5, 45, 2),
+        ],
+    )
+    def test_kernel_width_in_samples(self, step_size, kernel_width, expected):
+        tdms = TDMSFeature(
+            DEFAULT_EMBEDDING,
+            DEFAULT_PITCH_BINS,
+            step_size=step_size,
+            kernel_width=kernel_width,
+        )
+
+        assert tdms.kernel_width_in_samples == expected
+
     def test_compress(self):
         embedding = np.array(
             [
@@ -157,7 +175,7 @@ class TestTDMSFeature:
 
     @pytest.mark.parametrize(
         "compression_exponent",
-        [0, None],
+        [1, None],
     )
     def test_compress_unit(self, compression_exponent):
         embedding = np.array(
@@ -168,7 +186,6 @@ class TestTDMSFeature:
             ]
         )
         dummy_pitch_bins = np.array([0.0, 400.0, 800.0])
-        compression_exponent = None
 
         tdms = TDMSFeature(
             embedding=copy.deepcopy(embedding),
@@ -180,7 +197,7 @@ class TestTDMSFeature:
         expected = embedding
         np.testing.assert_array_equal(tdms.embedding, expected)
 
-    def test_init_none_smoothing_exponent(self):
+    def test_init_none_smoothen_kernel_width(self):
         embedding = DEFAULT_EMBEDDING
         pitch_bins = DEFAULT_PITCH_BINS
 
@@ -215,11 +232,11 @@ class TestTDMSFeature:
     )
     def test_smoothen_unit(self, kernel_width):
         embedding = DEFAULT_EMBEDDING
-        dummy_pitch_bins = DEFAULT_PITCH_BINS
+        pitch_bins = DEFAULT_PITCH_BINS
 
         tdms = TDMSFeature(
             embedding=copy.deepcopy(embedding),
-            pitch_bins=dummy_pitch_bins,
+            pitch_bins=pitch_bins,
             kernel_width=kernel_width,
         )
         tdms.smoothen()
@@ -237,6 +254,24 @@ class TestTDMSFeature:
         expected = embedding / 180
 
         np.testing.assert_array_almost_equal(tdms.embedding, expected)
+
+    def test_from_json_str(self):
+        json_str = (
+            '{"embedding":[[0.0,2.0,4.0,6.0,8.0],[10.0,12.0,14.0,16.0,18.0],'
+            "[20.0,22.0,24.0,26.0,28.0],[30.0,32.0,34.0,36.0,38.0],"
+            '[40.0,42.0,44.0,46.0,48.0]],"pitch_bins":[0.0,240.0,480.0,720.0,960.0],'
+            '"ref_freq":512,"step_size":10,"time_delay_index":0.5,'
+            '"compression_exponent":0.5,"kernel_width":20}'
+        )
+        result = TDMSFeature.from_json(json_str)
+
+        np.testing.assert_array_equal(result.embedding, DEFAULT_EMBEDDING)
+        np.testing.assert_array_equal(result.pitch_bins, DEFAULT_PITCH_BINS)
+        assert result.ref_freq == 512
+        assert result.step_size == 10
+        assert result.time_delay_index == 0.5
+        assert result.compression_exponent == 0.5
+        assert result.kernel_width == 20
 
     @pytest.mark.parametrize(
         "hz_track",
@@ -587,7 +622,7 @@ class TestTDMSFeature:
         }
         assert result == expected
 
-    def test_to_json(self):
+    def test_to_json_str(self):
         embedding = DEFAULT_EMBEDDING
         pitch_bins = DEFAULT_PITCH_BINS
         ref_freq = 512  # hz

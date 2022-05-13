@@ -18,11 +18,11 @@ class TDMSFeature:
         self,
         embedding: np.ndarray,
         pitch_bins: np.ndarray,
-        ref_freq: float = 440.0,
-        step_size: float = 7.5,
-        time_delay_index: float = 0.3,
+        ref_freq: float = 440.0,  # Hz
+        step_size: float = 7.5,  # cents
+        time_delay_index: float = 0.3,  # seconds
         compression_exponent: float = 0.25,
-        kernel_width: float = 7.5,
+        kernel_width: float = 7.5,  # cents
     ) -> None:
         self.embedding = np.array(embedding)  # force numpy array
         self.pitch_bins = np.array(pitch_bins)  # force numpy array
@@ -57,26 +57,39 @@ class TDMSFeature:
             0 if kernel_width is None else kernel_width
         )
 
+    @property
+    def kernel_width_in_samples(self):
+        return float(self.kernel_width) / self.step_size
+
     def compress(self):
         self.embedding = np.power(self.embedding, self.compression_exponent)
 
     def smoothen(self):
         self.embedding = ndimage.gaussian_filter(
-            self.embedding, sigma=self.kernel_width
+            self.embedding, sigma=self.kernel_width_in_samples
         )
 
     def normalize(self):
         self.embedding = self.embedding / self.embedding.sum()
 
+    @staticmethod
+    def from_json(tdms_input):
+        try:  # file
+            tdms_dict = json.load(open(tdms_input))
+        except IOError:  # json string
+            tdms_dict = json.loads(tdms_input)
+
+        return TDMSFeature(**tdms_dict)
+
     @classmethod
     def from_hz_pitch(
         cls,
         hz_track: np.ndarray,
-        ref_freq=440.0,
-        step_size=7.5,
-        time_delay_index=0.3,
+        ref_freq=440.0,  # hz
+        step_size=7.5,  # cents
+        time_delay_index=0.3,  # sec
         compression_exponent=0.25,
-        kernel_width=7.5,
+        kernel_width=7.5,  # hz
     ):
         """Factory method to compute the time delayed melody surface feature
 
