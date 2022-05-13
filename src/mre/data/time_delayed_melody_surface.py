@@ -31,7 +31,7 @@ class TimeDelayedMelodySurface(Data):
     FILE_EXTENSION = ".json"
 
     def __init__(self):
-        """instantiates a TDML object"""
+        """instantiates a TDMS object"""
         super().__init__()
         self.transform_func = TDMSFeature.from_hz_pitch
 
@@ -43,7 +43,7 @@ class TimeDelayedMelodySurface(Data):
         compression_exponent: float = 0.25,
         kernel_width: float = 25,
     ):
-        """extracts TDMLs from predominant melody of each audio recording by
+        """extracts TDMSs from predominant melody of each audio recording by
         normalizing with respect to the tonic frequency and saves the features
         to a temporary folder.
 
@@ -95,7 +95,7 @@ class TimeDelayedMelodySurface(Data):
             melody = np.load(path)
             mbid = Path(path).stem
 
-            tdml = self.transform_func(
+            tdms = self.transform_func(
                 melody,  # pitch values sliced internally
                 ref_freq=tonic_frequencies.loc[mbid],
                 step_size=self.STEP_SIZE,
@@ -105,7 +105,7 @@ class TimeDelayedMelodySurface(Data):
             )
 
             tmp_file = Path(self._tmp_dir_path(), mbid + self.FILE_EXTENSION)
-            tdml.to_json(tmp_file)
+            tdms.to_json(tmp_file)
             logger.debug("Saved to %s.", tmp_file)
 
     def _mlflow_tags(self) -> Dict:

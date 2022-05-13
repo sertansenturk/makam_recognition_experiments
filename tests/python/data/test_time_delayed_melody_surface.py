@@ -30,9 +30,9 @@ class TestTimeDelayedMelodySurface:
         tonic_freqs = pd.Series({"id1": 400, "id2": 300})
 
         # WHEN; THEN
-        tdml = TimeDelayedMelodySurface()
+        tdms = TimeDelayedMelodySurface()
         with pytest.raises(ValueError):
-            tdml.transform(melody_paths, tonic_freqs)
+            tdms.transform(melody_paths, tonic_freqs)
 
     def test_transform_empty_tonic_freqs(self):
         # GIVEN
@@ -40,9 +40,9 @@ class TestTimeDelayedMelodySurface:
         tonic_freqs = pd.Series({}, dtype=np.float)
 
         # WHEN; THEN
-        tdml = TimeDelayedMelodySurface()
+        tdms = TimeDelayedMelodySurface()
         with pytest.raises(ValueError):
-            tdml.transform(melody_paths, tonic_freqs)
+            tdms.transform(melody_paths, tonic_freqs)
 
     def test_transform_duplicate_melody_paths(self):
         # GIVEN
@@ -50,9 +50,9 @@ class TestTimeDelayedMelodySurface:
         tonic_freqs = pd.Series({"id1": 400, "id2": 300})
 
         # WHEN; THEN
-        tdml = TimeDelayedMelodySurface()
+        tdms = TimeDelayedMelodySurface()
         with pytest.raises(ValueError):
-            tdml.transform(melody_paths, tonic_freqs)
+            tdms.transform(melody_paths, tonic_freqs)
 
     def test_transform_duplicate_tonic_ids(self):
         # GIVEN
@@ -60,9 +60,9 @@ class TestTimeDelayedMelodySurface:
         tonic_freqs = pd.Series([400, 300], index=["id1", "id1"])
 
         # WHEN; THEN
-        tdml = TimeDelayedMelodySurface()
+        tdms = TimeDelayedMelodySurface()
         with pytest.raises(ValueError):
-            tdml.transform(melody_paths, tonic_freqs)
+            tdms.transform(melody_paths, tonic_freqs)
 
     def test_transform_mbid_mismatch(self):
         # GIVEN
@@ -70,9 +70,9 @@ class TestTimeDelayedMelodySurface:
         tonic_freqs = pd.Series([400, 300], index=["id1", "id3"])
 
         # WHEN; THEN
-        tdml = TimeDelayedMelodySurface()
+        tdms = TimeDelayedMelodySurface()
         with pytest.raises(ValueError):
-            tdml.transform(melody_paths, tonic_freqs)
+            tdms.transform(melody_paths, tonic_freqs)
 
     def test_transform(self, mock_tmp_dir):
         # GIVEN
@@ -83,7 +83,7 @@ class TestTimeDelayedMelodySurface:
             [100, 500, 1100],
             [0, 10, 8],
         )
-        tdml = TimeDelayedMelodySurface()
+        tdms = TimeDelayedMelodySurface()
 
         # WHEN
         with mock.patch(
@@ -91,7 +91,7 @@ class TestTimeDelayedMelodySurface:
         ):
             with mock.patch("numpy.load", autospec=True) as mock_load:
                 with mock.patch.object(
-                    tdml,
+                    tdms,
                     "transform_func",
                     autospec=True,
                     return_value=mock_distribution,
@@ -101,7 +101,7 @@ class TestTimeDelayedMelodySurface:
                         "to_json",
                         autospec=True,
                     ) as mock_to_json:
-                        tdml.transform(melody_paths, tonic_freqs)
+                        tdms.transform(melody_paths, tonic_freqs)
 
         # THEN
         expected_to_json_calls = [
@@ -119,11 +119,11 @@ class TestTimeDelayedMelodySurface:
     #     mock_distribution = PitchDistribution(
     #         [100, 500, 1100], [0, 10, 8]  # do not span over an octave (1200 cents)
     #     )
-    #     tdml = TimeDelayedMelodySurface()
-    #     tdml.tmp_dir = mock_tmp_dir  # transform called before
+    #     tdms = TimeDelayedMelodySurface()
+    #     tdms.tmp_dir = mock_tmp_dir  # transform called before
 
     #     # WHEN
-    #     with mock.patch.object(tdml, "_cleanup", autospec=True) as mock_cleanup:
+    #     with mock.patch.object(tdms, "_cleanup", autospec=True) as mock_cleanup:
     #         with mock.patch(
     #             "tempfile.TemporaryDirectory",
     #             autospec=True,
@@ -131,7 +131,7 @@ class TestTimeDelayedMelodySurface:
     #         ):
     #             with mock.patch("numpy.load", autospec=True):
     #                 with mock.patch.object(
-    #                     tdml,
+    #                     tdms,
     #                     "transform_func",
     #                     autospec=True,
     #                     return_value=mock_distribution,
@@ -142,17 +142,17 @@ class TestTimeDelayedMelodySurface:
     #                         with mock.patch.object(
     #                             mock_distribution, "to_json", autospec=True
     #                         ):
-    #                             tdml.transform(melody_paths, tonic_freqs)
+    #                             tdms.transform(melody_paths, tonic_freqs)
 
     #     # THEN
     #     mock_cleanup.assert_called_once_with()
 
     # def test_mlflow_tags(self):
     #     # GIVEN
-    #     tdml = TimeDelayedMelodySurface()
+    #     tdms = TimeDelayedMelodySurface()
 
     #     # WHEN
-    #     result = tdml._mlflow_tags()
+    #     result = tdms._mlflow_tags()
 
     #     # THEN
     #     expected = {

@@ -27,7 +27,7 @@ DEFAULT_EMBEDDING = np.array(
 DEFAULT_PITCH_BINS = np.arange(0.0, 1200.0, 240.0)
 
 
-class TestTDMLProcessor:
+class TestTDMSFeature:
     def test_init(self):
         embedding = DEFAULT_EMBEDDING
         # should have 5 elements; same as embedding size in each dim
