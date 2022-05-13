@@ -26,13 +26,35 @@ class TDMSProcessor:
         self.embedding = np.array(embedding)  # force numpy array
         self.pitch_bins = np.array(pitch_bins)  # force numpy array
 
-        # TODO: validate surface and bins
+        if self.embedding.ndim != 2:
+            raise ValueError(
+                "Only 2D phase space embeddings are supported. "
+                f"# Dims: {self.embedding.ndim}"
+            )
+        if self.embedding.shape[0] != self.embedding.shape[1]:
+            raise ValueError(
+                "The embedding should be a square matrix. "
+                f"Shape: {self.embedding.shape}"
+            )
+        if self.pitch_bins.ndim != 1:
+            raise ValueError(
+                "pitch_bins should be a vector (single dimension). "
+                f"# Dims: {self.pitch_bins.ndim}"
+            )
+        if self.embedding.shape[0] != len(self.pitch_bins):
+            raise ValueError(
+                "The embedding size and pitch_bins length should be the same."
+            )
 
         self.ref_freq = ref_freq
         self.step_size = step_size
         self.time_delay_index = time_delay_index
-        self.compression_exponent = compression_exponent
-        self.kernel_width = kernel_width
+        self.compression_exponent = (  # 1 mathematically means no compression
+            1 if compression_exponent is None else compression_exponent
+        )
+        self.kernel_width = (  # 0 mathematically means no smoothing
+            0 if kernel_width is None else kernel_width
+        )
 
     def compress(self):
         self.embedding = np.power(self.embedding, self.compression_exponent)
@@ -55,27 +77,41 @@ class TDMSProcessor:
         compression_exponent=0.25,
         kernel_width=7.5,
     ):
-        """Implements time delayed melody surface computation
+        """Factory method to compute the time delayed melody surface feature
 
-        Original code: https://github.com/sankalpg/Library_PythonNew/blob/076b521c020c7d0afe7239f457dc9d67074b256d/melodyProcessing/phaseSpaceEmbedding.py # noqa: E501
+        The feature is introduced in:
+
+        Gulati, S., Serrà Julià, J., Ganguli, K. K., Şentürk, S., & Serra, X. (2016).
+        Time-delayed melody surfaces for rāga recognition. In Proceedings of the 17th
+        International Society for Music Information Retrieval Conference (ISMIR 2016).
+        2016; New York City (NY)
+
+        Ported from the original code: https://github.com/sankalpg/Library_PythonNew/blob/076b521c020c7d0afe7239f457dc9d67074b256d/melodyProcessing/phaseSpaceEmbedding.py # noqa: E501
 
         Args:
-            melody (_type_): _description_
-            ref_freq (_type_): _description_
-            kernel_width (_type_): _description_
-            step_size (_type_): _description_
-            time_delay_index
+            hz_track (np.ndarray): Pitch track with the shape Nx2 or Nx3, consisting
+            of timestamp (in sec), pitch (in Hz), and optionally confidence values
+            ref_freq (float, optional): Reference frequency in Hz. Defaults to 440.0.
+            step_size (float, optional): The step size (in cents) between consecutive
+            bins of the embedding. Defaults to 7.5.
+            time_delay_index (float, optional): The delay in seconds used to compute
+            the phase space embedding. Defaults to 0.3.
+            compression_exponent (float, optional): The exponential applied to each
+            element in the phase space embedding for compression. Defaults to 0.25.
+            kernel_width (float, optional): Standard deviation of the 2D Gaussian
+            kernel used for smoothing. Defaults to 7.5.
+
+        Returns:
+            TDMSProcessor: A time-delayed melody surface object
         """
         hz_track = cls._parse_hz_track(hz_track)
 
         pitch_idx, pitch_bins = cls._process_pitch(hz_track, ref_freq, step_size)
 
         sample_delay_index = cls._compute_sample_delay_index(hz_track, time_delay_index)
-
         delay_coordinates = cls._compute_delay_coordinates(
             pitch_idx, sample_delay_index
         )
-
         non_silent_delay_coordinates = cls._remove_silent_delay_coordinates(
             delay_coordinates
         )
@@ -179,7 +215,17 @@ class TDMSProcessor:
     @classmethod
     def _compute_sample_delay_index(cls, hz_track, time_delay_index):
         hop_size_sec = hz_track[1, 0] - hz_track[0, 0]
-        return int(round(time_delay_index / hop_size_sec))
+
+        sample_delay_index = int(round(time_delay_index / hop_size_sec))
+
+        if sample_delay_index < 1:
+            raise ValueError(
+                "Cannot compute a positive sample delay index! "
+                f"Time delay index ({time_delay_index}) is shorter than "
+                f"the pitch hop size ({hop_size_sec})."
+            )
+
+        return sample_delay_index
 
     @classmethod
     def _compute_delay_coordinates(cls, vector: np.ndarray, delay: int):
@@ -203,8 +249,8 @@ class TDMSProcessor:
         )
         for ii in range(cls.NUM_DELAY_COORDINATES):
             delay_coordinates[:, ii] = vector[
-                total_delay - (ii * delay): n_samples - (ii * delay)
-            ]
+                total_delay - (ii * delay) : n_samples - (ii * delay)  # noqa: E203
+            ]  # see https://github.com/PyCQA/pycodestyle/issues/373
 
         return delay_coordinates
 
