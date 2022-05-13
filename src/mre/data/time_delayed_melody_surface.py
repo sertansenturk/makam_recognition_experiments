@@ -25,8 +25,8 @@ class TimeDelayedMelodySurface(Data):
 
     RUN_NAME = cfg.get("mlflow", "time_delayed_melody_surface_run_name")
 
-    KERNEL_WIDTH = cfg.getfloat("time_delayed_melody_surface", "kernel_width")
     STEP_SIZE = cfg.getfloat("time_delayed_melody_surface", "step_size")
+    # KERNEL_WIDTH = cfg.getfloat("time_delayed_melody_surface", "kernel_width")
 
     FILE_EXTENSION = ".json"
 
@@ -39,6 +39,9 @@ class TimeDelayedMelodySurface(Data):
         self,
         melody_paths: List[str],
         tonic_frequencies: pd.Series,
+        time_delay_index: float = 0.3,
+        compression_exponent: float = 0.25,
+        kernel_width: float = 25,
     ):
         """extracts TDMLs from predominant melody of each audio recording by
         normalizing with respect to the tonic frequency and saves the features
@@ -95,8 +98,10 @@ class TimeDelayedMelodySurface(Data):
             tdml = self.transform_func(
                 melody,  # pitch values sliced internally
                 ref_freq=tonic_frequencies.loc[mbid],
-                kernel_width=self.KERNEL_WIDTH,
                 step_size=self.STEP_SIZE,
+                time_delay_index=time_delay_index,
+                compression_exponent=compression_exponent,
+                kernel_width=kernel_width,
             )
 
             tmp_file = Path(self._tmp_dir_path(), mbid + self.FILE_EXTENSION)

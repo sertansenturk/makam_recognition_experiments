@@ -555,3 +555,63 @@ class TestTDMLProcessor:
             ),
         ):
             _ = TDMSFeature._compute_phase_space_embedding(delay_coord, tdms_size)
+
+    def test_to_dict(self):
+        embedding = DEFAULT_EMBEDDING
+        pitch_bins = DEFAULT_PITCH_BINS
+        ref_freq = 512  # hz
+        step_size = 10  # cents
+        time_delay_index = 0.5  # seconds
+        compression_exponent = 0.5  # square root compression
+        kernel_width = 20  # cents
+        tdms = TDMSFeature(
+            embedding,
+            pitch_bins,
+            ref_freq,
+            step_size,
+            time_delay_index,
+            compression_exponent,
+            kernel_width,
+        )
+
+        result = tdms.to_dict()
+
+        expected = {
+            "embedding": DEFAULT_EMBEDDING.tolist(),
+            "pitch_bins": DEFAULT_PITCH_BINS.tolist(),
+            "ref_freq": ref_freq,
+            "step_size": step_size,
+            "time_delay_index": time_delay_index,
+            "compression_exponent": compression_exponent,
+            "kernel_width": kernel_width,
+        }
+        assert result == expected
+
+    def test_to_json(self):
+        embedding = DEFAULT_EMBEDDING
+        pitch_bins = DEFAULT_PITCH_BINS
+        ref_freq = 512  # hz
+        step_size = 10  # cents
+        time_delay_index = 0.5  # seconds
+        compression_exponent = 0.5  # square root compression
+        kernel_width = 20  # cents
+        tdms = TDMSFeature(
+            embedding,
+            pitch_bins,
+            ref_freq,
+            step_size,
+            time_delay_index,
+            compression_exponent,
+            kernel_width,
+        )
+
+        result = tdms.to_json()
+
+        expected = (
+            '{"embedding":[[0.0,2.0,4.0,6.0,8.0],[10.0,12.0,14.0,16.0,18.0],'
+            "[20.0,22.0,24.0,26.0,28.0],[30.0,32.0,34.0,36.0,38.0],"
+            '[40.0,42.0,44.0,46.0,48.0]],"pitch_bins":[0.0,240.0,480.0,720.0,960.0],'
+            '"ref_freq":512,"step_size":10,"time_delay_index":0.5,'
+            '"compression_exponent":0.5,"kernel_width":20}'
+        )
+        assert result == expected

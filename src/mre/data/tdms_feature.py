@@ -1,3 +1,4 @@
+import json
 from typing import Union
 
 import numpy as np
@@ -274,10 +275,35 @@ class TDMSFeature:
         return tdms
 
     def plot(self):
-        ax = plt.imshow(self.embedding, cmap="rainbow")
-        plt.colorbar()
+        tick_start = self.pitch_bins[0]
+        tick_diff = self.pitch_bins[1] - self.pitch_bins[0]
+        tick_end = self.pitch_bins[-1] + tick_diff
+        extent = [tick_start, tick_end, tick_start, tick_end]
+
+        ax = plt.imshow(self.embedding, cmap="rainbow", extent=extent)
+        plt.title("Time delayed melody surface")
+        plt.xlabel(
+            "Octave-wrapped pitch (cent)\n"
+            "$0^{th}$ bin: $%d$ Hz x 2^n" % self.ref_freq
+        )
 
         return ax
 
-    def to_json(self):
-        pass
+    def to_dict(self):
+        pdict = self.__dict__
+        for key, val in pdict.items():
+            try:  # convert to list from np array
+                pdict[key] = val.tolist()
+            except AttributeError:
+                pass
+
+        return pdict
+
+    def to_json(self, file_name=None):
+        tdms_dict = self.to_dict()
+
+        if file_name is None:
+            return json.dumps(tdms_dict, separators=(",", ":"))
+
+        with open(file_name, "w", encoding="utf-8") as f:
+            json.dump(tdms_dict, f, separators=(",", ":"))
