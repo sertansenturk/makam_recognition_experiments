@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from mre.config import config
 from mre.data.data import Data
-from mre.data.tdms_processor import TDMSProcessor
+from mre.data.tdms_feature import TDMSFeature
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -33,7 +33,7 @@ class TimeDelayedMelodySurface(Data):
     def __init__(self):
         """instantiates a TDML object"""
         super().__init__()
-        self.transform_func = TDMSProcessor.from_hz_pitch
+        self.transform_func = TDMSFeature.from_hz_pitch
 
     def transform(  # pylint: disable-msg=W0221
         self,

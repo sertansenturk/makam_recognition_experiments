@@ -7,7 +7,7 @@ from scipy import ndimage
 from tomato.converter import Converter
 
 
-class TDMSProcessor:
+class TDMSFeature:
     NUM_CENTS_IN_OCTAVE = 1200
     MIN_FREQ = 20
     TIMESTAMP_DEVIATION_TOL = 10e-6  # 1 microsecond
@@ -102,7 +102,7 @@ class TDMSProcessor:
             kernel used for smoothing. Defaults to 7.5.
 
         Returns:
-            TDMSProcessor: A time-delayed melody surface object
+            TDMSFeature: A time-delayed melody surface object
         """
         hz_track = cls._parse_hz_track(hz_track)
 
@@ -176,7 +176,7 @@ class TDMSProcessor:
             ref_freq = 440  # hz
             step_size = 100  # cents
 
-            pitch_idx, pitch_bins = TDMSProcessor._process_pitch(
+            pitch_idx, pitch_bins = TDMSFeature._process_pitch(
                 hz_track, ref_freq, step_size)
 
             # THEN

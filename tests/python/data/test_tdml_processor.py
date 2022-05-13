@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 import numpy as np
-from mre.data.tdms_processor import TDMSProcessor
+from mre.data.tdms_feature import TDMSFeature
 
 
 DEFAULT_TIME_PITCH_CONFIDENCE = [
@@ -38,7 +38,7 @@ class TestTDMLProcessor:
         compression_exponent = 0.5  # square root compression
         kernel_width = 20  # cents
 
-        tdms = TDMSProcessor(
+        tdms = TDMSFeature(
             embedding,
             pitch_bins,
             ref_freq,
@@ -69,7 +69,7 @@ class TestTDMLProcessor:
             ValueError,
             match=r"The embedding should be a square matrix. Shape: \(2, 5\)",
         ):
-            _ = TDMSProcessor(embedding, dummy_pitch_bins)
+            _ = TDMSFeature(embedding, dummy_pitch_bins)
 
     @pytest.mark.parametrize(
         "embedding",
@@ -88,7 +88,7 @@ class TestTDMLProcessor:
                 f"# Dims: {embedding.ndim}"
             ),
         ):
-            _ = TDMSProcessor(embedding, dummy_pitch_bins)
+            _ = TDMSFeature(embedding, dummy_pitch_bins)
 
     def test_init_pitch_bin_len_mismatch(self):
         embedding = DEFAULT_EMBEDDING
@@ -99,7 +99,7 @@ class TestTDMLProcessor:
             ValueError,
             match="The embedding size and pitch_bins length should be the same",
         ):
-            _ = TDMSProcessor(embedding, pitch_bins)
+            _ = TDMSFeature(embedding, pitch_bins)
 
     @pytest.mark.parametrize(
         "pitch_bins",
@@ -118,13 +118,13 @@ class TestTDMLProcessor:
                 f"# Dims: {pitch_bins.ndim}"
             ),
         ):
-            _ = TDMSProcessor(embedding, pitch_bins)
+            _ = TDMSFeature(embedding, pitch_bins)
 
     def test_init_none_compression_exponent(self):
         embedding = DEFAULT_EMBEDDING
         pitch_bins = DEFAULT_PITCH_BINS
 
-        tdms = TDMSProcessor(embedding, pitch_bins, compression_exponent=None)
+        tdms = TDMSFeature(embedding, pitch_bins, compression_exponent=None)
 
         assert tdms.compression_exponent == 1
 
@@ -139,7 +139,7 @@ class TestTDMLProcessor:
         dummy_pitch_bins = np.array([0.0, 400.0, 800.0])
         compression_exponent = 0.5
 
-        tdms = TDMSProcessor(
+        tdms = TDMSFeature(
             embedding=embedding,
             pitch_bins=dummy_pitch_bins,
             compression_exponent=compression_exponent,
@@ -170,7 +170,7 @@ class TestTDMLProcessor:
         dummy_pitch_bins = np.array([0.0, 400.0, 800.0])
         compression_exponent = None
 
-        tdms = TDMSProcessor(
+        tdms = TDMSFeature(
             embedding=copy.deepcopy(embedding),
             pitch_bins=dummy_pitch_bins,
             compression_exponent=compression_exponent,
@@ -184,7 +184,7 @@ class TestTDMLProcessor:
         embedding = DEFAULT_EMBEDDING
         pitch_bins = DEFAULT_PITCH_BINS
 
-        tdms = TDMSProcessor(embedding, pitch_bins, kernel_width=None)
+        tdms = TDMSFeature(embedding, pitch_bins, kernel_width=None)
 
         assert tdms.kernel_width == 0
 
@@ -196,7 +196,7 @@ class TestTDMLProcessor:
         embedding = DEFAULT_EMBEDDING
         dummy_pitch_bins = DEFAULT_PITCH_BINS
 
-        tdms = TDMSProcessor(
+        tdms = TDMSFeature(
             embedding=embedding,
             pitch_bins=dummy_pitch_bins,
             kernel_width=kernel_width,
@@ -217,7 +217,7 @@ class TestTDMLProcessor:
         embedding = DEFAULT_EMBEDDING
         dummy_pitch_bins = DEFAULT_PITCH_BINS
 
-        tdms = TDMSProcessor(
+        tdms = TDMSFeature(
             embedding=copy.deepcopy(embedding),
             pitch_bins=dummy_pitch_bins,
             kernel_width=kernel_width,
@@ -231,7 +231,7 @@ class TestTDMLProcessor:
         embedding = np.array([[0.0, 5.0, 10.0], [15.0, 20.0, 25.0], [30.0, 35.0, 40.0]])
         dummy_pitch_bins = np.array([0.0, 400.0, 800.0])
 
-        tdms = TDMSProcessor(embedding=embedding, pitch_bins=dummy_pitch_bins)
+        tdms = TDMSFeature(embedding=embedding, pitch_bins=dummy_pitch_bins)
         tdms.normalize()
 
         expected = embedding / 180
@@ -245,31 +245,31 @@ class TestTDMLProcessor:
             np.array(DEFAULT_TIME_PITCH_CONFIDENCE),
         ],
     )
-    @mock.patch("mre.data.tdms_processor.TDMSProcessor.normalize")
-    @mock.patch("mre.data.tdms_processor.TDMSProcessor.smoothen")
-    @mock.patch("mre.data.tdms_processor.TDMSProcessor.compress")
+    @mock.patch("mre.data.tdms_feature.TDMSFeature.normalize")
+    @mock.patch("mre.data.tdms_feature.TDMSFeature.smoothen")
+    @mock.patch("mre.data.tdms_feature.TDMSFeature.compress")
     @mock.patch(
-        "mre.data.tdms_processor.TDMSProcessor._compute_phase_space_embedding",
+        "mre.data.tdms_feature.TDMSFeature._compute_phase_space_embedding",
         return_value=DEFAULT_EMBEDDING,
     )
     @mock.patch(
-        "mre.data.tdms_processor.TDMSProcessor._remove_silent_delay_coordinates",
+        "mre.data.tdms_feature.TDMSFeature._remove_silent_delay_coordinates",
         return_value="mock_nonsilent_delay_coord",
     )
     @mock.patch(
-        "mre.data.tdms_processor.TDMSProcessor._compute_delay_coordinates",
+        "mre.data.tdms_feature.TDMSFeature._compute_delay_coordinates",
         return_value="mock_delay_coord",
     )
     @mock.patch(
-        "mre.data.tdms_processor.TDMSProcessor._compute_sample_delay_index",
+        "mre.data.tdms_feature.TDMSFeature._compute_sample_delay_index",
         return_value="mock_sample_delay_index",
     )
     @mock.patch(
-        "mre.data.tdms_processor.TDMSProcessor._process_pitch",
+        "mre.data.tdms_feature.TDMSFeature._process_pitch",
         return_value=("mock_pitch_idx", DEFAULT_PITCH_BINS),
     )
     @mock.patch(
-        "mre.data.tdms_processor.TDMSProcessor._parse_hz_track",
+        "mre.data.tdms_feature.TDMSFeature._parse_hz_track",
         return_value="mock_hz_track",
     )
     def test_from_hz_pitch(
@@ -308,7 +308,7 @@ class TestTDMLProcessor:
         compression_exponent = 0.5  # square root compression
         kernel_width = 20  # cents
 
-        tdms = TDMSProcessor.from_hz_pitch(
+        tdms = TDMSFeature.from_hz_pitch(
             hz_track,
             ref_freq,
             step_size,
@@ -349,7 +349,7 @@ class TestTDMLProcessor:
         ],
     )
     def test_parse_hz_track(self, hz_track):
-        result = TDMSProcessor._parse_hz_track(hz_track)
+        result = TDMSFeature._parse_hz_track(hz_track)
 
         expected = np.array(DEFAULT_TIME_PITCH_CONFIDENCE)
 
@@ -358,7 +358,7 @@ class TestTDMLProcessor:
     def test_parse_hz_track_omit_confidence(self):
         hz_track = np.array(DEFAULT_TIME_PITCH_CONFIDENCE)[:, :1]
 
-        result = TDMSProcessor._parse_hz_track(hz_track)
+        result = TDMSFeature._parse_hz_track(hz_track)
         expected = copy.deepcopy(np.array(DEFAULT_TIME_PITCH_CONFIDENCE)[:, :1])
 
         np.testing.assert_array_equal(result, expected)
@@ -374,12 +374,12 @@ class TestTDMLProcessor:
         with pytest.raises(
             ValueError, match=f"The hz_track has {hz_track.ndim} dimensions."
         ):
-            TDMSProcessor._parse_hz_track(hz_track)
+            TDMSFeature._parse_hz_track(hz_track)
 
     def test_parse_hz_track_wrong_shape(self):
         hz_track = np.array(DEFAULT_TIME_PITCH_CONFIDENCE).T
         with pytest.raises(ValueError, match=r"The hz_track's shape is \(3, 6\)."):
-            TDMSProcessor._parse_hz_track(hz_track)
+            TDMSFeature._parse_hz_track(hz_track)
 
     def test_parse_hz_track_deviating_timestamps(self):
         hz_track = np.array(DEFAULT_TIME_PITCH_CONFIDENCE)
@@ -387,7 +387,7 @@ class TestTDMLProcessor:
         with pytest.raises(
             ValueError, match="The duration between the timestamps deviate too much"
         ):
-            TDMSProcessor._parse_hz_track(hz_track)
+            TDMSFeature._parse_hz_track(hz_track)
 
     def test_process_pitch_non_silent(self):
         hz_track = np.array(
@@ -403,7 +403,7 @@ class TestTDMLProcessor:
         ref_freq = 160  # hz
         step_size = 100  # cents
 
-        result_idx, result_bins = TDMSProcessor._process_pitch(
+        result_idx, result_bins = TDMSFeature._process_pitch(
             hz_track, ref_freq, step_size
         )
 
@@ -418,7 +418,7 @@ class TestTDMLProcessor:
         ref_freq = 250.0  # hz
         step_size = 100  # cents
 
-        result_idx, result_bins = TDMSProcessor._process_pitch(
+        result_idx, result_bins = TDMSFeature._process_pitch(
             hz_track, ref_freq, step_size
         )
 
@@ -442,7 +442,7 @@ class TestTDMLProcessor:
     def test_compute_sample_delay_index(self, time_delay_index, expected):
         hz_track = np.array(DEFAULT_TIME_PITCH_CONFIDENCE)
 
-        result = TDMSProcessor._compute_sample_delay_index(hz_track, time_delay_index)
+        result = TDMSFeature._compute_sample_delay_index(hz_track, time_delay_index)
 
         assert result == expected
 
@@ -457,7 +457,7 @@ class TestTDMLProcessor:
             ValueError,
             match=("Cannot compute a positive sample delay index"),
         ):
-            _ = TDMSProcessor._compute_sample_delay_index(hz_track, time_delay_index)
+            _ = TDMSFeature._compute_sample_delay_index(hz_track, time_delay_index)
 
     @pytest.mark.parametrize(
         "delay",
@@ -469,7 +469,7 @@ class TestTDMLProcessor:
         with pytest.raises(
             ValueError, match="Provide delay per coordinate as an integer"
         ):
-            _ = TDMSProcessor._compute_delay_coordinates(vector, delay)
+            _ = TDMSFeature._compute_delay_coordinates(vector, delay)
 
     @pytest.mark.parametrize(
         "delay",
@@ -479,7 +479,7 @@ class TestTDMLProcessor:
         vector = np.array([0, 1, 2, 3, 4, 5])
 
         with pytest.raises(ValueError, match="delay must be a positive integer"):
-            _ = TDMSProcessor._compute_delay_coordinates(vector, delay)
+            _ = TDMSFeature._compute_delay_coordinates(vector, delay)
 
     @pytest.mark.parametrize(
         "delay",
@@ -491,7 +491,7 @@ class TestTDMLProcessor:
         with pytest.raises(
             ValueError, match="delay cannot be more than the vector length - 1."
         ):
-            _ = TDMSProcessor._compute_delay_coordinates(vector, delay)
+            _ = TDMSFeature._compute_delay_coordinates(vector, delay)
 
     @pytest.mark.parametrize(
         "delay,expected",
@@ -505,7 +505,7 @@ class TestTDMLProcessor:
     def test_compute_delay_coordinates(self, delay, expected):
         vector = np.array([0, 1, 2, 3, 4, 5])
 
-        result = TDMSProcessor._compute_delay_coordinates(vector, delay)
+        result = TDMSFeature._compute_delay_coordinates(vector, delay)
 
         np.testing.assert_array_equal(result, expected)
 
@@ -514,7 +514,7 @@ class TestTDMLProcessor:
             [[1.0, 0.0], [2.0, np.nan], [np.nan, 2.0], [np.nan, np.nan], [5.0, 4.0]]
         )
 
-        result = TDMSProcessor._remove_silent_delay_coordinates(delay_coord)
+        result = TDMSFeature._remove_silent_delay_coordinates(delay_coord)
 
         expected = np.array([[1.0, 0.0], [5.0, 4.0]])
         np.testing.assert_array_equal(result, expected)
@@ -528,7 +528,7 @@ class TestTDMLProcessor:
     )
     def test_compute_phase_space_embedding(self, delay_coord):
         tdms_size = 5
-        result = TDMSProcessor._compute_phase_space_embedding(delay_coord, tdms_size)
+        result = TDMSFeature._compute_phase_space_embedding(delay_coord, tdms_size)
 
         expected = np.array(
             [
@@ -554,4 +554,4 @@ class TestTDMLProcessor:
                 "more than the TDMS size."
             ),
         ):
-            _ = TDMSProcessor._compute_phase_space_embedding(delay_coord, tdms_size)
+            _ = TDMSFeature._compute_phase_space_embedding(delay_coord, tdms_size)
