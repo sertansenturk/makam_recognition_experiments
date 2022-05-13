@@ -79,7 +79,9 @@ class TestTimeDelayedMelodySurface:
         melody_paths = ["./path/id1.npy", "./path/id2.npy"]
         tonic_freqs = pd.Series([400, 100], index=["id1", "id2"])
         mock_distribution = PitchDistribution(
-            [100, 500, 1100], [0, 10, 8]  # do not span over an octave (1200 cents)
+            # do not span over an octave (1200 cents)
+            [100, 500, 1100],
+            [0, 10, 8],
         )
         tdml = TimeDelayedMelodySurface()
 
@@ -123,7 +125,9 @@ class TestTimeDelayedMelodySurface:
     #     # WHEN
     #     with mock.patch.object(tdml, "_cleanup", autospec=True) as mock_cleanup:
     #         with mock.patch(
-    #             "tempfile.TemporaryDirectory", autospec=True, return_value=mock_tmp_dir
+    #             "tempfile.TemporaryDirectory",
+    #             autospec=True,
+    #             return_value=mock_tmp_dir
     #         ):
     #             with mock.patch("numpy.load", autospec=True):
     #                 with mock.patch.object(
