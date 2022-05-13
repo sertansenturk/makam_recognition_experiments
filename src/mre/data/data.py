@@ -23,7 +23,7 @@ class Data(abc.ABC):
     # https://numpy.org/doc/stable/reference/generated/numpy.lib.format.html
 
     def __init__(self):
-        """instantiates an Audio object"""
+        """instantiates an Data object"""
         self.tmp_dir: Optional[Path] = None
         self.transform_func: Optional[Callable] = None
 

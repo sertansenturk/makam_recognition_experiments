@@ -30,18 +30,22 @@ class TimeDelayedMelodySurface(Data):
 
     FILE_EXTENSION = ".json"
 
-    def __init__(self):
+    def __init__(
+        self,
+        time_delay_index: float = 0.3,
+        compression_exponent: float = 0.25,
+        kernel_width: float = 25,
+    ):
         """instantiates a TDMS object"""
         super().__init__()
         self.transform_func = TDMSFeature.from_hz_pitch
 
+        self.time_delay_index = time_delay_index
+        self.compression_exponent = compression_exponent
+        self.kernel_width = kernel_width
+
     def transform(  # pylint: disable-msg=W0221
-        self,
-        melody_paths: List[str],
-        tonic_frequencies: pd.Series,
-        time_delay_index: float = 0.3,
-        compression_exponent: float = 0.25,
-        kernel_width: float = 25,
+        self, melody_paths: List[str], tonic_frequencies: pd.Series
     ):
         """extracts TDMSs from predominant melody of each audio recording by
         normalizing with respect to the tonic frequency and saves the features
@@ -76,17 +80,17 @@ class TimeDelayedMelodySurface(Data):
             raise ValueError("melody_paths is empty")
 
         if tonic_frequencies.empty:
-            raise ValueError("tonic_frequencies is empty!")
+            raise ValueError("tonic_frequencies is empty")
 
         mel_mbids = [Path(pp).stem for pp in melody_paths]
         tonic_mbids = list(tonic_frequencies.index)
         if len(set(mel_mbids)) != len(mel_mbids):
-            raise ValueError("melody_paths has a duplicate path!")
+            raise ValueError("melody_paths has a duplicate path")
         if len(set(tonic_mbids)) != len(tonic_mbids):
-            raise ValueError("tonic_mbids has a duplicate index!")
+            raise ValueError("tonic_mbids has a duplicate index")
 
         if set(mel_mbids) != set(tonic_mbids):
-            raise ValueError("MBIDs of melody_paths and tonic_mbids do not match!")
+            raise ValueError("MBIDs of melody_paths and tonic_mbids do not match")
 
         if self.tmp_dir is not None:
             self._cleanup()
@@ -99,9 +103,9 @@ class TimeDelayedMelodySurface(Data):
                 melody,  # pitch values sliced internally
                 ref_freq=tonic_frequencies.loc[mbid],
                 step_size=self.STEP_SIZE,
-                time_delay_index=time_delay_index,
-                compression_exponent=compression_exponent,
-                kernel_width=kernel_width,
+                time_delay_index=self.time_delay_index,
+                compression_exponent=self.compression_exponent,
+                kernel_width=self.kernel_width,
             )
 
             tmp_file = Path(self._tmp_dir_path(), mbid + self.FILE_EXTENSION)
@@ -114,10 +118,11 @@ class TimeDelayedMelodySurface(Data):
         Returns
         -------
         Dict
-            tags to log, namely, PCD extractor settings
+            tags to log, namely, TDMS extractor settings
         """
-        # return {
-        #     "kernel_width": self.KERNEL_WIDTH,
-        #     "norm_type": self.NORM_TYPE,
-        #     "step_size": self.STEP_SIZE,
-        # }
+        return {
+            "step_size": self.STEP_SIZE,
+            "time_delay_index": self.time_delay_index,
+            "compression_exponent": self.compression_exponent,
+            "kernel_width": self.kernel_width,
+        }
