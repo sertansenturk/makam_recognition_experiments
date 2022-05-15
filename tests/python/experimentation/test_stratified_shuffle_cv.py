@@ -104,23 +104,53 @@ class TestStratifiedShuffleCV:
         )
 
     def test_collect_model_results_at_trial(self, cv, mock_estimator):
-        scores = {
-            "train_score": ["train_sc1", "train_sc2"],
-            "test_score": ["test_sc1", "test_sc2"],
-            "fit_time": ["fit_t1", "fit_t2"],
-            "score_time": ["score_t1", "score_t2"],
-            "estimator": [mock_estimator(1), mock_estimator(2)],
+        mock_estimator0 = mock_estimator(0)
+        mock_estimator1 = mock_estimator(1)
+
+        trial_result = {
+            "estimator": mock_estimator1,
+            "test_score": "test_sc1",
+            "refit_train_score": "refit_train_sc1",
+            "test_predictions": "test_preds1",
+            "test_labels": "test_labels1",
+            "test_predicted_probs": {
+                "probs": "predicted_probs1",
+                "labels": "clf_classes",
+            },
+            "refit_time": "refit_t1",
+            "best_params_": "best_params_1",
+            "split_train_scores": "split_train_scores1",
+            "mean_split_train_score": "mean_split_train_score1",
+            "std_split_train_score": "std_split_train_score1",
+            "split_validation_scores": "split_validation_scores1",
+            "mean_split_validation_score": "mean_split_validation_score1",
+            "std_split_validation_score": "std_split_validation_score1",
+            "confusion_matrix": "confusion_matrix1",
+            "roc_auc_score": "roc_auc_score1",
         }
         results_list = [
             {
-                "architecture": "ml_model",
-                "train_score": "train_sc0",
+                "estimator": mock_estimator0,
                 "test_score": "test_sc0",
-                "fit_time": "fit_t0",
-                "score_time": "score_t0",
-                "split_id": 1,
+                "refit_train_score": "train_sc0",
+                "test_predictions": "test_preds0",
+                "test_labels": "test_labels0",
+                "test_predicted_probs": {
+                    "probs": "predicted_probs0",
+                    "labels": "clf_classes",
+                },
+                "refit_time": "refit_t0",
+                "best_params_": "best_params_0",
+                "split_train_scores": "split_train_scores0",
+                "mean_split_train_score": "mean_split_train_score0",
+                "std_split_train_score": "std_split_train_score0",
+                "split_validation_scores": "split_validation_scores0",
+                "mean_split_validation_score": "mean_split_validation_score0",
+                "std_split_validation_score": "std_split_validation_score0",
+                "confusion_matrix": "confusion_matrix0",
+                "roc_auc_score": "roc_auc_score0",
+                "architecture": "ml_model",
                 "trial_id": 2,
-                "best_params_": "mocked_best_params_0",
                 "cv_results_": "mocked_cv_results_0",
             }
         ]
@@ -131,40 +161,57 @@ class TestStratifiedShuffleCV:
             param_grid={"param1": ["val1", "val2"]},
         )
 
-        cv._collect_model_results_at_trial(scores, results_list, trial_id, architecture)
+        cv._collect_model_results_at_trial(
+            trial_result, results_list, trial_id, architecture
+        )
         expected_results_list = [
             {
-                "architecture": "ml_model",
-                "train_score": "train_sc0",
+                "estimator": mock_estimator0,
                 "test_score": "test_sc0",
-                "fit_time": "fit_t0",
-                "score_time": "score_t0",
-                "split_id": 1,
+                "refit_train_score": "train_sc0",
+                "test_predictions": "test_preds0",
+                "test_labels": "test_labels0",
+                "test_predicted_probs": {
+                    "probs": "predicted_probs0",
+                    "labels": "clf_classes",
+                },
+                "refit_time": "refit_t0",
+                "best_params_": "best_params_0",
+                "split_train_scores": "split_train_scores0",
+                "mean_split_train_score": "mean_split_train_score0",
+                "std_split_train_score": "std_split_train_score0",
+                "split_validation_scores": "split_validation_scores0",
+                "mean_split_validation_score": "mean_split_validation_score0",
+                "std_split_validation_score": "std_split_validation_score0",
+                "confusion_matrix": "confusion_matrix0",
+                "roc_auc_score": "roc_auc_score0",
+                "architecture": "ml_model",
                 "trial_id": 2,
-                "best_params_": "mocked_best_params_0",
                 "cv_results_": "mocked_cv_results_0",
             },
-            {  # appended to the existing items
-                "architecture": "ml_model",
-                "train_score": "train_sc1",
-                "test_score": "test_sc1",
-                "fit_time": "fit_t1",
-                "score_time": "score_t1",
-                "split_id": 0,
-                "trial_id": 3,
-                "best_params_": "mocked_best_params_1",
-                "cv_results_": "mocked_cv_results_1",
-            },
             {
+                "estimator": mock_estimator1,
+                "test_score": "test_sc1",
+                "refit_train_score": "refit_train_sc1",
+                "test_predictions": "test_preds1",
+                "test_labels": "test_labels1",
+                "test_predicted_probs": {
+                    "probs": "predicted_probs1",
+                    "labels": "clf_classes",
+                },
+                "refit_time": "refit_t1",
+                "best_params_": "best_params_1",
+                "split_train_scores": "split_train_scores1",
+                "mean_split_train_score": "mean_split_train_score1",
+                "std_split_train_score": "std_split_train_score1",
+                "split_validation_scores": "split_validation_scores1",
+                "mean_split_validation_score": "mean_split_validation_score1",
+                "std_split_validation_score": "std_split_validation_score1",
+                "confusion_matrix": "confusion_matrix1",
+                "roc_auc_score": "roc_auc_score1",
                 "architecture": "ml_model",
-                "train_score": "train_sc2",
-                "test_score": "test_sc2",
-                "fit_time": "fit_t2",
-                "score_time": "score_t2",
-                "split_id": 1,
                 "trial_id": 3,
-                "best_params_": "mocked_best_params_2",
-                "cv_results_": "mocked_cv_results_2",
+                "cv_results_": "mocked_cv_results_1",
             },
         ]
         print(results_list)
