@@ -103,7 +103,7 @@ class Data(abc.ABC):
             tags=self._mlflow_tags(),
         )
         logger.info(
-            "Logged artifacts & tags to mlflow under experiment %s, " "run %s",
+            "Logged artifacts & tags to mlflow under experiment %s, run %s",
             self.EXPERIMENT_NAME,
             self.RUN_NAME,
         )

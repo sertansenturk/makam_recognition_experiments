@@ -64,7 +64,6 @@ def log(
     artifact_dir: Optional[str] = None,
     tags: Optional[Dict] = None,
 ):
-
     mlflow_run = get_run_by_name(experiment_name, run_name)
     if mlflow_run is not None:
         raise ValueError(
