@@ -63,9 +63,10 @@ def log(
     run_name: str,
     artifact_dir: Optional[str] = None,
     tags: Optional[Dict] = None,
+    allow_multiple_runs: bool = False,
 ):
     mlflow_run = get_run_by_name(experiment_name, run_name)
-    if mlflow_run is not None:
+    if mlflow_run is not None and not allow_multiple_runs:
         raise ValueError(
             f"There is already a run for {run_name}:{mlflow_run.run_id}. "
             "Overwriting is not permitted. Please delete the run manually if you "

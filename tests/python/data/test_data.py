@@ -89,6 +89,7 @@ class TestData:
                         run_name=data.RUN_NAME,
                         artifact_dir=data._tmp_dir_path(),
                         tags=data._mlflow_tags(),
+                        allow_multiple_runs=data.ALLOW_MULTIPLE_RUNS,
                     )
 
                     mock_cleanup.assert_called_once_with()

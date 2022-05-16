@@ -21,6 +21,7 @@ class Data(abc.ABC):
     RUN_NAME = None
     FILE_EXTENSION = ".npy"  # data is saved as binary numpy format by default
     # https://numpy.org/doc/stable/reference/generated/numpy.lib.format.html
+    ALLOW_MULTIPLE_RUNS = False
 
     def __init__(self):
         """instantiates an Data object"""
@@ -101,6 +102,7 @@ class Data(abc.ABC):
             run_name=self.RUN_NAME,
             artifact_dir=self._tmp_dir_path(),
             tags=self._mlflow_tags(),
+            allow_multiple_runs=self.ALLOW_MULTIPLE_RUNS,
         )
         logger.info(
             "Logged artifacts & tags to mlflow under experiment %s, run %s",

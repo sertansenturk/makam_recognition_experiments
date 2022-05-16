@@ -90,7 +90,9 @@ class TestMlflow:
 
     @mock.patch("mlflow.start_run")
     @mock.patch("mlflow.set_experiment")
-    def test_log_existing_run(self, mock_mlflow_set_experiment, mock_mlflow_start_run):
+    def test_log_existing_run_default(
+        self, mock_mlflow_set_experiment, mock_mlflow_start_run
+    ):
         # GIVEN
         experiment_name = "exp_name"
         run_name = "run_name"
@@ -110,6 +112,68 @@ class TestMlflow:
 
             mock_mlflow_set_experiment.assert_not_called()
             mock_mlflow_start_run.assert_not_called()
+
+    @mock.patch("mlflow.start_run")
+    @mock.patch("mlflow.set_experiment")
+    def test_log_existing_run_disallowed(
+        self, mock_mlflow_set_experiment, mock_mlflow_start_run
+    ):
+        # GIVEN
+        experiment_name = "exp_name"
+        run_name = "run_name"
+        artifact_dir = "tmp_dir"
+        tags = {"key1": "val1"}
+        allow_multiple_runs = False
+        mock_run = pd.DataFrame([{"run_id": "rid"}])
+
+        # WHEN; THEN
+        with mock.patch("mre.mlflow_common.get_run_by_name", return_value=mock_run):
+            with pytest.raises(ValueError):
+                mre.mlflow_common.log(
+                    experiment_name=experiment_name,
+                    run_name=run_name,
+                    artifact_dir=artifact_dir,
+                    tags=tags,
+                    allow_multiple_runs=allow_multiple_runs,
+                )
+
+            mock_mlflow_set_experiment.assert_not_called()
+            mock_mlflow_start_run.assert_not_called()
+
+    @mock.patch("mlflow.log_artifacts")
+    @mock.patch("mlflow.set_tags")
+    @mock.patch("mlflow.start_run")
+    @mock.patch("mlflow.set_experiment")
+    def test_log_existing_run_allowed(
+        self,
+        mock_mlflow_set_experiment,
+        mock_mlflow_start_run,
+        mock_mlflow_set_tags,
+        mock_mlflow_log_artifacts,
+    ):
+        # GIVEN
+        experiment_name = "exp_name"
+        run_name = "run_name"
+        artifact_dir = "tmp_dir"
+        tags = {"key1": "val1"}
+        allow_multiple_runs = True
+        mock_run = pd.DataFrame([{"run_id": "rid"}])
+
+        # WHEN; THEN
+        with mock.patch("mre.mlflow_common.get_run_by_name", return_value=mock_run):
+            mre.mlflow_common.log(
+                experiment_name=experiment_name,
+                run_name=run_name,
+                artifact_dir=artifact_dir,
+                tags=tags,
+                allow_multiple_runs=allow_multiple_runs,
+            )
+
+            mock_mlflow_set_experiment.assert_called_once()
+            mock_mlflow_start_run.assert_called_once()
+
+            mock_mlflow_set_tags.assert_called_once()
+            mock_mlflow_log_artifacts.assert_called_once_with(artifact_dir)
 
     @mock.patch("mlflow.log_artifacts")
     @mock.patch("mlflow.set_tags")

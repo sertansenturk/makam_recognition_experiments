@@ -26,9 +26,9 @@ class TimeDelayedMelodySurface(Data):
     RUN_NAME = cfg.get("mlflow", "time_delayed_melody_surface_run_name")
 
     STEP_SIZE = cfg.getfloat("time_delayed_melody_surface", "step_size")
-    # KERNEL_WIDTH = cfg.getfloat("time_delayed_melody_surface", "kernel_width")
 
     FILE_EXTENSION = ".json"
+    ALLOW_MULTIPLE_RUNS = True
 
     def __init__(
         self,
