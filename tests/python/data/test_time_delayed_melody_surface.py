@@ -2,6 +2,7 @@ from unittest import mock
 from pathlib import Path
 import pytest
 
+import mlflow
 import pandas as pd
 import numpy as np
 
@@ -26,6 +27,77 @@ def mock_experiment(scope="session") -> mock.MagicMock:
 
 
 class TestTimeDelayedMelodySurface:
+    @mock.patch(
+        "mre.data.time_delayed_melody_surface.get_runs_with_same_name",
+        return_value=None
+    )
+    def test_from_mlflow_no_run(self, mock_run):
+        # GIVEN
+        tdms = TimeDelayedMelodySurface()
+
+        # WHEN; THEN
+        with pytest.raises(ValueError):
+            tdms.from_mlflow(
+                time_delay_index="some_tau",
+                kernel_width="some_kernel_width",
+                compression_exponent="some_exp"
+            )
+        mock_run.assert_called_once()
+
+    def test_from_mlflow(self):
+        # GIVEN
+        tdms = TimeDelayedMelodySurface()
+        mock_runs = pd.DataFrame([
+            {
+                "run_id": "rid1",
+                'tags.kernel_width': "some_kernel_width1",
+                'tags.time_delay_index': "some_tau1",
+                'tags.compression_exponent': "some_exp1"
+            },
+            {
+                "run_id": "rid2",
+                'tags.kernel_width': "some_kernel_width2",
+                'tags.time_delay_index': "some_tau2",
+                'tags.compression_exponent': "some_exp2"
+            }
+        ])
+        artifact_names = ["tdms1" + tdms.FILE_EXTENSION,
+                          "tdms2" + tdms.FILE_EXTENSION]
+
+        # WHEN; THEN
+        mock_list = []
+        mock_calls = []
+        for an in artifact_names:
+            tmp_call = mock.MagicMock()
+            tmp_call.path = an
+            mock_list.append(tmp_call)
+            mock_calls.append(mock.call("rid2", an))
+
+        with mock.patch(
+            "mre.data.time_delayed_melody_surface.get_runs_with_same_name",
+            return_value=mock_runs
+        ):
+            with mock.patch(
+                "mlflow.tracking.MlflowClient.__init__",
+                autospec=True,
+                return_value=None,
+            ):
+                with mock.patch.object(
+                    mlflow.tracking.MlflowClient,
+                    "list_artifacts",
+                    autospec=True,
+                    return_value=mock_list,
+                ):
+                    with mock.patch.object(
+                        mlflow.tracking.MlflowClient, "download_artifacts"
+                    ) as mock_download_artifacts:
+                        _ = tdms.from_mlflow(
+                            time_delay_index="some_tau2",
+                            kernel_width="some_kernel_width2",
+                            compression_exponent="some_exp2"
+                        )
+                        mock_download_artifacts.assert_has_calls(mock_calls)
+
     def test_transform_empty_melody_paths(self):
         # GIVEN
         melody_paths = []

@@ -1,10 +1,11 @@
+import copy
 from unittest import mock
 
 import pytest
 
 import pandas as pd
 import mre
-from pandas.testing import assert_series_equal
+from pandas.testing import assert_series_equal, assert_frame_equal
 
 
 @pytest.fixture
@@ -101,7 +102,9 @@ class TestMlflow:
         mock_run = pd.DataFrame([{"run_id": "rid"}])
 
         # WHEN; THEN
-        with mock.patch("mre.mlflow_common.get_run_by_name", return_value=mock_run):
+        with mock.patch(
+            "mre.mlflow_common.get_runs_with_same_name", return_value=mock_run
+        ):
             with pytest.raises(ValueError):
                 mre.mlflow_common.log(
                     experiment_name=experiment_name,
@@ -127,7 +130,9 @@ class TestMlflow:
         mock_run = pd.DataFrame([{"run_id": "rid"}])
 
         # WHEN; THEN
-        with mock.patch("mre.mlflow_common.get_run_by_name", return_value=mock_run):
+        with mock.patch(
+            "mre.mlflow_common.get_runs_with_same_name", return_value=mock_run
+        ):
             with pytest.raises(ValueError):
                 mre.mlflow_common.log(
                     experiment_name=experiment_name,
@@ -160,7 +165,9 @@ class TestMlflow:
         mock_run = pd.DataFrame([{"run_id": "rid"}])
 
         # WHEN; THEN
-        with mock.patch("mre.mlflow_common.get_run_by_name", return_value=mock_run):
+        with mock.patch(
+            "mre.mlflow_common.get_runs_with_same_name", return_value=mock_run
+        ):
             mre.mlflow_common.log(
                 experiment_name=experiment_name,
                 run_name=run_name,
@@ -245,3 +252,87 @@ class TestMlflow:
 
             mock_mlflow_set_tags.assert_called_once()
             mock_mlflow_log_artifacts.assert_called_once_with(artifact_dir)
+
+    @mock.patch("mre.mlflow_common.logger.warning")
+    def test_get_runs_by_name_no_experiment(self, mock_warning):
+        # GIVEN
+        experiment_name = "exp_name"
+        run_name = "run_name"
+
+        # WHEN
+        with mock.patch(
+            "mlflow.get_experiment_by_name", autospec=True, return_value=None
+        ):
+            result = mre.mlflow_common.get_runs_with_same_name(
+                experiment_name, run_name
+            )
+
+        # THEN
+        mock_warning.assert_called_once()
+        assert result is None
+
+    @mock.patch("mre.mlflow_common.logger.warning")
+    def test_get_runs_by_name_no_run(self, mock_warning, mock_experiment):
+        # GIVEN
+        mock_runs = pd.DataFrame(columns=["run_id"], dtype=object)  # empty
+        experiment_name = "exp_name"
+        run_name = "run_name"
+
+        # WHEN
+        with mock.patch(
+            "mlflow.get_experiment_by_name", autospec=True, return_value=mock_experiment
+        ):
+            with mock.patch(
+                "mlflow.search_runs", autospec=True, return_value=mock_runs
+            ):
+                result = mre.mlflow_common.get_runs_with_same_name(
+                    experiment_name, run_name
+                )
+
+        # THEN
+        mock_warning.assert_called_once()
+        assert result is None
+
+    def test_get_runs_by_name_single_run(self, mock_experiment):
+        # GIVEN
+        mock_run_dict = {"run_id": "rid1"}
+        mock_runs = pd.DataFrame([mock_run_dict])
+        experiment_name = "exp_name"
+        run_name = "run_name"
+
+        # WHEN
+        with mock.patch(
+            "mlflow.get_experiment_by_name", autospec=True, return_value=mock_experiment
+        ):
+            with mock.patch(
+                "mlflow.search_runs", autospec=True, return_value=mock_runs
+            ):
+                result = mre.mlflow_common.get_runs_with_same_name(
+                    experiment_name, run_name
+                )
+
+        # THEN
+        expected = pd.DataFrame([mock_run_dict])
+        assert_frame_equal(result, expected, check_names=False)
+
+    @mock.patch("mre.mlflow_common.logger.warning")
+    def test_get_runs_by_name_multi_runs(self, mock_warning, mock_experiment):
+        # GIVEN
+        mock_runs = pd.DataFrame([{"run_id": "rid1"}, {"run_id": "rid2"}])
+        experiment_name = "exp_name"
+        run_name = "run_name"
+
+        # WHEN
+        with mock.patch(
+            "mlflow.get_experiment_by_name", autospec=True, return_value=mock_experiment
+        ):
+            with mock.patch(
+                "mlflow.search_runs", autospec=True, return_value=mock_runs
+            ):
+                result = mre.mlflow_common.get_runs_with_same_name(
+                    experiment_name, run_name
+                )
+
+        # THEN
+        expected = copy.deepcopy(mock_runs)
+        assert_frame_equal(result, expected, check_names=False)

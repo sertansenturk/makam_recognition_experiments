@@ -3,6 +3,8 @@ import tempfile
 from pathlib import Path
 from typing import Dict, List
 
+import mlflow
+
 import numpy as np
 import pandas as pd
 
@@ -11,6 +13,7 @@ from tqdm import tqdm
 from mre.config import config
 from mre.data.data import Data
 from mre.data.tdms_feature import TDMSFeature
+from mre.mlflow_common import get_runs_with_same_name
 
 logger = logging.Logger(__name__)  # pylint: disable-msg=C0103
 logger.setLevel(logging.INFO)
@@ -43,6 +46,70 @@ class TimeDelayedMelodySurface(Data):
         self.time_delay_index = time_delay_index
         self.compression_exponent = compression_exponent
         self.kernel_width = kernel_width
+
+    @classmethod
+    def from_mlflow(
+        cls,
+        time_delay_index,
+        compression_exponent,
+        kernel_width,
+    ) -> List[str]:
+        """return artifact file paths from the relevant mlflow run. TDMS
+        have many runs with the same name, differentiated by the
+        Returns
+        -------
+        List[Path]
+            path of the artifacts logged in mlflow
+        Raises
+        ------
+        ValueError
+            if the run does not exist
+        """
+        run_id = cls._get_relevant_run_id(
+            time_delay_index,
+            compression_exponent,
+            kernel_width
+        )
+
+        client = mlflow.tracking.MlflowClient()
+        artifacts = client.list_artifacts(run_id)
+        artifact_names = [
+            ff.path for ff in artifacts if ff.path.endswith(cls.FILE_EXTENSION)
+        ]
+
+        artifact_paths = [
+            client.download_artifacts(run_id, an) for an in artifact_names
+        ]
+
+        logger.info("Returning the paths of %d artifacts.", len(artifact_paths))
+
+        return artifact_paths
+
+    @classmethod
+    def _get_relevant_run_id(cls, time_delay_index, compression_exponent, kernel_width):
+        mlflow_runs = get_runs_with_same_name(cls.EXPERIMENT_NAME, cls.RUN_NAME)
+        if mlflow_runs is None:
+            raise ValueError("Artifacts are not logged in mlflow")
+
+        if compression_exponent is None:
+            compression_exponent = 'None'  # mlflow returns None as str
+        if kernel_width is None:
+            kernel_width = 'None'  # mlflow returns None as str
+        relevant_runs = mlflow_runs[
+            (mlflow_runs["tags.time_delay_index"] == time_delay_index) &
+            (mlflow_runs["tags.compression_exponent"] == compression_exponent) &
+            (mlflow_runs["tags.kernel_width"] == kernel_width)
+        ]
+        if len(relevant_runs) == 0:
+            raise ValueError(
+                f"There are no {len(relevant_runs)} for the given TDMS parameters"
+            )
+        if len(relevant_runs) > 1:
+            raise ValueError(
+                f"There are more than 1 ({len(relevant_runs)}) for the given TDMS parameters"
+            )
+
+        return relevant_runs.run_id.iloc[0]
 
     def transform(  # pylint: disable-msg=W0221
         self, melody_paths: List[str], tonic_frequencies: pd.Series

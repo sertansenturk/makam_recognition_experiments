@@ -58,6 +58,42 @@ def get_run_by_name(experiment_name: str, run_name: str) -> pd.Series:
     return None
 
 
+def get_runs_with_same_name(experiment_name: str, run_name: str) -> pd.Series:
+    """Returns multiple mlflow runs metadata from the experiment and run name
+
+    Parameters
+    ----------
+    experiment_name : str
+        mlflow experiment name
+    run_name : str
+        mlflow run name (stored as a mlflow.runName tag)
+
+    Returns
+    -------
+    pd.Series
+        None, if the run does not exist (annotations haven't been logged)
+        run information storing the annotations
+    """
+    # Check if the artifact is logged in mlflow
+    experiment = mlflow.get_experiment_by_name(experiment_name)
+    if experiment is not None:
+        annotation_runs: pd.DataFrame = mlflow.search_runs(
+            experiment_ids=experiment.experiment_id,
+            filter_string=f"tags.mlflow.runName = '{run_name}'",
+        )
+
+        if annotation_runs.empty:
+            logger.warning(
+                "No runs with the name %s in experiment %s", run_name, experiment_name
+            )
+            return None
+
+        return annotation_runs  # pylint: disable-msg=E1101
+
+    logger.warning("Experiment %s does not exist.", experiment_name)
+    return None
+
+
 def log(
     experiment_name: str,
     run_name: str,
@@ -65,10 +101,10 @@ def log(
     tags: Optional[Dict] = None,
     allow_multiple_runs: bool = False,
 ):
-    mlflow_run = get_run_by_name(experiment_name, run_name)
-    if mlflow_run is not None and not allow_multiple_runs:
+    mlflow_runs = get_runs_with_same_name(experiment_name, run_name)
+    if mlflow_runs is not None and not allow_multiple_runs:
         raise ValueError(
-            f"There is already a run for {run_name}:{mlflow_run.run_id}. "
+            f"There is already a run for {run_name}:{set(mlflow_runs.run_id)}. "
             "Overwriting is not permitted. Please delete the run manually if you "
             "want to log the annotations again."
         )
