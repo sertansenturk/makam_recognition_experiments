@@ -99,7 +99,7 @@ class TimeDelayedMelodySurface(Data):
             & (mlflow_runs["tags.kernel_width"] == kernel_width)
         ]
         if len(relevant_runs) == 0:
-            raise ValueError(f"There are no runs for the given TDMS parameters")
+            raise ValueError("There are no runs for the given TDMS parameters")
         if len(relevant_runs) > 1:
             raise ValueError(
                 f"There are more than 1 ({len(relevant_runs)}) for the given TDMS "

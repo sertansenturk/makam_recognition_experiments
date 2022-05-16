@@ -72,7 +72,7 @@ class StratifiedShuffleCV(CrossValidator):
 
         num_test_samples_per_class = pd.Series(dataset.y[test_idx]).value_counts()
         assert (num_test_samples_per_class == num_test_samples_per_class[0]).all()
-        logging.debug(f"test_len: {len(test_idx)}")
+        logging.debug("test_len: %d", len(test_idx))
 
         clf = GridSearchCV(
             estimator=architecture.estimator,
@@ -154,15 +154,17 @@ class StratifiedShuffleCV(CrossValidator):
 
         return train_scores, validation_scores
 
-    def _compute_roc_auc_score(self, trial_result):
-        roc_auc_score(
+    @staticmethod
+    def _compute_roc_auc_score(trial_result):
+        return roc_auc_score(
             trial_result["test_labels"],
             trial_result["test_predicted_probs"]["probs"],
             multi_class="ovr",  # balance dataset, so doesn't matter
             labels=trial_result["estimator"].classes_,
         )
 
-    def _compute_confusion_matrix(self, trial_result):
+    @staticmethod
+    def _compute_confusion_matrix(trial_result):
         return pd.DataFrame(
             confusion_matrix(
                 trial_result["test_labels"],
