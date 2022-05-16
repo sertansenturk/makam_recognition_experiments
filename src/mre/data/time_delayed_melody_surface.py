@@ -66,9 +66,7 @@ class TimeDelayedMelodySurface(Data):
             if the run does not exist
         """
         run_id = cls._get_relevant_run_id(
-            time_delay_index,
-            compression_exponent,
-            kernel_width
+            time_delay_index, compression_exponent, kernel_width
         )
 
         client = mlflow.tracking.MlflowClient()
@@ -91,22 +89,21 @@ class TimeDelayedMelodySurface(Data):
         if mlflow_runs is None:
             raise ValueError("Artifacts are not logged in mlflow")
 
-        if compression_exponent is None:
-            compression_exponent = 'None'  # mlflow returns None as str
-        if kernel_width is None:
-            kernel_width = 'None'  # mlflow returns None as str
+        # mlflow stores everything as str
+        time_delay_index = str(time_delay_index)
+        compression_exponent = str(compression_exponent)
+        kernel_width = str(kernel_width)
         relevant_runs = mlflow_runs[
-            (mlflow_runs["tags.time_delay_index"] == time_delay_index) &
-            (mlflow_runs["tags.compression_exponent"] == compression_exponent) &
-            (mlflow_runs["tags.kernel_width"] == kernel_width)
+            (mlflow_runs["tags.time_delay_index"] == time_delay_index)
+            & (mlflow_runs["tags.compression_exponent"] == compression_exponent)
+            & (mlflow_runs["tags.kernel_width"] == kernel_width)
         ]
         if len(relevant_runs) == 0:
-            raise ValueError(
-                f"There are no {len(relevant_runs)} for the given TDMS parameters"
-            )
+            raise ValueError(f"There are no runs for the given TDMS parameters")
         if len(relevant_runs) > 1:
             raise ValueError(
-                f"There are more than 1 ({len(relevant_runs)}) for the given TDMS parameters"
+                f"There are more than 1 ({len(relevant_runs)}) for the given TDMS "
+                "parameters"
             )
 
         return relevant_runs.run_id.iloc[0]

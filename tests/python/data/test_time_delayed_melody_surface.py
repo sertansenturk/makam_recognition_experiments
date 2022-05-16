@@ -29,7 +29,7 @@ def mock_experiment(scope="session") -> mock.MagicMock:
 class TestTimeDelayedMelodySurface:
     @mock.patch(
         "mre.data.time_delayed_melody_surface.get_runs_with_same_name",
-        return_value=None
+        return_value=None,
     )
     def test_from_mlflow_no_run(self, mock_run):
         # GIVEN
@@ -40,29 +40,30 @@ class TestTimeDelayedMelodySurface:
             tdms.from_mlflow(
                 time_delay_index="some_tau",
                 kernel_width="some_kernel_width",
-                compression_exponent="some_exp"
+                compression_exponent="some_exp",
             )
         mock_run.assert_called_once()
 
     def test_from_mlflow(self):
         # GIVEN
         tdms = TimeDelayedMelodySurface()
-        mock_runs = pd.DataFrame([
-            {
-                "run_id": "rid1",
-                'tags.kernel_width': "some_kernel_width1",
-                'tags.time_delay_index': "some_tau1",
-                'tags.compression_exponent': "some_exp1"
-            },
-            {
-                "run_id": "rid2",
-                'tags.kernel_width': "some_kernel_width2",
-                'tags.time_delay_index': "some_tau2",
-                'tags.compression_exponent': "some_exp2"
-            }
-        ])
-        artifact_names = ["tdms1" + tdms.FILE_EXTENSION,
-                          "tdms2" + tdms.FILE_EXTENSION]
+        mock_runs = pd.DataFrame(
+            [
+                {
+                    "run_id": "rid1",
+                    "tags.kernel_width": "some_kernel_width1",
+                    "tags.time_delay_index": "some_tau1",
+                    "tags.compression_exponent": "some_exp1",
+                },
+                {
+                    "run_id": "rid2",
+                    "tags.kernel_width": "some_kernel_width2",
+                    "tags.time_delay_index": "some_tau2",
+                    "tags.compression_exponent": "some_exp2",
+                },
+            ]
+        )
+        artifact_names = ["tdms1" + tdms.FILE_EXTENSION, "tdms2" + tdms.FILE_EXTENSION]
 
         # WHEN; THEN
         mock_list = []
@@ -75,7 +76,7 @@ class TestTimeDelayedMelodySurface:
 
         with mock.patch(
             "mre.data.time_delayed_melody_surface.get_runs_with_same_name",
-            return_value=mock_runs
+            return_value=mock_runs,
         ):
             with mock.patch(
                 "mlflow.tracking.MlflowClient.__init__",
@@ -94,7 +95,7 @@ class TestTimeDelayedMelodySurface:
                         _ = tdms.from_mlflow(
                             time_delay_index="some_tau2",
                             kernel_width="some_kernel_width2",
-                            compression_exponent="some_exp2"
+                            compression_exponent="some_exp2",
                         )
                         mock_download_artifacts.assert_has_calls(mock_calls)
 
