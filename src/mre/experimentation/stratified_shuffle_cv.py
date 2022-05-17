@@ -212,7 +212,6 @@ class StratifiedShuffleCV(CrossValidator):
         ax = sns.heatmap(
             conf_mat,
             annot=True,
-            # annot_kws={"size": 16},
             xticklabels=3,
             cbar=False,
             linewidths=0.5,
