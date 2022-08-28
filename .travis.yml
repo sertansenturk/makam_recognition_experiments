@@ -30,11 +30,11 @@ jobs:
         - codecov # submit coverage to https://codecov.io/gh/sertansenturk/makam_recognition_experiments/
       env: TOX_PYTHON_ENV=py37
 before_install:
+  - pip freeze
+  - docker --version
   - pwd
   - ls -la
   - id
-  - docker --version | cat
-  - pip freeze | cat
 install:
   - 
 before_script:
