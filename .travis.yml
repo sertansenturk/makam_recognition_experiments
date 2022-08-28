@@ -33,8 +33,8 @@ before_install:
   - pwd
   - ls -la
   - id
-  - docker --version
-  - pip freeze
+  - docker --version | cat
+  - pip freeze | cat
 install:
   - 
 before_script:
